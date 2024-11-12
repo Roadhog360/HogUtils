@@ -2,7 +2,6 @@
 
 plugins {
     id 'com.gtnewhorizons.gtnhconvention'
-    id 'com.palantir.git-version'
 }
 
 // The planned name of the next release
@@ -11,11 +10,14 @@ def NEXT_VERSION = ext.modVersion
 // Append to the version as needed. If the variables look a bit strange, that's because they are -
 // git-version doesn't expose a ton of useful functions, we need to extract them indirectly.
 
+def details = versionDetails()
+
 // If we have a clean tag (or manually specified), this is a production release.
 // No need for the commit hash!
-def details = versionDetails()
 def isPlainTag = details.getCommitDistance() == 0 && details.getLastTag().isEmpty()
-boolean noCommitHash = providers.gradleProperty("noCommitHash").isPresent() || details.gitHash.isEmpty()
+
+// If we didn't ask for the commit hash, don't put it there. If the GitHash is empty (no Git repo?) then this is true.
+boolean noCommitHash = (providers.gradleProperty("noCommitHash").isPresent() || details.gitHash.isEmpty()) && !ext.modVersion.isEmpty()
 if (!isPlainTag && !noCommitHash) {
     if(!NEXT_VERSION.isEmpty()) {
         NEXT_VERSION += "-"
@@ -31,6 +33,12 @@ if (isDirty && !noCommitHash) {
 
 //Set the mod and jar version to the info we just collected.
 version = NEXT_VERSION
+
+//If version is blank we'll use the above version instead.
+if(ext.modVersion.isEmpty()) {
+    ext.modVersion = NEXT_VERSION
+}
+
 
 minecraft {
     //Creates a tag in Tags with the above generated mod version, instead of the "clean" one

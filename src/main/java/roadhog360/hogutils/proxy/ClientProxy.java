@@ -1,4 +1,4 @@
-package roadhog360.hogutils;
+package roadhog360.hogutils.proxy;
 
 public class ClientProxy extends CommonProxy {
 
