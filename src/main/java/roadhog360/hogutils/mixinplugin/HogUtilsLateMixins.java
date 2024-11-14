@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 @LateMixin
-public class SimpleSkinBackportLateMixins implements ILateMixinLoader {
+public class HogUtilsLateMixins implements ILateMixinLoader {
 
     public static final MixinEnvironment.Side SIDE = MixinEnvironment.getCurrentEnvironment().getSide();
 

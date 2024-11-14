@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class SimpleSkinBackportEarlyMixins implements IFMLLoadingPlugin, IEarlyMixinLoader {
+public class HogUtilsEarlyMixins implements IFMLLoadingPlugin, IEarlyMixinLoader {
 
     public static final MixinEnvironment.Side SIDE = MixinEnvironment.getCurrentEnvironment().getSide();
 
@@ -29,7 +29,7 @@ public class SimpleSkinBackportEarlyMixins implements IFMLLoadingPlugin, IEarlyM
 //        }
 
         List<String> mixins = new ArrayList<>();
-//        mixins.add("sample1");
+        mixins.add("hogtags.MixinOreDictionary");
         if (SIDE == MixinEnvironment.Side.CLIENT) {
 //            mixins.add("sample2");
         }
