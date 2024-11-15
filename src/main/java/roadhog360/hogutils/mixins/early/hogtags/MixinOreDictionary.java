@@ -9,15 +9,12 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import roadhog360.hogutils.api.hogtags.HogTags;
 
-import java.util.Arrays;
-import java.util.Set;
-
 @Mixin(OreDictionary.class)
 public class MixinOreDictionary {
 
     @Inject(method = "registerOreImpl", remap = false,
         at = @At(value = "INVOKE", target = "Lnet/minecraftforge/oredict/OreDictionary;getOreID(Ljava/lang/String;)I"))
-    private static void registerTag(String name, ItemStack ore, CallbackInfo ci) {
+    private static void registerTags(String name, ItemStack ore, CallbackInfo ci) {
         String[] tags = HogTags.Utils.convertOreDictTag(name, false).toArray(new String[]{});
         if(tags.length > 0) {
             HogTags.addTagsToBlockOrItem(ore.getItem(), ore.getItemDamage(), tags);

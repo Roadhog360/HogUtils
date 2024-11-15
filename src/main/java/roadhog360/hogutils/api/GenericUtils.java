@@ -2,10 +2,15 @@ package roadhog360.hogutils.api;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.ItemDye;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import org.apache.commons.lang3.ArrayUtils;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 public final class GenericUtils {
 
@@ -53,5 +58,34 @@ public final class GenericUtils {
     /// Returns -1 if none exist.
     public static int indexOfLastCapitalLetter(String str) {
         return str.length() - 1 - indexOfFirstCapitalLetter(new StringBuilder(str).reverse().toString());
+    }
+
+    public static boolean anyStartsWith(String match, Collection<String> collection) {
+        return collection.stream().anyMatch(s -> s.startsWith(match));
+    }
+
+    public static boolean anyEndsWith(String match, Collection<String> collection) {
+        return collection.stream().anyMatch(s -> s.endsWith(match));
+    }
+
+    public static boolean anyContains(String match, Collection<String> collection) {
+        return collection.stream().anyMatch(s -> s.contains(match));
+    }
+
+    public static class Constants {
+        public static final String[] COLORS_SNAKE_CASE = ItemDye.field_150921_b;
+        /// Used by the OreDictionary
+        public static final String[] COLORS_CAMEL_CASE = ItemDye.field_150923_a;
+        // Difference is just "lightGray" instead of "silver"
+        public static final String[] MODERN_COLORS_SNAKE_CASE;
+        // Difference is just "light_gray" instead of "silver"
+        public static final String[] MODERN_COLORS_CAMEL_CASE;
+        static {
+            MODERN_COLORS_SNAKE_CASE = Arrays.copyOf(COLORS_SNAKE_CASE, 16);
+            MODERN_COLORS_SNAKE_CASE[7] = "light_gray";
+
+            MODERN_COLORS_CAMEL_CASE = Arrays.copyOf(COLORS_CAMEL_CASE, 16);
+            MODERN_COLORS_CAMEL_CASE[7] = "lightGray";
+        }
     }
 }
