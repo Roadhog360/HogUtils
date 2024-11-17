@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import cpw.mods.fml.common.Loader;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockSlab;
 import net.minecraft.item.Item;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.oredict.OreDictionary;
@@ -14,7 +15,6 @@ import roadhog360.hogutils.api.GenericUtils;
 import roadhog360.hogutils.api.RegistryMapping;
 import roadhog360.hogutils.api.hogtags.event.OreDictionaryToTagStringEvent;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,40 +27,14 @@ public final class HogTags {
 
     private HogTags() {}
 
-    /**
-     * Only use this if you've modified/mixin'd the registry to add your own custom taggable thing (unsupported)
-     */
+    /// Only use this if you've modified the registry to add your own custom taggable thing (unsupported)
     public static <E> void addTagsToObject(E objToTag, String... tags) {
         HogTagsRegistry.addTagsToObject(objToTag, tags);
     }
 
-    /**
-     * Only use this if you've modified/mixin'd the registry to add your own custom taggable thing (unsupported)
-     */
+    /// Only use this if you've modified the registry to add your own custom taggable thing (unsupported)
     public static <E> void removeTagsFromObject(E objToTag, String... tags) {
         HogTagsRegistry.removeTagsFromObject(objToTag, tags);
-    }
-
-    /**
-     * Adds the following tags to the specified block or item.
-     */
-    public static <E> void addTagsToBlockOrItem(E object, int meta, String... tags) {
-        addTagsToObject(new RegistryMapping<>(object, meta, false), tags);
-    }
-
-    public static <E> void addTagsToBlockOrItem(E object, String... tags) {
-        addTagsToBlockOrItem(object, OreDictionary.WILDCARD_VALUE, tags);
-    }
-
-    /**
-     * Removes the following tags to the specified block or item.
-     */
-    public static <E> void removeTagsFromBlockOrItem(E object, int meta, String... tags) {
-        removeTagsFromObject(RegistryMapping.getKeyFor(object, meta, false), tags);
-    }
-
-    public static <E> void removeTagsFromBlockOrItem(E object, String... tags) {
-        removeTagsFromBlockOrItem(object, OreDictionary.WILDCARD_VALUE, tags);
     }
 
     /**
@@ -73,9 +47,9 @@ public final class HogTags {
     public static void addTagsToBlockAndItem(Block object, int meta, String... tags) {
         Item item = Item.getItemFromBlock(object);
         if(item != null) {
-            addTagsToBlockOrItem(item, meta, tags);
+            ItemTags.addTagsToItem(item, meta, tags);
         }
-        addTagsToBlockOrItem(object, item != null && item.getHasSubtypes() ? meta : OreDictionary.WILDCARD_VALUE, tags);
+        BlockTags.addTagsToBlock(object, item != null && item.getHasSubtypes() ? meta : OreDictionary.WILDCARD_VALUE, tags);
     }
 
 
@@ -90,17 +64,6 @@ public final class HogTags {
         addTagsToBlockAndItem(object, OreDictionary.WILDCARD_VALUE, tags);
     }
 
-    public static void addTagsForLog(Block log, int meta, String... tags) {
-        Item logItem = Item.getItemFromBlock(log);
-        if(logItem != null) {
-            addTagsToBlockOrItem(logItem, meta, tags);
-        }
-        addTagsToBlockOrItem(log, meta, tags);
-        addTagsToBlockOrItem(log, meta + 4, tags);
-        addTagsToBlockOrItem(log, meta + 8, tags);
-        addTagsToBlockOrItem(log, meta + 12, tags);
-    }
-
     /**
      * Removes the following tags to both the block and its item too.
      * Probably doesn't work for pre-init so don't put this in your block's constructor.
@@ -111,9 +74,9 @@ public final class HogTags {
     public static void removeTagsFromBlockAndItem(Block object, int meta, String... tags) {
         Item item = Item.getItemFromBlock(object);
         if(item != null) {
-            removeTagsFromBlockOrItem(item, meta, tags);
+            ItemTags.removeTagsFromItem(item, meta, tags);
         }
-        removeTagsFromBlockOrItem(object, item != null && item.getHasSubtypes() ? meta : OreDictionary.WILDCARD_VALUE, tags);
+        BlockTags.removeTagsFromBlock(object, item != null && item.getHasSubtypes() ? meta : OreDictionary.WILDCARD_VALUE, tags);
     }
 
 
@@ -126,64 +89,155 @@ public final class HogTags {
         removeTagsFromBlockAndItem(object, OreDictionary.WILDCARD_VALUE, tags);
     }
 
-    public static void removeTagsFromLog(Block log, int meta, String... tags) {
-        Item logItem = Item.getItemFromBlock(log);
-        if(logItem != null) {
-            removeTagsFromBlockOrItem(logItem, meta, tags);
+    public static class ItemTags {
+        /// Adds the following tags to the specified item.
+        public static void addTagsToItem(Item object, int meta, String... tags) {
+            addTagsToObject(RegistryMapping.of(object, meta, false), tags);
         }
-        removeTagsFromBlockOrItem(log, meta, tags);
-        removeTagsFromBlockOrItem(log, meta + 4, tags);
-        removeTagsFromBlockOrItem(log, meta + 8, tags);
-        removeTagsFromBlockOrItem(log, meta + 12, tags);
-    }
 
-    /// Get the tags for the passed in block or item. You can pass in a Block's ItemBlock, too.
-    /// (Typically obtained through Item#getItemFromBlock)
-    ///
-    /// Returns a new list independent of the ones in the registry,
-    /// the objects returned may be mutated freely without making your own list to put them in for mutation.
-    public static <E> Set<String> getTagsForBlockOrItem(E block, int meta) {
-        Set<String> set = Sets.newLinkedHashSet();
-        if(meta != OreDictionary.WILDCARD_VALUE) {
-            set.addAll(HogTagsRegistry.getTagsFromObject(RegistryMapping.getKeyFor(block, OreDictionary.WILDCARD_VALUE, false)));
+        public static void addTagsToItem(Item object, String... tags) {
+            addTagsToItem(object, OreDictionary.WILDCARD_VALUE, tags);
         }
-        set.addAll(HogTagsRegistry.getTagsFromObject(RegistryMapping.getKeyFor(block, meta, false)));
-        return set;
+
+        /// Removes the following tags to the specified item.
+        public static void removeTagsFromItem(Item object, int meta, String... tags) {
+            removeTagsFromObject(RegistryMapping.of(object, meta, false), tags);
+        }
+
+        public static void removeTagsFromItem(Item object, String... tags) {
+            removeTagsFromItem(object, OreDictionary.WILDCARD_VALUE, tags);
+        }
+
+        /// Get the tags for the passed in item. You can pass in a Block's ItemBlock, too.
+        /// (Typically obtained through Item#getItemFromBlock)
+        ///
+        /// Returns a new list independent of the ones in the registry,
+        /// thItem objects returned may be mutated freely without making your own list to put them in for mutation.
+        public static Set<String> getTagsForItem(Item block, int meta) {
+            Set<String> set = Sets.newLinkedHashSet();
+            if(meta != OreDictionary.WILDCARD_VALUE) {
+                set.addAll(HogTagsRegistry.getTagsFromObject(RegistryMapping.of(block, OreDictionary.WILDCARD_VALUE, false)));
+            }
+            set.addAll(HogTagsRegistry.getTagsFromObject(RegistryMapping.of(block, meta, false)));
+            return set;
+        }
+
+        /// Get the blocks for the passed in tag.
+        /// (Typically obtained through Item#getItemFromBlock)
+        ///
+        /// Returns a new list independent of the ones in the registry,
+        /// thItem objects returned may be mutated freely without making your own list to put them in for mutation.
+        ///
+        /// Not complete, doesn't support wildcarded tags properly.
+        public static Set<RegistryMapping<Item>> getItemsInTag(String tag) {
+            return Sets.newLinkedHashSet(HogTagsRegistry.getItemsInTag(tag));
+        }
     }
 
-    public static Set<Block> getBlocksInTag(String tag) {
-        return Collections.unmodifiableSet(HogTagsRegistry.getBlocksInTag(tag));
-    }
+    public static class BlockTags {
+        /// Adds the following tags to the specified block.
+        public static void addTagsToBlock(Block object, int meta, String... tags) {
+            addTagsToObject(RegistryMapping.of(object, meta, false), tags);
+        }
 
-    public static Set<Item> getItemsInTag(String tag) {
-        return Collections.unmodifiableSet(HogTagsRegistry.getItemsInTag(tag));
+        public static void addTagsToBlock(Block object, String... tags) {
+            addTagsToBlock(object, OreDictionary.WILDCARD_VALUE, tags);
+        }
+
+        /// Removes the following tags to the specified block.
+        public static void removeTagsFromBlock(Block object, int meta, String... tags) {
+            removeTagsFromObject(RegistryMapping.of(object, meta, false), tags);
+        }
+
+        public static void removeTagsFromBlock(Block object, String... tags) {
+            removeTagsFromBlock(object, OreDictionary.WILDCARD_VALUE, tags);
+        }
+
+        public static void addTagsToLog(Block log, int meta, String... tags) {
+            Item logItem = Item.getItemFromBlock(log);
+            if(logItem != null) {
+                ItemTags.addTagsToItem(logItem, meta, tags);
+            }
+            addTagsToBlock(log, meta, tags);
+            addTagsToBlock(log, meta + 4, tags);
+            addTagsToBlock(log, meta + 8, tags);
+            addTagsToBlock(log, meta + 12, tags);
+        }
+
+        public static void removeTagsFromLog(Block log, int meta, String... tags) {
+            Item logItem = Item.getItemFromBlock(log);
+            if(logItem != null) {
+                ItemTags.removeTagsFromItem(logItem, meta, tags);
+            }
+            removeTagsFromBlock(log, meta, tags);
+            removeTagsFromBlock(log, meta + 4, tags);
+            removeTagsFromBlock(log, meta + 8, tags);
+            removeTagsFromBlock(log, meta + 12, tags);
+        }
+
+        /// Get the tags for the passed in block. You can pass in a Block's ItemBlock, too.
+        /// (Typically obtained through Item#getItemFromBlock)
+        ///
+        /// Returns a new list independent of the ones in the registry,
+        /// thBlock objects returned may be mutated freely without making your own list to put them in for mutation.
+        public static Set<String> getTagsForBlock(Block block, int meta) {
+            Set<String> set = Sets.newLinkedHashSet();
+            if(meta != OreDictionary.WILDCARD_VALUE) {
+                set.addAll(HogTagsRegistry.getTagsFromObject(RegistryMapping.of(block, OreDictionary.WILDCARD_VALUE, false)));
+            }
+            set.addAll(HogTagsRegistry.getTagsFromObject(RegistryMapping.of(block, meta, false)));
+            return set;
+        }
+
+        /// Get the items for the passed in tag.
+        /// (Typically obtained through Item#getItemFromBlock)
+        ///
+        /// Returns a new list independent of the ones in the registry,
+        /// thBlock objects returned may be mutated freely without making your own list to put them in for mutation.
+        ///
+        /// Not complete, doesn't support wildcarded tags properly.
+        public static Set<RegistryMapping<Block>> getBlocksInTag(String tag) {
+            Set<RegistryMapping<Block>> set = Sets.newLinkedHashSet(HogTagsRegistry.getBlocksInTag(tag));
+//            //Fetch unique wildcard entries from the list and add them to the list.
+//            Set<Block> wildcardedBlocks = Sets.newLinkedHashSet();
+//            for(RegistryMapping<Block> block : set) {
+//                if(block.getMeta() != OreDictionary.WILDCARD_VALUE && !wildcardedBlocks.contains(block.getObject())) {
+//
+//                }
+//            }
+//            for(Block wildcardBlock : wildcardedBlocks) {
+//                set.addAll(getBlocksInTag());
+//            }
+            return set;
+        }
     }
 
     public static class Utils {
+        private static ThreadLocal<Boolean> noReverseLookupRecursion = ThreadLocal.withInitial(() -> false);
 
-        public static String applyFiltersToTag(String tag) {
-            if(tag == null || tag.isEmpty() || tag.equals("#")) {
-                throw new RuntimeException("Cannot add empty tag (or just \"#\") to the tags registry!");
-            }
-
-            //Sanity checks passed, let's do some filtering
-
-            if(tag.startsWith("#")) {
-                tag = tag.substring(1);
-            }
-            if(!tag.contains(":")) {
-                try {
-                    tag = Loader.instance().activeModContainer().getModId() + ":" + tag;
-                } catch (Exception e) { //This could also happen if there's an error in the OreDictionary auto-tagging system, since that'd return an invalid mod container.
-                    throw new RuntimeException("Could not determine mod id for unprefixed tag " + tag + "!" +
-                        "\nThis could be for several reasons, sometimes Forge's mod container fetcher just doesn't work, your code could be called from mixin'd vanilla code, etc..." +
-                        "\nIt's good practice to just add a mod prefix to your tags. Do that please...");
+        public static void applyFiltersToTags(String... tags) {
+            for(int i = 0; i < tags.length; i++) {
+                String tag = tags[i];
+                if (tag == null || tag.isEmpty() || tag.equals("#")) {
+                    throw new RuntimeException("Cannot pass in empty tag (or just \"#\") to the tags registry!");
                 }
+                //Sanity checks passed, let's do some filtering
+
+                if (tag.startsWith("#")) {
+                    tag = tag.substring(1);
+                }
+                if (!tag.contains(":")) {
+                    try {
+                        tag = Loader.instance().activeModContainer().getModId() + ":" + tag;
+                    } catch (
+                        Exception e) { //This could also happen if there's an error in the OreDictionary auto-tagging system, since that'd return an invalid mod container.
+                        throw new RuntimeException("Could not determine mod id for unprefixed tag " + tag + "!" +
+                            "\nThis could be for several reasons, sometimes Forge's mod container fetcher just doesn't work, your code could be called from mixin'd vanilla code, etc..." +
+                            "\nIt's good practice to just add a mod prefix to your tags. Do that please...");
+                    }
+                }
+                tags[i] = tag.intern();
             }
-
-            //TODO Maybe make this force common standard? Would require a rather large map, sounds annoying...
-
-            return tag;
         }
 
         /// Map for prefix-based replacements. E.G. oreIron becomes `c:ores/iron`
@@ -229,7 +283,7 @@ public final class HogTags {
         /// Pass in the last boolean as `TRUE` if you want it to return a generic tag in place, for example `someRandomTag` would become `ore_dictionary:some_random_tag` instead of returning an empty list.
         /// If the boolean is `FALSE`, tags not eligible to convert will not be added to the list, meaning the list would become empty.
         /// See the maps this uses for more info on how they're being used. Instead of using the event, you may also add your own dynamic filters to the static maps, if you wish.
-        public static Set<String> convertOreDictTag(String oreDict, boolean returnsGenericTag) {
+        public static Set<String> convertOreDictToTags(String oreDict, boolean returnsGenericTag) {
             Set<String> tags = Sets.newLinkedHashSet();
 
             //The below implementations originally used the indexes of the first/last capital letters to determine where to truncate the string
@@ -239,7 +293,7 @@ public final class HogTags {
                 tags.add("c:dyes");
             } else if (oreDict.startsWith("dye")) {
                 //De-capitalize first letter to use in contains check
-                String dye = String.valueOf(oreDict.charAt(0)).toLowerCase() + oreDict.substring(1);
+                String dye = String.valueOf(oreDict.charAt(3)).toLowerCase() + oreDict.substring(4);
                 int dyeID = ArrayUtils.indexOf(GenericUtils.Constants.MODERN_COLORS_CAMEL_CASE, dye);
                 if(dyeID > -1) {
                     tags.add("c:dyes/" + CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, GenericUtils.Constants.MODERN_COLORS_SNAKE_CASE[dyeID]));

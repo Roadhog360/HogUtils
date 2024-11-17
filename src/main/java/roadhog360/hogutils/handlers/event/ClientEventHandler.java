@@ -27,7 +27,7 @@ public class ClientEventHandler {
             if (mop != null) {
                 Block lookingBlock = FMLClientHandler.instance().getWorldClient().getBlock(mop.blockX, mop.blockY, mop.blockZ);
                 int lookingMeta = FMLClientHandler.instance().getWorldClient().getBlockMetadata(mop.blockX, mop.blockY, mop.blockZ);
-                Set<String> tags = HogTags.getTagsForBlockOrItem(lookingBlock, lookingMeta);
+                Set<String> tags = HogTags.BlockTags.getTagsForBlock(lookingBlock, lookingMeta);
 
                 if(!tags.isEmpty()) {
                     event.right.add(null);
@@ -42,8 +42,8 @@ public class ClientEventHandler {
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void injectHogTagsTooltip(ItemTooltipEvent event) {
-        if (event.showAdvancedItemTooltips) {
-            Set<String> tags = HogTags.getTagsForBlockOrItem(event.itemStack.getItem(), event.itemStack.getItemDamage());
+        if (event.showAdvancedItemTooltips && event.itemStack != null) {
+            Set<String> tags = HogTags.ItemTags.getTagsForItem(event.itemStack.getItem(), event.itemStack.getItemDamage());
             if(!tags.isEmpty()) {
                 if (GuiContainer.isCtrlKeyDown()) {
                     event.toolTip.add("\u00a78HogTags:");

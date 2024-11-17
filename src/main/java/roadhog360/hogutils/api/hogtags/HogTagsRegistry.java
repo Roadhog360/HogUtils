@@ -46,9 +46,6 @@ public final class HogTagsRegistry {
 
     @SuppressWarnings("unchecked")
     static <E> void addTagsToObject(E objToTag, String... tags) {
-        if(objToTag instanceof RegistryMapping registryMapping && RegistryMapping.isKeyInstance(registryMapping)) {
-            throw new RuntimeException("Cannot insert global key instance into the tags map!");
-        }
         getTagContainerForObject(objToTag).putTags(objToTag, tags);
     }
 
@@ -59,7 +56,7 @@ public final class HogTagsRegistry {
 
     @SuppressWarnings("unchecked")
     static <E> Set<String> getTagsFromObject(E taggedObj) {
-        return (Set<String>) getTagContainerForObject(taggedObj).OBJECT_TO_TAGS.getOrDefault(taggedObj, Collections.EMPTY_SET);
+        return (Set<String>) getTagContainerForObject(taggedObj).OBJECT_TO_TAGS.getOrDefault(taggedObj, Sets.newLinkedHashSet());
     }
 
     //Helper functions for getting object list from tags here.
@@ -67,14 +64,12 @@ public final class HogTagsRegistry {
     //Tags are not unique and multiple registries (mainly item and block registries) can have the same tags in them.
     //So... we can't detect that way either.
 
-    @SuppressWarnings("unchecked")
-    static Set<Block> getBlocksInTag(String tag) {
-        return BLOCK_TAGS.TAG_TO_OBJECTS.getOrDefault(tag, Collections.EMPTY_SET);
+    static Set<RegistryMapping<Block>> getBlocksInTag(String tag) {
+        return BLOCK_TAGS.TAG_TO_OBJECTS.getOrDefault(tag, Sets.newLinkedHashSet());
     }
 
-    @SuppressWarnings("unchecked")
-    static Set<Item> getItemsInTag(String tag) {
-        return ITEM_TAGS.TAG_TO_OBJECTS.getOrDefault(tag, Collections.EMPTY_SET);
+    static Set<RegistryMapping<Item>> getItemsInTag(String tag) {
+        return ITEM_TAGS.TAG_TO_OBJECTS.getOrDefault(tag, Sets.newLinkedHashSet());
     }
 
 //    @SuppressWarnings("unchecked")
@@ -91,9 +86,7 @@ public final class HogTagsRegistry {
 
         private void putTags(E objToTag, String... tags) {
             //Run tag filters
-            for(int i = 0; i < tags.length; i++) {
-                tags[i] = HogTags.Utils.applyFiltersToTag(tags[i]);
-            }
+            HogTags.Utils.applyFiltersToTags(tags);
             Set<String> filteredTags = Sets.newLinkedHashSet(Lists.newArrayList(tags)); //Removes duplicate entries
 
             //Add the tags to the object > tag list lookup
@@ -110,22 +103,12 @@ public final class HogTagsRegistry {
         }
 
         private void removeTags(E objToUntag, String... tags) {
+            HogTags.Utils.applyFiltersToTags(tags);
             Set<String> tagsInObject = OBJECT_TO_TAGS.get(objToUntag);
             for(String tag : tags) {
                 tagsInObject.remove(tag);
                 TAG_TO_OBJECTS.get(tag).remove(objToUntag);
-//                if(TAG_TO_OBJECTS.get(tag).isEmpty()) {
-//                    //If tag is empty, remove it from the map. (Do we actually need to do this?)
-//                    //Maybe leaving the empty list in the map is fine. TODO Should we uncomment this?
-//                    TAG_TO_OBJECTS.remove(tag);
-//                }
-
             }
-//            if(tagsInObject.isEmpty()) {
-//                //If tag is empty, remove it from the map. (Do we actually need to do this?)
-//                //Maybe leaving the empty list in the map is fine. TODO Should we uncomment this?
-//                OBJECT_TO_TAGS.remove(objToUntag);
-//            }
 
             //I think inheritor logic would go here. Should just recursively call this method. MAKE SURE THERE'S RECURSION SANITY LOL
         }

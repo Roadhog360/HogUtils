@@ -15,12 +15,12 @@ public class MixinOreDictionary {
     @Inject(method = "registerOreImpl", remap = false,
         at = @At(value = "INVOKE", target = "Lnet/minecraftforge/oredict/OreDictionary;getOreID(Ljava/lang/String;)I"))
     private static void registerTags(String name, ItemStack ore, CallbackInfo ci) {
-        String[] tags = HogTags.Utils.convertOreDictTag(name, false).toArray(new String[]{});
+        String[] tags = HogTags.Utils.convertOreDictToTags(name, false).toArray(new String[]{});
         if(tags.length > 0) {
-            HogTags.addTagsToBlockOrItem(ore.getItem(), ore.getItemDamage(), tags);
+            HogTags.ItemTags.addTagsToItem(ore.getItem(), ore.getItemDamage(), tags);
             Block block = Block.getBlockFromItem(ore.getItem());
             if (block != null) {
-                HogTags.addTagsToBlockOrItem(block, ore.getHasSubtypes() ? ore.getItemDamage() : OreDictionary.WILDCARD_VALUE, tags);
+                HogTags.BlockTags.addTagsToBlock(block, ore.getHasSubtypes() ? ore.getItemDamage() : OreDictionary.WILDCARD_VALUE, tags);
             }
         }
     }
