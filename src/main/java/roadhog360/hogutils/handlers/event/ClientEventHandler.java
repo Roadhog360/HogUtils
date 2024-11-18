@@ -8,8 +8,9 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
-import roadhog360.hogutils.api.GenericUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import roadhog360.hogutils.api.hogtags.HogTags;
+import roadhog360.hogutils.api.utils.GenericUtils;
 
 import java.util.Set;
 
@@ -22,11 +23,12 @@ public class ClientEventHandler {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void injectHogTagsDisplay(RenderGameOverlayEvent.Text event) {
         if (FMLClientHandler.instance().getClient().gameSettings.showDebugInfo) {
-            MovingObjectPosition mop = GenericUtils.getMovingObjectPositionFromPlayer(
+            MovingObjectPosition mop = GenericUtils.getMovingObjectPositionFromEntity(
                 FMLClientHandler.instance().getWorldClient(), FMLClientHandler.instance().getClientPlayerEntity(), false);
-            if (mop != null) {
-                Block lookingBlock = FMLClientHandler.instance().getWorldClient().getBlock(mop.blockX, mop.blockY, mop.blockZ);
-                int lookingMeta = FMLClientHandler.instance().getWorldClient().getBlockMetadata(mop.blockX, mop.blockY, mop.blockZ);
+            if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
+                Pair<Block, Integer> blockAndMeta = GenericUtils.getBlockAndMetaFromMOP(null, mop);
+                Block lookingBlock = blockAndMeta.getLeft();
+                int lookingMeta = blockAndMeta.getRight();
                 Set<String> tags = HogTags.BlockTags.getTagsForBlock(lookingBlock, lookingMeta);
 
                 if(!tags.isEmpty()) {

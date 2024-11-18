@@ -5,13 +5,12 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import cpw.mods.fml.common.Loader;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockSlab;
 import net.minecraft.item.Item;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import roadhog360.hogutils.api.GenericUtils;
+import roadhog360.hogutils.api.utils.GenericUtils;
 import roadhog360.hogutils.api.RegistryMapping;
 import roadhog360.hogutils.api.hogtags.event.OreDictionaryToTagStringEvent;
 
@@ -37,13 +36,11 @@ public final class HogTags {
         HogTagsRegistry.removeTagsFromObject(objToTag, tags);
     }
 
-    /**
-     * Adds the following tags to both the block and its item too.
-     * Probably doesn't work for pre-init so don't put this in your block's constructor.
-     * </p>
-     * NOTE: Things like signs, beds, and skulls use a SEPARATE ITEM for their block.
-     * Which means this function will not tag things that do that. Make sure when using this on a block it actually has an ItemBlock!!!
-     */
+    /// Adds the following tags to both the block and its item too.
+    /// Probably doesn't work for pre-init so don't put this in your block's constructor.
+    ///
+    /// NOTE: Things like signs, beds, and skulls use a SEPARATE ITEM for their block.
+    /// Which means this function will not tag things that do that. Make sure when using this on a block it actually has an ItemBlock!!!
     public static void addTagsToBlockAndItem(Block object, int meta, String... tags) {
         Item item = Item.getItemFromBlock(object);
         if(item != null) {
@@ -53,24 +50,20 @@ public final class HogTags {
     }
 
 
-    /**
-     * Adds the following tags to both the block and its item too.
-     * Probably doesn't work for pre-init so don't put this in your block's constructor.
-     * </p>
-     * NOTE: Things like signs, beds, and skulls use a SEPARATE ITEM for their block.
-     * Which means this function will not tag things that do that. Make sure when using this on a block it actually has an ItemBlock!!!
-     */
+    /// Adds the following tags to both the block and its item too.
+    /// Probably doesn't work for pre-init so don't put this in your block's constructor.
+    ///
+    /// NOTE: Things like signs, beds, and skulls use a SEPARATE ITEM for their block.
+    /// Which means this function will not tag things that do that. Make sure when using this on a block it actually has an ItemBlock!!!
     public static void addTagsToBlockAndItem(Block object, String... tags) {
         addTagsToBlockAndItem(object, OreDictionary.WILDCARD_VALUE, tags);
     }
 
-    /**
-     * Removes the following tags to both the block and its item too.
-     * Probably doesn't work for pre-init so don't put this in your block's constructor.
-     * </p>
-     * NOTE: Things like signs, beds, and skulls use a SEPARATE ITEM for their block.
-     * Which means this function will not tag things that do that. Make sure when using this on a block it actually has an ItemBlock!!!
-     */
+    /// Removes the following tags to both the block and its item too.
+    /// Probably doesn't work for pre-init so don't put this in your block's constructor.
+    ///
+    /// NOTE: Things like signs, beds, and skulls use a SEPARATE ITEM for their block.
+    /// Which means this function will not tag things that do that. Make sure when using this on a block it actually has an ItemBlock!!!
     public static void removeTagsFromBlockAndItem(Block object, int meta, String... tags) {
         Item item = Item.getItemFromBlock(object);
         if(item != null) {
@@ -240,7 +233,7 @@ public final class HogTags {
             }
         }
 
-        /// Map for prefix-based replacements. E.G. oreIron becomes `c:ores/iron`
+        /// Map for prefix-based {@link OreDictionary} registration. Example: oreIron becomes `c:ores/iron`
         /// Takes the part after the prefix provided and converts it to lower camel case.
         /// So because `ore` to `c:ores/` is an entry in this map, if you passed in `oreMyMaterial` it'd detect the `ore` part due to the capital letter after it, and do the following:
         ///  - Truncate the `ore` prefix
@@ -248,8 +241,10 @@ public final class HogTags {
         ///  - Then finally, it adds `c:ores/` to the beginning of the string,
         ///
         /// The right hand assignment is a boolean, determining if the "blank" tag should be added alongside the regular one.
+        ///
         /// So the ores entry in this map has this as `TRUE` so in addition to the above, `c:ores` will also be added as a tag.
-        /// If `FALSE`, a blank OreDict tag needs to be registered for a tag that is just the prefix to be registered. Example: blockGlass
+        ///
+        /// If `FALSE`, a {@link OreDictionary} tag without a suffix (anything beyond the specified prefix) will not register anything.
         public static final Map<String, Pair<String, Boolean>> PREFIX_BASED_TAGS = Maps.newHashMap();
         static {
             PREFIX_BASED_TAGS.put("ore", Pair.of("c:ores", true));
@@ -257,9 +252,6 @@ public final class HogTags {
             PREFIX_BASED_TAGS.put("gem", Pair.of("c:gems", true));
             PREFIX_BASED_TAGS.put("block", Pair.of("c:storage_blocks", true));
             PREFIX_BASED_TAGS.put("raw", Pair.of("c:raw_materials", true));
-
-            PREFIX_BASED_TAGS.put("blockGlass", Pair.of("c:glass_blocks", false));
-            PREFIX_BASED_TAGS.put("paneGlass", Pair.of("c:glass_panes", false));
         }
 
         /// FULL OreDict tags that should not be hit by the prefix maps.
@@ -275,6 +267,8 @@ public final class HogTags {
         public static final Map<String, String> FULL_SWAPS = Maps.newHashMap();
         static {
             FULL_SWAPS.put("logWood", "minecraft:logs");
+            FULL_SWAPS.put("blockGlass", "c:glass_blocks");
+            FULL_SWAPS.put("logWood", "c:glass_panes");
         }
 
         /// Converts an OreDictionary string to the [Fabric common tag standard](https://fabricmc.net/wiki/community:common_tags). Examples:
@@ -308,6 +302,10 @@ public final class HogTags {
                 }
             }
 
+            if(FULL_SWAPS.containsKey(oreDict)) {
+                tags.add(FULL_SWAPS.get(oreDict));
+            }
+
             // The map has a key containing the first part of this OreDict tag
             if(oreDictPrefix != null) {
                 Pair<String, Boolean> data = PREFIX_BASED_TAGS.get(oreDictPrefix);
@@ -325,7 +323,7 @@ public final class HogTags {
 
 
                     if(!PREFIX_TAG_EXEMPTIONS.contains(oreDict)) {
-                        if (data.getRight() || oreDictSuffix.isEmpty()) { // Adds the "plain" tag if this one should get it. Example: c:ores as well as c:ores/iron
+                        if (data.getRight()) { // Adds the "plain" tag if this one should get it. Example: c:ores as well as c:ores/iron
                             tags.add(tagPrefix);
                         }
                         if(!oreDictSuffix.isEmpty()) {
@@ -333,10 +331,6 @@ public final class HogTags {
                         }
                     }
                 }
-            }
-
-            if(FULL_SWAPS.containsKey(oreDict)) {
-                tags.add(FULL_SWAPS.get(oreDict));
             }
 
             Set<String> eventTags = Sets.newLinkedHashSet();

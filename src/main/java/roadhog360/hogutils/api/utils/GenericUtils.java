@@ -1,5 +1,8 @@
-package roadhog360.hogutils.api;
+package roadhog360.hogutils.api.utils;
 
+import cpw.mods.fml.client.FMLClientHandler;
+import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemDye;
@@ -7,7 +10,8 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import roadhog360.hogutils.api.RegistryMapping;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -16,11 +20,11 @@ public final class GenericUtils {
 
     private GenericUtils() {}
 
-    public static MovingObjectPosition getMovingObjectPositionFromPlayer(World worldIn, EntityPlayer playerIn, boolean useLiquids) {
+    public static MovingObjectPosition getMovingObjectPositionFromEntity(World worldIn, Entity entity, boolean useLiquids) {
         float f = 1.0F;
-        float f1 = playerIn.prevRotationPitch + (playerIn.rotationPitch - playerIn.prevRotationPitch) * f;
-        float f2 = playerIn.prevRotationYaw + (playerIn.rotationYaw - playerIn.prevRotationYaw) * f;
-        Vec3 vec3 = getVec3(worldIn, playerIn, (double) f);
+        float f1 = entity.prevRotationPitch + (entity.rotationPitch - entity.prevRotationPitch) * f;
+        float f2 = entity.prevRotationYaw + (entity.rotationYaw - entity.prevRotationYaw) * f;
+        Vec3 vec3 = getVec3(worldIn, entity, f);
         float f3 = MathHelper.cos(-f2 * 0.017453292F - (float) Math.PI);
         float f4 = MathHelper.sin(-f2 * 0.017453292F - (float) Math.PI);
         float f5 = -MathHelper.cos(-f1 * 0.017453292F);
@@ -28,19 +32,21 @@ public final class GenericUtils {
         float f7 = f4 * f5;
         float f8 = f3 * f5;
         double d3 = 5.0D;
-        if (playerIn instanceof EntityPlayerMP) {
-            d3 = ((EntityPlayerMP) playerIn).theItemInWorldManager.getBlockReachDistance();
+        if (entity instanceof EntityPlayerMP) {
+            d3 = ((EntityPlayerMP) entity).theItemInWorldManager.getBlockReachDistance();
         }
         Vec3 vec31 = vec3.addVector((double) f7 * d3, (double) f6 * d3, (double) f8 * d3);
         return worldIn.func_147447_a/*rayTraceBlocks*/(vec3, vec31, useLiquids, !useLiquids, false);
     }
 
-    public static Vec3 getVec3(World worldIn, EntityPlayer playerIn, double f) {
-        double d0 = playerIn.prevPosX + (playerIn.posX - playerIn.prevPosX) * f;
-        double d1 = playerIn.prevPosY + (playerIn.posY - playerIn.prevPosY) * f + (double) (worldIn.isRemote ? playerIn.getEyeHeight() - playerIn.getDefaultEyeHeight() : playerIn.getEyeHeight()); // isRemote check to revert changes to ray trace position due to adding the eye height clientside and player yOffset differences
-        double d2 = playerIn.prevPosZ + (playerIn.posZ - playerIn.prevPosZ) * f;
-        Vec3 vec3 = Vec3.createVectorHelper(d0, d1, d2);
-        return vec3;
+    public static Vec3 getVec3(World worldIn, Entity entity, double f) {
+        double eyeHeight = (worldIn.isRemote && entity instanceof EntityPlayer
+            ? entity.getEyeHeight() - ((EntityPlayer) entity).getDefaultEyeHeight()
+            : entity.getEyeHeight());
+        double d0 = entity.prevPosX + (entity.posX - entity.prevPosX) * f;
+        double d1 = entity.prevPosY + (entity.posY - entity.prevPosY) * f + eyeHeight; // isRemote check to revert changes to ray trace position due to adding the eye height clientside and player yOffset differences
+        double d2 = entity.prevPosZ + (entity.posZ - entity.prevPosZ) * f;
+        return Vec3.createVectorHelper(d0, d1, d2);
     }
 
     /// Returns the capital letter closest to the end of the string.
@@ -52,6 +58,21 @@ public final class GenericUtils {
             }
         }
         return -1;
+    }
+
+    /// If {@link World} is null, uses the client world. This will crash on a server, obviously, so be careful doing that.
+    public static Pair<Block, Integer> getBlockAndMetaFromMOP(World world, MovingObjectPosition mop) {
+        if(world == null) {
+            world = FMLClientHandler.instance().getWorldClient();
+        }
+        return Pair.of(world.getBlock(mop.blockX, mop.blockY, mop.blockZ), world.getBlockMetadata(mop.blockX, mop.blockY, mop.blockZ));
+    }
+
+    /// If {@link World} is null, uses the client world. This will crash on a server, obviously, so be careful doing that.
+    /// Returns a {@link RegistryMapping} for ease in getting a key from a {@link MovingObjectPosition}.
+    public static RegistryMapping<Block> getRegistryMappingFromMOP(World world, MovingObjectPosition mop) {
+        Pair<Block, Integer> pair = getBlockAndMetaFromMOP(world, mop);
+        return RegistryMapping.of(pair.getLeft(), pair.getRight());
     }
 
     /// Returns the capital letter closest to the beginning of the string.

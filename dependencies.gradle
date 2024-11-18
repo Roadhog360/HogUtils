@@ -36,8 +36,9 @@
 dependencies {
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.6.34-GTNH:dev")
 
-    shadowImplementation('com.github.makamys:MCLib:0.3.7.6') {
+    shadowImplementation('com.github.makamys:MCLib:0.3.7.7') {
         exclude group: "codechicken"
     }
     shadowImplementation("me.mrnavastar:r:1.0.8")
+    shadowImplementation("org.jibx:jibx-tools:1.4.2")
 }

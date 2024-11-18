@@ -4,6 +4,7 @@ import cpw.mods.fml.common.event.*;
 import net.minecraft.init.Blocks;
 import roadhog360.hogutils.HogUtils;
 import roadhog360.hogutils.api.hogtags.HogTags;
+import roadhog360.hogutils.api.utils.RecipeHelper;
 
 public class CommonProxy {
 
@@ -19,10 +20,14 @@ public class CommonProxy {
     // postInit "Handle interaction with other mods, complete your setup based on this." (Remove if not needed)
     public void postInit(FMLPostInitializationEvent event) {}
 
-    public void onLoadComplete(FMLLoadCompleteEvent event) {}
+    public void onLoadComplete(FMLLoadCompleteEvent event) {
+        RecipeHelper.init();
+    }
 
     // register server commands in this event handler (Remove if not needed)
-    public void serverStarting(FMLServerStartingEvent event) {finalizeTags();}
+    public void serverStarting(FMLServerStartingEvent event) {
+        finalizeTags();
+    }
 
     private void finalizeTags() { //For new stuff that isn't auto-tagged by the OreDictionary auto-tagger.
         HogTags.BlockTags.addTagsToLog(Blocks.log, 0, "minecraft:oak_logs");
