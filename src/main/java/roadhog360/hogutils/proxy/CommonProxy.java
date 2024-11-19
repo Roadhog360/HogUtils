@@ -2,9 +2,7 @@ package roadhog360.hogutils.proxy;
 
 import cpw.mods.fml.common.event.*;
 import net.minecraft.init.Blocks;
-import roadhog360.hogutils.api.RegistryMapping;
 import roadhog360.hogutils.api.hogtags.HogTags;
-import roadhog360.hogutils.api.hogtags.HogTagsRegistry;
 import roadhog360.hogutils.api.utils.RecipeHelper;
 
 public class CommonProxy {
@@ -20,7 +18,6 @@ public class CommonProxy {
 
     // load "Do your mod setup. Build whatever data structures you care about. Register recipes." (Remove if not needed)
     public void init(FMLInitializationEvent event) {
-        HogTagsRegistry.tagQueuedItemBlocks();
     }
 
     // postInit "Handle interaction with other mods, complete your setup based on this." (Remove if not needed)

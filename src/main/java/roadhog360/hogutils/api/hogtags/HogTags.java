@@ -1,9 +1,10 @@
 package roadhog360.hogutils.api.hogtags;
 
 import com.google.common.base.CaseFormat;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import cpw.mods.fml.common.Loader;
+import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
+import it.unimi.dsi.fastutil.objects.ObjectArraySet;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
@@ -12,12 +13,14 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.spongepowered.include.com.google.common.collect.Lists;
-import roadhog360.hogutils.api.utils.GenericUtils;
 import roadhog360.hogutils.api.RegistryMapping;
 import roadhog360.hogutils.api.hogtags.event.OreDictionaryToTagStringEvent;
+import roadhog360.hogutils.api.utils.GenericUtils;
+import roadhog360.hogutils.api.utils.RecipeHelper;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -51,15 +54,12 @@ public final class HogTags {
             Item item = Item.getItemFromBlock(object);
             if(item != null) {
                 ItemTags.addTags(item, meta, tags);
-            } else {
-                HogTagsRegistry.ITEMBLOCK_ADDITION_QUEUE.add(Pair.of(Pair.of(object, meta), tags));
             }
             BlockTags.addTags(object, item != null && item.getHasSubtypes() ? meta : OreDictionary.WILDCARD_VALUE, tags);
         }
 
-        /// Adds the following tags to both the block and its item too. If the item is not found it'll be added to the item during init.
-        /// Keep this in mind if you put this in your block's constructor, as the respective item won't be tagged until AFTER preInit due to this.
-        /// If your block is registered past preInit... don't do that. Blocks and Items should ALWAYS be registered in preInit.
+        /// Adds the following tags to both the block and its item too.
+        /// Probably doesn't work for pre-init so don't put this in your block's constructor.
         ///
         /// NOTE: Things like signs, beds, and skulls use a SEPARATE ITEM for their block.
         /// Which means this function will not tag things like that. Make sure when using this on a block it actually has an ItemBlock!!!
@@ -68,9 +68,7 @@ public final class HogTags {
         }
 
         /// Removes the following tags to both the block and its item too. If the item is not found it'll be removed from the item during init.
-        /// Keep this in mind if you put this somewhere in preInit, as the respective item's tag won't be removed until AFTER preInit due to this.
-        /// If you're targeting a block registered in preInit, you'll need to update your logic to work around this, instead of using this function,
-        /// as blocks and items registered after preInit are unsupported by the queueing system.
+        /// Probably doesn't work for pre-init so don't put this in your block's constructor.
         ///
         /// NOTE: Things like signs, beds, and skulls use a SEPARATE ITEM for their block.
         /// Which means this function will not tag things like that. Make sure when using this on a block it actually has an ItemBlock!!!
@@ -78,8 +76,6 @@ public final class HogTags {
             Item item = Item.getItemFromBlock(object);
             if(item != null) {
                 ItemTags.removeTags(item, meta, tags);
-            } else {
-                HogTagsRegistry.ITEMBLOCK_REMOVAL_QUEUE.add(Pair.of(Pair.of(object, meta), tags));
             }
             BlockTags.removeTags(object, item != null && item.getHasSubtypes() ? meta : OreDictionary.WILDCARD_VALUE, tags);
         }
@@ -127,6 +123,7 @@ public final class HogTags {
     public static class ItemTags {
         /// Adds the following tags to the specified item.
         public static void addTags(Item item, int meta, String... tags) {
+            if(!RecipeHelper.validateItems(item)) return;
             addTagsToObject(RegistryMapping.of(item, meta, false), tags);
         }
 
@@ -136,6 +133,7 @@ public final class HogTags {
 
         /// Removes the following tags to the specified item.
         public static void removeTags(Item item, int meta, String... tags) {
+            if(!RecipeHelper.validateItems(item)) return;
             removeTagsFromObject(RegistryMapping.of(item, meta, false), tags);
         }
 
@@ -149,7 +147,7 @@ public final class HogTags {
         /// Returns a new list independent of the ones in the registry, meaning it
         /// may be mutated freely without making your own list to put them in for mutation.
         public static Set<String> getTags(Item item, int meta) {
-            Set<String> set = Sets.newLinkedHashSet();
+            Set<String> set = new ObjectArraySet<>();
             if(meta != OreDictionary.WILDCARD_VALUE) {
                 set.addAll(HogTagsRegistry.getTagsFromObject(RegistryMapping.of(item, OreDictionary.WILDCARD_VALUE, false)));
             }
@@ -184,6 +182,7 @@ public final class HogTags {
     public static class BlockTags {
         /// Adds the following tags to the specified block.
         public static void addTags(Block block, int meta, String... tags) {
+            if(!RecipeHelper.validateItems(block)) return;
             addTagsToObject(RegistryMapping.of(block, meta, false), tags);
         }
 
@@ -193,6 +192,7 @@ public final class HogTags {
 
         /// Removes the following tags to the specified block.
         public static void removeTags(Block block, int meta, String... tags) {
+            if(!RecipeHelper.validateItems(block)) return;
             removeTagsFromObject(RegistryMapping.of(block, meta, false), tags);
         }
 
@@ -205,7 +205,7 @@ public final class HogTags {
         /// Returns a new list independent of the ones in the registry,
         /// thBlock objects returned may be mutated freely without making your own list to put them in for mutation.
         public static Set<String> getTags(Block block, int meta) {
-            Set<String> set = Sets.newLinkedHashSet();
+            Set<String> set = new ObjectArraySet<>();
             if(meta != OreDictionary.WILDCARD_VALUE) {
                 set.addAll(HogTagsRegistry.getTagsFromObject(RegistryMapping.of(block, OreDictionary.WILDCARD_VALUE, false)));
             }
@@ -229,7 +229,7 @@ public final class HogTags {
         /// may be mutated freely without making your own list to put them in for mutation.
         public static Set<ItemStack> getItemStacksInTag(String tag) {
             return HogTagsRegistry.getBlocksInTag(tag)
-                .stream().map(mapping -> new ItemStack(mapping.getObject(), 1, mapping.getMeta())).collect(Collectors.toCollection(Sets::newLinkedHashSet));
+                .stream().map(mapping -> new ItemStack(mapping.getObject(), 1, mapping.getMeta())).collect(Collectors.toCollection(ObjectArraySet::new));
         }
 
         /// Get the blocks for the passed in tag. Returns them as {@link Pair}<{@link Block}, {@link Integer}> objects.
@@ -239,7 +239,7 @@ public final class HogTags {
         /// may be mutated freely without making your own list to put them in for mutation.
         public static Set<Pair<Block, Integer>> getBlockPairsInTag(String tag) {
             return HogTagsRegistry.getBlocksInTag(tag)
-                .stream().map(mapping -> Pair.of(mapping.getObject(), mapping.getMeta())).collect(Collectors.toCollection(Sets::newLinkedHashSet));
+                .stream().map(mapping -> Pair.of(mapping.getObject(), mapping.getMeta())).collect(Collectors.toCollection(ObjectArraySet::new));
         }
 
         //Returns true if the passed in item has any of the listed tags.
@@ -287,7 +287,7 @@ public final class HogTags {
         /// So the ores entry in this map has this as `TRUE` so in addition to the above, `c:ores` will also be added as a tag.
         ///
         /// If `FALSE`, a {@link OreDictionary} tag without a suffix (anything beyond the specified prefix) will not register anything.
-        public static final Map<String, Pair<String, Boolean>> PREFIX_BASED_TAGS = Maps.newHashMap();
+        public static final Map<String, Pair<String, Boolean>> PREFIX_BASED_TAGS = new Object2ObjectArrayMap<>();
         static {
             PREFIX_BASED_TAGS.put("ore", Pair.of("c:ores", true));
             PREFIX_BASED_TAGS.put("ingot", Pair.of("c:ingots", true));
@@ -296,23 +296,34 @@ public final class HogTags {
             PREFIX_BASED_TAGS.put("raw", Pair.of("c:raw_materials", true));
         }
 
-        /// FULL OreDict tags that should not be hit by the prefix maps.
+        /// OreDict tags that are registered but have this at the beginning of their name, will not be hit by the prefix maps.
         /// So since `oreQuartz` has no equivalent commons tag (like `c:storage_blocks/quartz`, because it isn't a storage block.
-        public static final Set<String> PREFIX_SUFFIX_TAG_EXEMPTIONS = Sets.newHashSet();
+        public static final Set<String> PREFIX_SUFFIX_TAG_EXEMPTIONS = new ObjectArraySet<>();
         static {
             PREFIX_SUFFIX_TAG_EXEMPTIONS.add("blockQuartz");
+            PREFIX_SUFFIX_TAG_EXEMPTIONS.add("blockGlass");
+            PREFIX_SUFFIX_TAG_EXEMPTIONS.add("paneGlass");
         }
 
         /// Simply put, oreDict tags that register a tag if the tag is an exact match.
         /// One of the examples in the below map is `logWood` to `minecraft:logs`.
         /// So if the tag is EXACTLY `logWood`, then `minecraft:logs` is registered.
-        public static final Map<String, String[]> FULL_SWAPS = Maps.newHashMap();
+        public static final Map<String, String[]> FULL_SWAPS = new Object2ObjectArrayMap<>();
         static {
             FULL_SWAPS.put("logWood", new String[]{"minecraft:logs"});
             FULL_SWAPS.put("blockGlass", new String[]{"c:glass_blocks", "c:glass_blocks/cheap"});
             FULL_SWAPS.put("blockGlassColorless", new String[]{"c:glass_blocks/colorless"});
             FULL_SWAPS.put("paneGlass", new String[]{"c:glass_panes", "c:glass_panes/cheap"});
             FULL_SWAPS.put("paneGlassColorless", new String[]{"c:glass_panes/colorless"});
+            String[] modernColorsCamelCase = GenericUtils.Constants.MODERN_COLORS_CAMEL_CASE;
+            for (int i = 0; i < modernColorsCamelCase.length; i++) {
+                String color = modernColorsCamelCase[i];
+                String upperCase = String.valueOf(color.charAt(0)).toUpperCase();
+                FULL_SWAPS.put("blockGlass" + upperCase + color.substring(1)
+                    , new String[]{"c:" + GenericUtils.Constants.MODERN_COLORS_SNAKE_CASE[i] + "_glass_blocks"});
+                FULL_SWAPS.put("paneGlass" + upperCase + color.substring(1)
+                    , new String[]{"c:" + GenericUtils.Constants.MODERN_COLORS_SNAKE_CASE[i] + "_glass_panes"});
+            }
         }
 
         /// Converts an OreDictionary string to the [Fabric common tag standard](https://fabricmc.net/wiki/community:common_tags). Examples:
@@ -322,7 +333,8 @@ public final class HogTags {
         /// If the boolean is `FALSE`, tags not eligible to convert will not be added to the list, meaning the list would become empty.
         /// See the maps this uses for more info on how they're being used. Instead of using the event, you may also add your own dynamic filters to the static maps, if you wish.
         public static Set<String> convertOreDictToTags(String oreDict, boolean returnsGenericTag) {
-            Set<String> tags = Sets.newLinkedHashSet();
+            Set<String> tags = new ObjectArraySet<>();
+
 
             //The below implementations originally used the indexes of the first/last capital letters to determine where to truncate the string
             //The logic for this ended up being really messy so I sacrificed map lookup speed for cleaner code.
@@ -336,26 +348,28 @@ public final class HogTags {
                 if(dyeID > -1) {
                     tags.add("c:dyes/" + CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, GenericUtils.Constants.MODERN_COLORS_SNAKE_CASE[dyeID]));
                 }
+            } else {
+                tagDyes(oreDict, tags);
             }
-
 
             if(FULL_SWAPS.containsKey(oreDict)) {
                 Collections.addAll(tags, FULL_SWAPS.get(oreDict));
-            } else {
+            }
+
+            if(PREFIX_SUFFIX_TAG_EXEMPTIONS.stream().noneMatch(oreDict::startsWith)){
                 String oreDictPrefix = null;
-                for(String checkPrefix : PREFIX_BASED_TAGS.keySet()) {
-                    if(oreDict.startsWith(checkPrefix)) {
+                for (String checkPrefix : PREFIX_BASED_TAGS.keySet()) {
+                    if (oreDict.startsWith(checkPrefix)) {
                         oreDictPrefix = checkPrefix;
                         break;
                     }
                 }
-                if(oreDictPrefix != null) {
+                if (oreDictPrefix != null) {
                     doPrefixingLogic(oreDict, oreDictPrefix, tags);
                 }
             }
 
-
-            Set<String> eventTags = Sets.newLinkedHashSet();
+            Set<String> eventTags = new ObjectArraySet<>();
             MinecraftForge.EVENT_BUS.post(new OreDictionaryToTagStringEvent(oreDict, tags, eventTags));
             tags.addAll(eventTags);
 
@@ -372,27 +386,26 @@ public final class HogTags {
             //The other half of the oreDict tag
             String oreDictSuffix = oreDict.substring(prefix.length());
 
-            if (!oreDictSuffix.isEmpty() && ArrayUtils.contains(GenericUtils.Constants.MODERN_COLORS_CAMEL_CASE,
-                String.valueOf(oreDictSuffix.charAt(0)).toLowerCase() + oreDictSuffix.substring(1))) {
-                tags.add("c:dyed");
-                tags.add("c:dyed/" + CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, oreDictSuffix));
-            }
-
             if (data != null) {
                 String tagPrefix = data.getLeft();
-                if(!PREFIX_SUFFIX_TAG_EXEMPTIONS.contains(oreDict)) { // This needs to be here so we can run the above logic
-                    if (data.getRight()) { // Adds the "plain" tag if this one should get it. Example: c:ores as well as c:ores/iron
-                        tags.add(tagPrefix);
-                    }
-                    if (!oreDictSuffix.isEmpty()) {
-                        tags.add(tagPrefix + "/" + CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, oreDictSuffix));
-                    }
+                if (data.getRight()) { // Adds the "plain" tag if this one should get it. Example: c:ores as well as c:ores/iron
+                    tags.add(tagPrefix);
+                }
+                if (!oreDictSuffix.isEmpty()) {
+                    tags.add(tagPrefix + "/" + CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, oreDictSuffix));
                 }
             }
         }
 
-        private static void tagGlassBlocks(String oreDict, Set<String> tags) {
-
+        private static void tagDyes(String oreDict, Set<String> tags) {
+            String[] modernColorsCamelCase = GenericUtils.Constants.MODERN_COLORS_CAMEL_CASE;
+            for (int i = 0; i < modernColorsCamelCase.length; i++) {
+                String color = modernColorsCamelCase[i];
+                if (oreDict.endsWith(String.valueOf(color.charAt(0)).toUpperCase() + color.substring(1))) {
+                    tags.add("c:dyed");
+                    tags.add("c:dyed/" + GenericUtils.Constants.MODERN_COLORS_CAMEL_CASE[i]);
+                }
+            }
         }
     }
 }

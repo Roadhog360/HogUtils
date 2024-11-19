@@ -33,6 +33,14 @@
  *
  * For more details, see https://docs.gradle.org/8.0.1/userguide/java_library_plugin.html#sec:java_library_configurations_graph
  */
+
+tasks.named('shadowJar', com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
+    minimize {
+        exclude(dependency('me.mrnavastar:r'))
+        exclude(dependency('com.github.makamys:MCLib'))
+    }
+}
+
 dependencies {
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.6.34-GTNH:dev")
 
@@ -41,4 +49,5 @@ dependencies {
     }
 
     shadowImplementation("me.mrnavastar:r:1.0.8")
+    shadowImplementation("fastutil:fastutil:5.0.9")
 }
