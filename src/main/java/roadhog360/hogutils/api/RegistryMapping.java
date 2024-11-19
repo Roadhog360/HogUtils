@@ -1,6 +1,7 @@
 package roadhog360.hogutils.api;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
@@ -10,13 +11,14 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 public class RegistryMapping<T> {
 
     @SuppressWarnings("rawtypes")
-    private static final List<RegistryMapping> createdKeys = Lists.newLinkedList();
+    private static final Set<RegistryMapping> createdKeys = Sets.newHashSet();
     @SuppressWarnings("rawtypes")
-    private static final List<RegistryMapping> createdKeysWildcardUnequal = Lists.newLinkedList();
+    private static final Set<RegistryMapping> createdKeysWildcardUnequal = Sets.newHashSet();
 
     private final T object;
     private final transient int meta;
@@ -49,20 +51,22 @@ public class RegistryMapping<T> {
         if (!(object instanceof Block) && !(object instanceof Item)) {
             throw new IllegalArgumentException("RegistryMapping must be either an item or a block!");
         }
-        List<RegistryMapping> list = wildcardAlwaysEqual ? createdKeys : createdKeysWildcardUnequal;
-
-        for(RegistryMapping mappingEntry : list) {
-            if(mappingEntry.getObject() == object && mappingEntry.getMeta() == meta) {
-                return mappingEntry;
-            }
-        }
-
-        RegistryMapping mapping = new RegistryMapping<>(object, meta, wildcardAlwaysEqual);
-        list.add(0, mapping);
-        while (list.size() > 100) {
-            list.remove(100);
-        }
-        return mapping;
+        //This is probably all pointless. Perhaps we can have better "interner at home" logic in the future
+//        Set<RegistryMapping> list = wildcardAlwaysEqual ? createdKeys : createdKeysWildcardUnequal;
+//
+//        for(RegistryMapping mappingEntry : list) {
+//            if(mappingEntry.getObject() == object && mappingEntry.getMeta() == meta) {
+//                return mappingEntry;
+//            }
+//        }
+//
+//        RegistryMapping mapping = new RegistryMapping<>(object, meta, wildcardAlwaysEqual);
+////        list.add(0, mapping);
+////        while (list.size() > 100) {
+////            list.remove(100);
+////        }
+//        return mapping;
+        return new RegistryMapping<>(object, meta, wildcardAlwaysEqual);
     }
 
     /// Creates a new contained object for the specified block or item, and metadata. Supports wildcard values.
@@ -73,12 +77,12 @@ public class RegistryMapping<T> {
         return of(object, meta, true);
     }
 
-    public static <E> RegistryMapping<E> fromPair(Pair<E, Integer> pair, boolean wildcardAlwaysEqual) {
-        return of(pair.getLeft(), pair.getRight(), true);
+    public static RegistryMapping<Item> fromItemStack(ItemStack stack, boolean wildcardAlwaysEqual) {
+        return of(stack.getItem(), stack.getItemDamage(), true);
     }
 
-    public static <E> RegistryMapping<E> fromPair(Pair<E, Integer> pair) {
-        return fromPair(pair, true);
+    public static RegistryMapping<Item> fromItemStack(ItemStack stack) {
+        return fromItemStack(stack, true);
     }
 
     /// Creates a new ItemStack with stack size of 1.
@@ -110,7 +114,7 @@ public class RegistryMapping<T> {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof RegistryMapping<?> mapping && object == mapping.object
+        return obj == this || obj instanceof RegistryMapping<?> mapping && object == mapping.object
             && ((wildcardAlwaysEqual && (meta == OreDictionary.WILDCARD_VALUE && mapping.meta == OreDictionary.WILDCARD_VALUE))
             || meta == mapping.meta);
     }

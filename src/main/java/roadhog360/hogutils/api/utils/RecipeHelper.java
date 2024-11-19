@@ -122,6 +122,9 @@ public final class RecipeHelper {
         CraftingManager.getInstance().getRecipeList().removeIf(removeCondition);
     }
 
+    /// Checks if the objects actually exist in the item/block registry, returns false if any of them are not registered.
+    /// Useful for registering recipes and stuff, but will only really work after preInit.
+    /// This is because we can't expect items and blocks to be finished rendering before that.
     public static boolean validateItems(Object... objects) {
         for (Object object : objects) {
             if (object == null || object == Blocks.air) return false;

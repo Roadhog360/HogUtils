@@ -17,10 +17,10 @@ public class MixinOreDictionary {
     private static void registerTags(String name, ItemStack ore, CallbackInfo ci) {
         String[] tags = HogTags.Utils.convertOreDictToTags(name, false).toArray(new String[]{});
         if(tags.length > 0) {
-            HogTags.ItemTags.addTagsToItem(ore.getItem(), ore.getItemDamage(), tags);
+            HogTags.ItemTags.addTags(ore.getItem(), ore.getItemDamage(), tags);
             Block block = Block.getBlockFromItem(ore.getItem());
             if (block != null) {
-                HogTags.BlockTags.addTagsToBlock(block, ore.getHasSubtypes() ? ore.getItemDamage() : OreDictionary.WILDCARD_VALUE, tags);
+                HogTags.BlockTags.addTags(block, ore.getHasSubtypes() ? ore.getItemDamage() : OreDictionary.WILDCARD_VALUE, tags);
             }
         }
     }
