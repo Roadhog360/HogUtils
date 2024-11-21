@@ -49,5 +49,5 @@ dependencies {
     }
 
     shadowImplementation("me.mrnavastar:r:1.0.8")
-    shadowImplementation("fastutil:fastutil:5.0.9")
+    shadowImplementation("it.unimi.dsi:fastutil:8.5.15")
 }

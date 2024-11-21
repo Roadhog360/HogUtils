@@ -1,7 +1,6 @@
 package roadhog360.hogutils.api.hogtags;
 
 import com.google.common.base.CaseFormat;
-import com.google.common.collect.ImmutableList;
 import cpw.mods.fml.common.Loader;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
@@ -114,11 +113,12 @@ public final class HogTags {
     }
 
     public static class ItemTags {
+        public static final String CONTAINER_ID = Tags.MOD_ID + ":item";
         /// Adds the following tags to the specified item.
         public static void addTags(Item item, int meta, String... tags) {
             if(!RecipeHelper.validateItems(item)) return;
             ItemTagMapping objToTag = ItemTagMapping.of(item, meta);
-            HogTagsRegistry.addTagsToObject(objToTag, tags);
+            HogTagsRegistry.addTagsToObject(CONTAINER_ID, objToTag, tags);
         }
 
         public static void addTags(Item item, String... tags) {
@@ -126,10 +126,14 @@ public final class HogTags {
         }
 
         /// Removes the following tags to the specified item.
+        /// If the removal doesn't work, it may be part of the wildcard tags instead, or part of an inherited tags list.
+        /// It may also be present in multiple lists in the inheritance tree.
+        ///
+        /// You can always use `/tags dump` to get a full dump of any tags registry, this one's id is `hogtags:item`.
         public static void removeTags(Item item, int meta, String... tags) {
             if(!RecipeHelper.validateItems(item)) return;
             ItemTagMapping objToTag = ItemTagMapping.of(item, meta);
-            HogTagsRegistry.removeTagsFromObject(objToTag, tags);
+            HogTagsRegistry.removeTagsFromObject(CONTAINER_ID, objToTag, tags);
         }
 
         public static void removeTags(Item item, String... tags) {
@@ -139,12 +143,7 @@ public final class HogTags {
         /// Get the tags for the passed in item. You can pass in a Block's ItemBlock, too.
         /// (Typically obtained through Item#getItemFromBlock)
         public static List<String> getTags(Item item, int meta) {
-            ImmutableList.Builder<String> set = ImmutableList.builder();
-            if(meta != OreDictionary.WILDCARD_VALUE) {
-                set.addAll(HogTagsRegistry.getTagsFromObject(ItemTagMapping.of(item, OreDictionary.WILDCARD_VALUE)));
-            }
-            set.addAll(HogTagsRegistry.getTagsFromObject(ItemTagMapping.of(item, meta)));
-            return set.build();
+            return HogTagsRegistry.getTagsFromObject(CONTAINER_ID, ItemTagMapping.of(item, meta));
         }
 
         /// Get the items for the passed in tag.
@@ -170,11 +169,13 @@ public final class HogTags {
     }
 
     public static class BlockTags {
+        public static final String CONTAINER_ID = Tags.MOD_ID + ":block";
+
         /// Adds the following tags to the specified block.
         public static void addTags(Block block, int meta, String... tags) {
             if(!RecipeHelper.validateItems(block)) return;
             BlockTagMapping objToTag = BlockTagMapping.of(block, meta);
-            HogTagsRegistry.addTagsToObject(objToTag, tags);
+            HogTagsRegistry.addTagsToObject(CONTAINER_ID, objToTag, tags);
         }
 
         public static void addTags(Block block, String... tags) {
@@ -182,10 +183,14 @@ public final class HogTags {
         }
 
         /// Removes the following tags to the specified block.
+        /// If the removal doesn't work, it may be part of the wildcard tags instead, or part of an inherited tags list.
+        /// It may also be present in multiple lists in the inheritance tree.
+        ///
+        /// You can always use `/tags dump` to get a full dump of any tags registry, this one's id is `hogtags:block`.
         public static void removeTags(Block block, int meta, String... tags) {
             if(!RecipeHelper.validateItems(block)) return;
             BlockTagMapping objToTag = BlockTagMapping.of(block, meta);
-            HogTagsRegistry.removeTagsFromObject(objToTag, tags);
+            HogTagsRegistry.removeTagsFromObject(CONTAINER_ID, objToTag, tags);
         }
 
         public static void removeTags(Block block, String... tags) {
@@ -194,12 +199,7 @@ public final class HogTags {
 
         /// Get the tags for the passed in block.
         public static List<String> getTags(Block block, int meta) {
-            ImmutableList.Builder<String> set = ImmutableList.builder();
-            if(meta != OreDictionary.WILDCARD_VALUE) {
-                set.addAll(HogTagsRegistry.getTagsFromObject(BlockTagMapping.of(block, OreDictionary.WILDCARD_VALUE)));
-            }
-            set.addAll(HogTagsRegistry.getTagsFromObject(BlockTagMapping.of(block, meta)));
-            return set.build();
+            return HogTagsRegistry.getTagsFromObject(CONTAINER_ID, BlockTagMapping.of(block, meta));
         }
 
         /// Get the blocks for the passed in tag via RegistryMapping
