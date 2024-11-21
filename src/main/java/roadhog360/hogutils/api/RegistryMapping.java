@@ -1,27 +1,27 @@
 package roadhog360.hogutils.api;
 
-import it.unimi.dsi.fastutil.objects.ObjectArraySet;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class RegistryMapping<T> {
 
     /// Use the object instead of a RegistryMapping. This is so we can quickly fetch other RegistryMappings of the same type.
     /// We do this to not spam garbage collection, but this also
-    private static final Map<Object, Set<RegistryMapping<?>>> createdKeys = new Reference2ObjectArrayMap<>();
+    private static final Map<Object, List<RegistryMapping<?>>> createdKeys = new Reference2ObjectArrayMap<>();
 
 
     private final T object;
     private final transient int meta;
     private final transient boolean wildcardAlwaysEqual;
 
-    private RegistryMapping(T obj, int meta, boolean wildcardAlwaysEqual) {
+    protected RegistryMapping(T obj, int meta, boolean wildcardAlwaysEqual) {
         this.object = obj;
         this.meta = meta;
         this.wildcardAlwaysEqual = wildcardAlwaysEqual;
@@ -33,6 +33,10 @@ public class RegistryMapping<T> {
 
     public int getMeta() {
         return meta;
+    }
+
+    public boolean isWildcardAlwaysEqual() {
+        return wildcardAlwaysEqual;
     }
 
     /// Creates a new contained object for the specified block or item, and metadata. Supports wildcard values.
@@ -48,18 +52,18 @@ public class RegistryMapping<T> {
         if (!(object instanceof Block) && !(object instanceof Item)) {
             throw new IllegalArgumentException("RegistryMapping must be either an item or a block!");
         }
-        Set<RegistryMapping<?>> bucket = createdKeys.get(object);
+        List<RegistryMapping<?>> bucket = createdKeys.get(object);
         if(bucket != null) {
             for(RegistryMapping<?> bucketItem : bucket) {
                 // We already know the block is equal, just focus on the other stuff
-                if(meta == bucketItem.getMeta() && wildcardAlwaysEqual == bucketItem.wildcardAlwaysEqual) {
+                if(meta == bucketItem.getMeta() && wildcardAlwaysEqual == bucketItem.isWildcardAlwaysEqual()) {
                     return (RegistryMapping<E>) bucketItem;
                 }
             }
         }
 
         RegistryMapping mapping = new RegistryMapping<>(object, meta, wildcardAlwaysEqual);
-        createdKeys.computeIfAbsent(object, o -> new ObjectArraySet<>()).add(mapping);
+        createdKeys.computeIfAbsent(object, o -> new ObjectArrayList<>()).add(mapping);
         return mapping;
     }
 
@@ -109,7 +113,7 @@ public class RegistryMapping<T> {
     @Override
     public boolean equals(Object obj) {
         return obj == this || obj instanceof RegistryMapping<?> mapping && object == mapping.object
-            && ((wildcardAlwaysEqual && (meta == OreDictionary.WILDCARD_VALUE && mapping.meta == OreDictionary.WILDCARD_VALUE))
+            && ((isWildcardAlwaysEqual() && (meta == OreDictionary.WILDCARD_VALUE && mapping.meta == OreDictionary.WILDCARD_VALUE))
             || meta == mapping.meta);
     }
 
@@ -123,7 +127,7 @@ public class RegistryMapping<T> {
         return "RegistryMapping{" +
             "object=" + object +
             ", meta=" + meta +
-            ", wildcardAlwaysEqual=" + wildcardAlwaysEqual +
+            ", wildcardAlwaysEqual=" + isWildcardAlwaysEqual() +
             '}';
     }
 }

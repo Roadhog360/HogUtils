@@ -1,9 +1,10 @@
 package roadhog360.hogutils.api.hogtags;
 
 import com.google.common.base.CaseFormat;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableList;
 import cpw.mods.fml.common.Loader;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectArraySet;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
@@ -13,35 +14,26 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import roadhog360.hogutils.api.RegistryMapping;
+import roadhog360.hogutils.Tags;
 import roadhog360.hogutils.api.hogtags.event.OreDictionaryToTagStringEvent;
+import roadhog360.hogutils.api.hogtags.mappings.BlockTagMapping;
+import roadhog360.hogutils.api.hogtags.mappings.ItemTagMapping;
 import roadhog360.hogutils.api.utils.GenericUtils;
 import roadhog360.hogutils.api.utils.RecipeHelper;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-/**
- * Modern-esque tag system.
- * Uses https://fabricmc.net/wiki/community:common_tags as a standard rather than the vanilla or Forge standard tags.
- * New tags added by HogUtils have the "hogutils" domain.
- */
+/// Modern-esque tag system.
+/// Uses https://fabricmc.net/wiki/community:common_tags as a standard rather than the vanilla or Forge standard tags.
+/// New tags added by HogUtils have the "hogutils" domain.
 public final class HogTags {
 
     private HogTags() {}
-
-    /// Only use this if you've modified the registry to add your own custom taggable thing
-    public static <E> void addTagsToObject(E objToTag, String... tags) {
-        HogTagsRegistry.addTagsToObject(objToTag, tags);
-    }
-
-    /// Only use this if you've modified the registry to add your own custom taggable thing
-    public static <E> void removeTagsFromObject(E objToTag, String... tags) {
-        HogTagsRegistry.removeTagsFromObject(objToTag, tags);
-    }
 
 
     public static class MiscHelpers {
@@ -90,31 +82,32 @@ public final class HogTags {
         }
 
         // Utils and helpers for random blocks
+        // TODO: Should we support N/EIDs or should modders using those IDs be expected to add the extra data themselves?
 
-        /// Add tags to this block, with meta presets designed for logs.
-        public static void addTagsToLog(Block log, int meta, String... tags) {
+        /// Add tags to this block, with meta presets designed for stuff where the variant wraps every 4 meta, like logs or leaves
+        public static void addTagsTo4ths(Block log, int meta, String... tags) {
             addTagsToBlockAndItem(log, meta, tags);
             BlockTags.addTags(log, meta + 4, tags);
             BlockTags.addTags(log, meta + 8, tags);
             BlockTags.addTags(log, meta + 12, tags);
         }
 
-        /// Remove tags to this block, with meta presets designed for logs.
-        public static void removeTagsFromLog(Block log, int meta, String... tags) {
+        /// Remove tags to this block, with meta presets designed for stuff where the variant wraps every 4 meta, like logs or leaves
+        public static void removeTagsFrom4ths(Block log, int meta, String... tags) {
             addTagsToBlockAndItem(log, meta, tags);
             BlockTags.removeTags(log, meta + 4, tags);
             BlockTags.removeTags(log, meta + 8, tags);
             BlockTags.removeTags(log, meta + 12, tags);
         }
 
-        /// Add tags to this block, with meta presets designed for slabs.
-        public static void addTagsToSlab(Block log, int meta, String... tags) {
+        /// Add tags to this block, with meta presets designed for stuff where the variant wraps every 8 meta values, like slabs
+        public static void addTagsTo8ths(Block log, int meta, String... tags) {
             addTagsToBlockAndItem(log, meta, tags);
             BlockTags.addTags(log, meta + 8, tags);
         }
 
-        /// Remove tags to this block, with meta presets designed for slabs.
-        public static void removeTagsFromSlab(Block log, int meta, String... tags) {
+        /// Remove tags to this block, with meta presets designed for stuff where the variant wraps every 8 meta values, like slabs
+        public static void removeTagsFrom8ths(Block log, int meta, String... tags) {
             addTagsToBlockAndItem(log, meta, tags);
             BlockTags.removeTags(log, meta + 8, tags);
         }
@@ -124,7 +117,8 @@ public final class HogTags {
         /// Adds the following tags to the specified item.
         public static void addTags(Item item, int meta, String... tags) {
             if(!RecipeHelper.validateItems(item)) return;
-            addTagsToObject(RegistryMapping.of(item, meta, false), tags);
+            ItemTagMapping objToTag = ItemTagMapping.of(item, meta);
+            HogTagsRegistry.addTagsToObject(objToTag, tags);
         }
 
         public static void addTags(Item item, String... tags) {
@@ -134,7 +128,8 @@ public final class HogTags {
         /// Removes the following tags to the specified item.
         public static void removeTags(Item item, int meta, String... tags) {
             if(!RecipeHelper.validateItems(item)) return;
-            removeTagsFromObject(RegistryMapping.of(item, meta, false), tags);
+            ItemTagMapping objToTag = ItemTagMapping.of(item, meta);
+            HogTagsRegistry.removeTagsFromObject(objToTag, tags);
         }
 
         public static void removeTags(Item item, String... tags) {
@@ -143,24 +138,18 @@ public final class HogTags {
 
         /// Get the tags for the passed in item. You can pass in a Block's ItemBlock, too.
         /// (Typically obtained through Item#getItemFromBlock)
-        ///
-        /// Returns a new list independent of the ones in the registry, meaning it
-        /// may be mutated freely without making your own list to put them in for mutation.
-        public static Set<String> getTags(Item item, int meta) {
-            Set<String> set = new ObjectArraySet<>();
+        public static List<String> getTags(Item item, int meta) {
+            ImmutableList.Builder<String> set = ImmutableList.builder();
             if(meta != OreDictionary.WILDCARD_VALUE) {
-                set.addAll(HogTagsRegistry.getTagsFromObject(RegistryMapping.of(item, OreDictionary.WILDCARD_VALUE, false)));
+                set.addAll(HogTagsRegistry.getTagsFromObject(ItemTagMapping.of(item, OreDictionary.WILDCARD_VALUE)));
             }
-            set.addAll(HogTagsRegistry.getTagsFromObject(RegistryMapping.of(item, meta, false)));
-            return set;
+            set.addAll(HogTagsRegistry.getTagsFromObject(ItemTagMapping.of(item, meta)));
+            return set.build();
         }
 
         /// Get the items for the passed in tag.
-        ///
-        /// Returns a new list independent of the ones in the registry, meaning it
-        /// may be mutated freely without making your own list to put them in for mutation.
-        public static Set<RegistryMapping<Item>> getInTag(String tag) {
-            return Sets.newLinkedHashSet(HogTagsRegistry.getItemsInTag(tag));
+        public static List<ItemTagMapping> getInTag(String tag) {
+            return HogTagsRegistry.getObjectsForTagInContainer(Tags.MOD_ID + ":item", tag);
         }
 
         /// Get the items for the passed in tag. Returns them as {@link ItemStack} objects of stack size 1.
@@ -168,9 +157,10 @@ public final class HogTags {
         ///
         /// Returns a new list independent of the ones in the registry, meaning it
         /// may be mutated freely without making your own list to put them in for mutation.
-        public static Set<ItemStack> getItemStacksInTag(String tag) {
-            return HogTagsRegistry.getBlocksInTag(tag)
-                .stream().map(mapping -> new ItemStack(mapping.getObject(), 1, mapping.getMeta())).collect(Collectors.toCollection(Sets::newLinkedHashSet));
+        public static List<ItemStack> getItemStacksInTag(String tag) {
+            return HogTagsRegistry.<ItemTagMapping>getObjectsForTagInContainer(Tags.MOD_ID + ":block", tag)
+                .stream().map(mapping -> new ItemStack(mapping.getObject(), 1, mapping.getMeta()))
+                .collect(Collectors.toCollection(ObjectArrayList::new));
         }
 
         //Returns true if the passed in item has any of the listed tags.
@@ -183,7 +173,8 @@ public final class HogTags {
         /// Adds the following tags to the specified block.
         public static void addTags(Block block, int meta, String... tags) {
             if(!RecipeHelper.validateItems(block)) return;
-            addTagsToObject(RegistryMapping.of(block, meta, false), tags);
+            BlockTagMapping objToTag = BlockTagMapping.of(block, meta);
+            HogTagsRegistry.addTagsToObject(objToTag, tags);
         }
 
         public static void addTags(Block block, String... tags) {
@@ -193,7 +184,8 @@ public final class HogTags {
         /// Removes the following tags to the specified block.
         public static void removeTags(Block block, int meta, String... tags) {
             if(!RecipeHelper.validateItems(block)) return;
-            removeTagsFromObject(RegistryMapping.of(block, meta, false), tags);
+            BlockTagMapping objToTag = BlockTagMapping.of(block, meta);
+            HogTagsRegistry.removeTagsFromObject(objToTag, tags);
         }
 
         public static void removeTags(Block block, String... tags) {
@@ -201,24 +193,18 @@ public final class HogTags {
         }
 
         /// Get the tags for the passed in block.
-        ///
-        /// Returns a new list independent of the ones in the registry,
-        /// thBlock objects returned may be mutated freely without making your own list to put them in for mutation.
-        public static Set<String> getTags(Block block, int meta) {
-            Set<String> set = new ObjectArraySet<>();
+        public static List<String> getTags(Block block, int meta) {
+            ImmutableList.Builder<String> set = ImmutableList.builder();
             if(meta != OreDictionary.WILDCARD_VALUE) {
-                set.addAll(HogTagsRegistry.getTagsFromObject(RegistryMapping.of(block, OreDictionary.WILDCARD_VALUE, false)));
+                set.addAll(HogTagsRegistry.getTagsFromObject(BlockTagMapping.of(block, OreDictionary.WILDCARD_VALUE)));
             }
-            set.addAll(HogTagsRegistry.getTagsFromObject(RegistryMapping.of(block, meta, false)));
-            return set;
+            set.addAll(HogTagsRegistry.getTagsFromObject(BlockTagMapping.of(block, meta)));
+            return set.build();
         }
 
         /// Get the blocks for the passed in tag via RegistryMapping
-        ///
-        /// Returns a new list independent of the ones in the registry, meaning it
-        /// may be mutated freely without making your own list to put them in for mutation.
-        public static Set<RegistryMapping<Block>> getInTag(String tag) {
-            return Sets.newLinkedHashSet(HogTagsRegistry.getBlocksInTag(tag));
+        public static List<BlockTagMapping> getInTag(String tag) {
+            return HogTagsRegistry.getObjectsForTagInContainer(Tags.MOD_ID + ":block", tag);
         }
 
         /// Get the blocks for the passed in tag. Returns them as {@link ItemStack} objects of stack size 1.
@@ -227,9 +213,10 @@ public final class HogTags {
         ///
         /// Returns a new list independent of the ones in the registry, meaning it
         /// may be mutated freely without making your own list to put them in for mutation.
-        public static Set<ItemStack> getItemStacksInTag(String tag) {
-            return HogTagsRegistry.getBlocksInTag(tag)
-                .stream().map(mapping -> new ItemStack(mapping.getObject(), 1, mapping.getMeta())).collect(Collectors.toCollection(ObjectArraySet::new));
+        public static List<ItemStack> getItemStacksInTag(String tag) {
+            return HogTagsRegistry.<BlockTagMapping>getObjectsForTagInContainer(Tags.MOD_ID + ":block", tag)
+                .stream().map(mapping -> new ItemStack(mapping.getObject(), 1, mapping.getMeta()))
+                .collect(Collectors.toCollection(ObjectArrayList::new));
         }
 
         /// Get the blocks for the passed in tag. Returns them as {@link Pair}<{@link Block}, {@link Integer}> objects.
@@ -237,9 +224,10 @@ public final class HogTags {
         ///
         /// Returns a new list independent of the ones in the registry, meaning it
         /// may be mutated freely without making your own list to put them in for mutation.
-        public static Set<Pair<Block, Integer>> getBlockPairsInTag(String tag) {
-            return HogTagsRegistry.getBlocksInTag(tag)
-                .stream().map(mapping -> Pair.of(mapping.getObject(), mapping.getMeta())).collect(Collectors.toCollection(ObjectArraySet::new));
+        public static List<Pair<Block, Integer>> getBlockPairsInTag(String tag) {
+            return HogTagsRegistry.<BlockTagMapping>getObjectsForTagInContainer(Tags.MOD_ID + ":block", tag)
+                .stream().map(mapping -> Pair.of(mapping.getObject(), mapping.getMeta()))
+                .collect(Collectors.toCollection(ObjectArrayList::new));
         }
 
         //Returns true if the passed in item has any of the listed tags.
@@ -332,8 +320,8 @@ public final class HogTags {
         /// Pass in the last boolean as `TRUE` if you want it to return a generic tag in place, for example `someRandomTag` would become `ore_dictionary:some_random_tag` instead of returning an empty list.
         /// If the boolean is `FALSE`, tags not eligible to convert will not be added to the list, meaning the list would become empty.
         /// See the maps this uses for more info on how they're being used. Instead of using the event, you may also add your own dynamic filters to the static maps, if you wish.
-        public static Set<String> convertOreDictToTags(String oreDict, boolean returnsGenericTag) {
-            Set<String> tags = new ObjectArraySet<>();
+        public static List<String> convertOreDictToTags(String oreDict, boolean returnsGenericTag) {
+            List<String> tags = new ObjectArrayList<>();
 
 
             //The below implementations originally used the indexes of the first/last capital letters to determine where to truncate the string
@@ -349,7 +337,7 @@ public final class HogTags {
                     tags.add("c:dyes/" + CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, GenericUtils.Constants.MODERN_COLORS_SNAKE_CASE[dyeID]));
                 }
             } else {
-                tagDyes(oreDict, tags);
+                tagDyed(oreDict, tags);
             }
 
             if(FULL_SWAPS.containsKey(oreDict)) {
@@ -357,19 +345,15 @@ public final class HogTags {
             }
 
             if(PREFIX_SUFFIX_TAG_EXEMPTIONS.stream().noneMatch(oreDict::startsWith)){
-                String oreDictPrefix = null;
                 for (String checkPrefix : PREFIX_BASED_TAGS.keySet()) {
                     if (oreDict.startsWith(checkPrefix)) {
-                        oreDictPrefix = checkPrefix;
+                        doPrefixingLogic(oreDict, checkPrefix, tags);
                         break;
                     }
                 }
-                if (oreDictPrefix != null) {
-                    doPrefixingLogic(oreDict, oreDictPrefix, tags);
-                }
             }
 
-            Set<String> eventTags = new ObjectArraySet<>();
+            List<String> eventTags = new ObjectArrayList<>();
             MinecraftForge.EVENT_BUS.post(new OreDictionaryToTagStringEvent(oreDict, tags, eventTags));
             tags.addAll(eventTags);
 
@@ -380,7 +364,7 @@ public final class HogTags {
             return tags;
         }
 
-        private static void doPrefixingLogic(String oreDict, String prefix, Set<String> tags) {
+        private static void doPrefixingLogic(String oreDict, String prefix, List<String> tags) {
             Pair<String, Boolean> data = PREFIX_BASED_TAGS.get(prefix);
 
             //The other half of the oreDict tag
@@ -397,7 +381,7 @@ public final class HogTags {
             }
         }
 
-        private static void tagDyes(String oreDict, Set<String> tags) {
+        private static void tagDyed(String oreDict, List<String> tags) {
             String[] modernColorsCamelCase = GenericUtils.Constants.MODERN_COLORS_CAMEL_CASE;
             for (int i = 0; i < modernColorsCamelCase.length; i++) {
                 String color = modernColorsCamelCase[i];

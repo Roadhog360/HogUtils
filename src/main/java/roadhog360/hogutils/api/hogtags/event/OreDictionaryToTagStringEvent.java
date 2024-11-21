@@ -1,12 +1,10 @@
 package roadhog360.hogutils.api.hogtags.event;
 
-import com.google.common.collect.Sets;
 import cpw.mods.fml.common.eventhandler.Cancelable;
 import cpw.mods.fml.common.eventhandler.Event;
-import net.minecraft.item.ItemStack;
 
 import java.util.Collections;
-import java.util.Set;
+import java.util.List;
 
 /// Used when the game is registering OreDictionary values, to return a corresponding tag.
 /// If there's a custom OreDictionary tag you have a modern tag equivalent for you can hook into this event.
@@ -15,12 +13,12 @@ import java.util.Set;
 /// This event is NOT {@link Cancelable}.
 public class OreDictionaryToTagStringEvent extends Event {
     public final String oreDictTag;
-    public final Set<String> convertedTagsList;
-    public final Set<String> tagsToAdd;
+    public final List<String> convertedTagsList;
+    public final List<String> tagsToAdd;
 
-    public OreDictionaryToTagStringEvent(String oreDictTag, Set<String> convertedTagsList, Set<String> tagsToAdd) {
+    public OreDictionaryToTagStringEvent(String oreDictTag, List<String> convertedTagsList, List<String> tagsToAdd) {
         this.oreDictTag = oreDictTag;
-        this.convertedTagsList = Collections.unmodifiableSet(convertedTagsList);
+        this.convertedTagsList = Collections.unmodifiableList(convertedTagsList);
         this.tagsToAdd = tagsToAdd;
     }
 

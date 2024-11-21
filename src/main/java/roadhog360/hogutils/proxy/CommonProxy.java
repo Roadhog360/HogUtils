@@ -34,11 +34,11 @@ public class CommonProxy {
     }
 
     private void finalizeTags() { //For new stuff that isn't auto-tagged by the OreDictionary auto-tagger.
-        HogTags.MiscHelpers.addTagsToLog(Blocks.log, 0, "minecraft:oak_logs");
-        HogTags.MiscHelpers.addTagsToLog(Blocks.log, 1, "minecraft:spruce_logs");
-        HogTags.MiscHelpers.addTagsToLog(Blocks.log, 2, "minecraft:birch_logs");
-        HogTags.MiscHelpers.addTagsToLog(Blocks.log, 3, "minecraft:jungle_logs");
-        HogTags.MiscHelpers.addTagsToLog(Blocks.log2, 0, "minecraft:acacia_logs");
-        HogTags.MiscHelpers.addTagsToLog(Blocks.log2, 1, "minecraft:dark_oak_logs");
+        HogTags.MiscHelpers.addTagsTo4ths(Blocks.log, 0, "minecraft:oak_logs");
+        HogTags.MiscHelpers.addTagsTo4ths(Blocks.log, 1, "minecraft:spruce_logs");
+        HogTags.MiscHelpers.addTagsTo4ths(Blocks.log, 2, "minecraft:birch_logs");
+        HogTags.MiscHelpers.addTagsTo4ths(Blocks.log, 3, "minecraft:jungle_logs");
+        HogTags.MiscHelpers.addTagsTo4ths(Blocks.log2, 0, "minecraft:acacia_logs");
+        HogTags.MiscHelpers.addTagsTo4ths(Blocks.log2, 1, "minecraft:dark_oak_logs");
     }
 }

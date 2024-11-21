@@ -12,7 +12,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import roadhog360.hogutils.api.hogtags.HogTags;
 import roadhog360.hogutils.api.utils.GenericUtils;
 
-import java.util.Set;
+import java.util.List;
 
 public class ClientEventHandler {
 
@@ -29,7 +29,7 @@ public class ClientEventHandler {
                 Pair<Block, Integer> blockAndMeta = GenericUtils.getBlockAndMetaFromMOP(null, mop);
                 Block lookingBlock = blockAndMeta.getLeft();
                 int lookingMeta = blockAndMeta.getRight();
-                Set<String> tags = HogTags.BlockTags.getTags(lookingBlock, lookingMeta);
+                List<String> tags = HogTags.BlockTags.getTags(lookingBlock, lookingMeta);
 
                 if(!tags.isEmpty()) {
                     event.right.add(null);
@@ -45,7 +45,7 @@ public class ClientEventHandler {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void injectHogTagsTooltip(ItemTooltipEvent event) {
         if (event.showAdvancedItemTooltips && event.itemStack != null) {
-            Set<String> tags = HogTags.ItemTags.getTags(event.itemStack.getItem(), event.itemStack.getItemDamage());
+            List<String> tags = HogTags.ItemTags.getTags(event.itemStack.getItem(), event.itemStack.getItemDamage());
             if(!tags.isEmpty()) {
                 if (GuiContainer.isCtrlKeyDown()) {
                     event.toolTip.add("\u00a78HogTags:");

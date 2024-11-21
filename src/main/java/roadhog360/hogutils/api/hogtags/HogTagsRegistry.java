@@ -1,15 +1,18 @@
 package roadhog360.hogutils.api.hogtags;
 
+import com.google.common.collect.ImmutableList;
+import cpw.mods.fml.common.Loader;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
-import it.unimi.dsi.fastutil.objects.ObjectArraySet;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
-import net.minecraft.block.Block;
-import net.minecraft.item.Item;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import roadhog360.hogutils.Tags;
-import roadhog360.hogutils.api.RegistryMapping;
+import roadhog360.hogutils.api.hogtags.mappings.BlockTagMapping;
+import roadhog360.hogutils.api.hogtags.mappings.ItemTagMapping;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -19,10 +22,34 @@ import java.util.Set;
 public final class HogTagsRegistry {
     private HogTagsRegistry() {}
 
-    private static final Map<String, TagContainer<?>> TAG_CONTAINER_MAP = new Object2ObjectArrayMap<>();
+    private static final Map<String, TagContainer<?>> TAG_CONTAINERS = new Object2ObjectArrayMap<>();
     static {
-        TAG_CONTAINER_MAP.put(Tags.MOD_ID + ":block", new TagContainer<Block>());
-        TAG_CONTAINER_MAP.put(Tags.MOD_ID + ":item", new TagContainer<Item>());
+        registerNewTagContainer(Tags.MOD_ID + ":block", new TagContainer<BlockTagMapping>(BlockTagMapping.class));
+        registerNewTagContainer(Tags.MOD_ID + ":item", new TagContainer<ItemTagMapping>(ItemTagMapping.class));
+    }
+
+    private static String checkContainerIDForModID(String containerID) {
+        if(!containerID.contains(":")) {
+            try {
+                containerID = Loader.instance().activeModContainer().getModId() + ":" + containerID;
+            } catch (
+                Exception e) { //This could also happen if there's an error in the OreDictionary auto-tagging system, since that'd return an invalid mod container.
+                throw new RuntimeException("Could not determine mod id for unprefixed tag container ID " + containerID + "!" +
+                    "\nThis could be for several reasons, sometimes Forge's mod container fetcher just doesn't work, your code could be called from mixin'd vanilla code, etc..." +
+                    "\nIt's good practice to just add a mod prefix to your tag container. Do that please...");
+            }
+        }
+        return containerID;
+    }
+
+    public static <T> void registerNewTagContainer(String containerID, TagContainer<T> container) {
+        if(TAG_CONTAINERS.containsKey(containerID)) {
+            throw new IllegalArgumentException("Tag container with ID " + containerID + " is already registered!");
+        }
+        if(TAG_CONTAINERS.containsValue(container)) {
+            throw new IllegalArgumentException("Tag container " + container + " is already registered!");
+        }
+        TAG_CONTAINERS.put(checkContainerIDForModID(containerID), container);
     }
 
     @SuppressWarnings("unchecked")
@@ -30,113 +57,182 @@ public final class HogTagsRegistry {
         return (TagContainer<T>) getTagContainerFromID(getTagContainerIDFromObject(objToTag));
     }
 
-    public static String getTagContainerIDFromObject(Object objToTag) {
+    public static <T> String getTagContainerIDFromObject(T objToTag) {
         if(objToTag == null) {
             throw new RuntimeException("Null object cannot be tagged!");
         }
 
-        if(objToTag instanceof RegistryMapping<?> mapping) {
-            if(mapping.getObject() instanceof Block) {
-                return Tags.MOD_ID + ":block";
-            } else if (mapping.getObject() instanceof Item) {
-                return Tags.MOD_ID + ":item";
-            } else {
-                //Should never happen, this means someone fucked with my registry mapping objects in cursed ways
-                throw new RuntimeException("whar");
+        for(Map.Entry<String, TagContainer<?>> entry : TAG_CONTAINERS.entrySet()) {
+            if(entry.getValue().isValid(objToTag, false)) {
+                return entry.getKey();
             }
         }
 
-        throw new RuntimeException("Object of type " + objToTag.getClass() + " currently not supported for tagging!");
+        throw new RuntimeException("Object of " + objToTag.getClass() + " currently not supported for tagging!");
     }
 
     public static TagContainer<?> getTagContainerFromID(String containerID) {
-        TagContainer<?> container = TAG_CONTAINER_MAP.get(containerID);
+        containerID = checkContainerIDForModID(containerID);
+        TagContainer<?> container = TAG_CONTAINERS.get(containerID);
         if(container != null) {
             return container;
         }
         throw new RuntimeException("Attempting to get tag container for ID that doesn't exist! Passed in ID " + containerID);
     }
 
-    static <E> void addTagsToObject(E objToTag, String... tags) {
+    public static <E> void addTagsToObject(E objToTag, String... tags) {
         getTagContainerForObject(objToTag).putTags(objToTag, tags);
     }
 
-    static <E> void removeTagsFromObject(E objToUntag, String... tags) {
+    public static <E> void removeTagsFromObject(E objToUntag, String... tags) {
         getTagContainerForObject(objToUntag).removeTags(objToUntag, tags);
     }
 
-    static <E> Set<String> getTagsFromObject(E taggedObj) {
+    public static <E> List<String> getTagsFromObject(E taggedObj) {
         return getTagContainerForObject(taggedObj).getTags(taggedObj);
     }
 
-    //Helper functions for getting object list from tags here.
-    //Since we are only given a string we can't determine which list to pull from automatically, so we need to make a function for each list.
-    //Tags are not unique and multiple registries (mainly item and block registries) can have the same tags in them.
-    //So... we can't detect that way either.
-
+    /// Only use this if you have registered your own custom taggable thing.
+    /// Blocks/Items for example use this to get the metadata of the wildcard as well as the normal one.
     @SuppressWarnings("unchecked")
-    static Set<RegistryMapping<Block>> getBlocksInTag(String tag) {
-        return (Set<RegistryMapping<Block>>) getTagContainerFromID(Tags.MOD_ID + ":block").getObjectsInTag(tag);
-    }
-
-    @SuppressWarnings("unchecked")
-    static Set<RegistryMapping<Item>> getItemsInTag(String tag) {
-        return (Set<RegistryMapping<Item>>) getTagContainerFromID(Tags.MOD_ID + ":item").getObjectsInTag(tag);
+    public static <E> List<E> getObjectsForTagInContainer(String container, String tag) {
+        return (List<E>) getTagContainerFromID(container).getObjectsInTag(tag);
     }
 
     public static class TagContainer<T> {
-        private final Map<T, Set<String>> OBJECT_TO_TAGS = new Reference2ObjectArrayMap<>();
+        protected final Class<?> typeToEnforce;
+
+        protected final Map<T, TagPair<String>> TAGS_MAP = new Reference2ObjectArrayMap<>();
+        protected final Map<String, TagPair<T>> REVERSE_LOOKUPS = new Object2ObjectArrayMap<>();
 
         private final Map<String, Set<String>> INHERITORS = new Object2ObjectArrayMap<>();
 
+        public TagContainer(Class<?> typeToEnforce) {
+            this.typeToEnforce = typeToEnforce;
+        }
+
         private void putTags(T objToTag, String... tags) {
+            isValid(objToTag, true);
             //Run tag filters
             HogTags.Utils.applyFiltersToTags(tags);
-            for (int i = 0; i < tags.length; i++) {
-                tags[i] = tags[i].intern();
-            }
-
 
             //Add the tags to the object > tag list lookup
-            Collections.addAll(OBJECT_TO_TAGS.computeIfAbsent(objToTag, o -> new ObjectArraySet<>()), tags);
+            Collections.addAll(TAGS_MAP.computeIfAbsent(objToTag, o -> new TagPair<>(new ObjectArrayList<>())).getUnlocked(), tags);
 
-            //I think inheritor logic would go here. Should just recursively call this method. MAKE SURE THERE'S RECURSION SANITY LOL
-
-            invalidateReverseLookupCache();
+            invalidateCaches();
         }
 
         private void removeTags(T objToUntag, String... tags) {
+            isValid(objToUntag, true);
             HogTags.Utils.applyFiltersToTags(tags);
-            OBJECT_TO_TAGS.get(objToUntag).removeIf(s -> ArrayUtils.contains(tags, s));
+            TAGS_MAP.get(objToUntag).getUnlocked().removeIf(s -> ArrayUtils.contains(tags, s));
 
-            //I think inheritor logic would go here. Should just recursively call this method. MAKE SURE THERE'S RECURSION SANITY LOL
+            //TODO: Is it worth it to just remove the list entirety if it is emptied?
 
-            invalidateReverseLookupCache();
+            invalidateCaches();
         }
 
-        private Set<String> getTags(T object) {
-            return OBJECT_TO_TAGS.getOrDefault(object, Collections.emptySet());
+        private List<String> getTags(T object) {
+            TagPair<String> tags = TAGS_MAP.get(object);
+            if(tags == null) {
+                return ImmutableList.of();
+            }
+            return tags.getLocked();
         }
 
-        private void invalidateReverseLookupCache() {
-            TAG_TO_OBJECTS.clear();
-        }
-
-        private final Map<String, Set<T>> TAG_TO_OBJECTS = new Object2ObjectArrayMap<>();
-
-        private Set<T> getObjectsInTag(String tag) {
+        private List<T> getObjectsInTag(String tag) {
             tag = HogTags.Utils.applyFiltersToTag(tag);
-            if(!TAG_TO_OBJECTS.containsKey(tag)) {
-                Set<T> set = new ObjectArraySet<>();
-                for(Map.Entry<T, Set<String>> entry : OBJECT_TO_TAGS.entrySet()) {
-                    if(entry.getValue().contains(tag)) {
+            if (!REVERSE_LOOKUPS.containsKey(tag)) {
+                List<T> set = new ObjectArrayList<>();
+                for (Map.Entry<T, TagPair<String>> entry : TAGS_MAP.entrySet()) {
+                    List<String> tags = getTags(entry.getKey());
+                    if (tags.contains(tag)) {
                         set.add(entry.getKey());
                     }
                 }
-                TAG_TO_OBJECTS.put(tag, set);
+
+                if(set.isEmpty()) {
+                    REVERSE_LOOKUPS.put(tag, TagPair.getEmpty());
+                    return ImmutableList.of();
+                }
+                REVERSE_LOOKUPS.put(tag, new TagPair<>(set));
                 return set;
             }
-            return TAG_TO_OBJECTS.get(tag);
+            return REVERSE_LOOKUPS.get(tag).getLocked();
+        }
+
+        /// Returns `TRUE` if the passed in object is a valid type for this TagsContainer, `FALSE` if otherwise.
+        /// If the second arg is `TRUE`, the game will crash instead of returning false.
+        ///
+        /// The `TRUE` arg is used by put/remove to crash the game if the tag isn't valid.
+        /// The `FALSE` arg is used when fetching a valid tag container for the object.
+        public boolean isValid(Object object, boolean enforce) {
+            if (typeToEnforce.isInstance(object)) {
+                return true;
+            }
+            if (enforce) {
+                throw new IllegalArgumentException("This object (" + object + ") isn't a valid type for this tag container! (Type must be of " + typeToEnforce + ")");
+            }
+            return false;
+        }
+
+        /// Invalidates reverse lookup cache
+        protected void invalidateCaches() {
+            REVERSE_LOOKUPS.clear();
+        }
+
+        protected final <E> List<E> getLockedSet(TagPair<E> set) {
+            return set.getLocked();
+        }
+
+        @Override
+        public String toString() {
+            return "TagContainer{" + "typeToEnforce=" + typeToEnforce + '}';
+        }
+
+        protected static final class TagPair<E> extends Pair<List<E>, List<E>> {
+
+            private final List<E> unlocked, locked;
+
+            public TagPair(List<E> unlocked) {
+                this.unlocked = unlocked;
+                this.locked = Collections.unmodifiableList(unlocked);
+            }
+
+            private List<E> getUnlocked() {
+                return unlocked;
+            }
+
+            public List<E> getLocked() {
+                return locked;
+            }
+
+            @Override
+            public List<E> getLeft() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public List<E> getRight() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public List<E> getValue() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public List<E> setValue(final List<E> value) {
+                throw new UnsupportedOperationException();
+            }
+
+            private static final TagPair<?> EMPTY = new TagPair<>(ImmutableList.of());
+
+            @SuppressWarnings("unchecked")
+            public static <E> TagPair<E> getEmpty() {
+                return (TagPair<E>) EMPTY;
+            }
         }
     }
 }
