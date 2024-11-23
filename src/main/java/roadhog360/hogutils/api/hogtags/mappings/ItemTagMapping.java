@@ -3,6 +3,7 @@ package roadhog360.hogutils.api.hogtags.mappings;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import net.minecraft.item.Item;
+import net.minecraftforge.oredict.OreDictionary;
 import roadhog360.hogutils.api.RegistryMapping;
 
 import java.util.List;
@@ -16,7 +17,7 @@ public class ItemTagMapping extends RegistryMapping<Item> {
         super(object, meta, false);
     }
 
-    public static  ItemTagMapping of(Item object, int meta) {
+    public static ItemTagMapping of(Item object, int meta) {
         if (!(object instanceof Item)) {
             throw new IllegalArgumentException("ItemTagMapping must be an item!");
         }
@@ -33,5 +34,9 @@ public class ItemTagMapping extends RegistryMapping<Item> {
         ItemTagMapping mapping = new ItemTagMapping(object, meta);
         createdKeys.computeIfAbsent(object, o -> new ObjectArrayList<>()).add(mapping);
         return mapping;
+    }
+
+    public static ItemTagMapping of(Item object) {
+        return of(object, OreDictionary.WILDCARD_VALUE);
     }
 }

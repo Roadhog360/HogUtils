@@ -3,6 +3,7 @@ package roadhog360.hogutils.api.hogtags.mappings;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import net.minecraft.block.Block;
+import net.minecraftforge.oredict.OreDictionary;
 import roadhog360.hogutils.api.RegistryMapping;
 
 import java.util.List;
@@ -15,7 +16,7 @@ public class BlockTagMapping extends RegistryMapping<Block> {
         super(object, meta, false);
     }
 
-    public static  BlockTagMapping of(Block object, int meta) {
+    public static BlockTagMapping of(Block object, int meta) {
         if (!(object instanceof Block)) {
             throw new IllegalArgumentException("BlockTagMapping must be a block!");
         }
@@ -32,5 +33,9 @@ public class BlockTagMapping extends RegistryMapping<Block> {
         BlockTagMapping mapping = new BlockTagMapping(object, meta);
         createdKeys.computeIfAbsent(object, o -> new ObjectArrayList<>()).add(mapping);
         return mapping;
+    }
+
+    public static BlockTagMapping of(Block object) {
+        return of(object, OreDictionary.WILDCARD_VALUE);
     }
 }

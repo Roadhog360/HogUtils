@@ -17,7 +17,6 @@ public class HogUtils {
 
     @Mod.EventHandler
     public void onConstructing(FMLConstructionEvent event) {
-
         proxy.onConstructing(event);
     }
 

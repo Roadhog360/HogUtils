@@ -2,7 +2,7 @@ package roadhog360.hogutils.proxy;
 
 import cpw.mods.fml.common.event.FMLConstructionEvent;
 import net.minecraftforge.common.MinecraftForge;
-import roadhog360.hogutils.handlers.event.ClientEventHandler;
+import roadhog360.hogutils.handlers.event.HogTagsDisplayEventHandler;
 
 public class ClientProxy extends CommonProxy {
 
@@ -13,6 +13,6 @@ public class ClientProxy extends CommonProxy {
     @Override
     public void onConstructing(FMLConstructionEvent event) {
         super.onConstructing(event);
-        MinecraftForge.EVENT_BUS.register(ClientEventHandler.INSTANCE);
+        MinecraftForge.EVENT_BUS.register(HogTagsDisplayEventHandler.INSTANCE);
     }
 }

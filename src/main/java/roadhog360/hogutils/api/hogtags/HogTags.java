@@ -1,394 +1,392 @@
 package roadhog360.hogutils.api.hogtags;
 
-import com.google.common.base.CaseFormat;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.ImmutableList;
 import cpw.mods.fml.common.Loader;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectArraySet;
-import net.minecraft.block.Block;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemBlock;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.common.MinecraftForge;
+import it.unimi.dsi.fastutil.objects.ObjectImmutableList;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
+import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import roadhog360.hogutils.Tags;
-import roadhog360.hogutils.api.hogtags.event.OreDictionaryToTagStringEvent;
 import roadhog360.hogutils.api.hogtags.mappings.BlockTagMapping;
 import roadhog360.hogutils.api.hogtags.mappings.ItemTagMapping;
-import roadhog360.hogutils.api.utils.GenericUtils;
-import roadhog360.hogutils.api.utils.RecipeHelper;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
-/// Modern-esque tag system.
-/// Uses https://fabricmc.net/wiki/community:common_tags as a standard rather than the vanilla or Forge standard tags.
-/// New tags added by HogUtils have the "hogutils" domain.
+/// Internal backend for HogTags. Not intended to be called from.
+/// This package is just to help keep its internal components private; Please use the HogTags class to call to this, don't reflect or mixin here.
+/// If you think you can optimize this, or otherwise need a change, please submit a PR
 public final class HogTags {
-
     private HogTags() {}
 
-
-    public static class MiscHelpers {
-        /// Adds the following tags to both the block and its item too.
-        /// Probably doesn't work for pre-init so don't put this in your block's constructor.
-        ///
-        /// NOTE: Things like signs, beds, and skulls use a SEPARATE ITEM for their block.
-        /// Which means this function will not tag things that do that. Make sure when using this on a block it actually has an ItemBlock!!!
-        public static void addTagsToBlockAndItem(Block object, int meta, String... tags) {
-            Item item = Item.getItemFromBlock(object);
-            if(item != null) {
-                ItemTags.addTags(item, meta, tags);
+    private static final BiMap<String, TagContainer<?>> TAG_CONTAINERS = HashBiMap.create(new Object2ObjectArrayMap<>());
+    static {
+        registerTagContainer(HogTagsHelper.BlockTags.CONTAINER_ID, new TagContainer<BlockTagMapping>(BlockTagMapping.class){
+            @Override
+            protected List<String> getExtraTags(BlockTagMapping object) {
+                if(object.getMeta() != OreDictionary.WILDCARD_VALUE) {
+                    return getBaseTags(BlockTagMapping.of(object.getObject(), OreDictionary.WILDCARD_VALUE));
+                }
+                return super.getExtraTags(object);
             }
-            BlockTags.addTags(object, item != null && item.getHasSubtypes() ? meta : OreDictionary.WILDCARD_VALUE, tags);
-        }
+        });
 
-        /// Adds the following tags to both the block and its item too.
-        /// Probably doesn't work for pre-init so don't put this in your block's constructor.
-        ///
-        /// NOTE: Things like signs, beds, and skulls use a SEPARATE ITEM for their block.
-        /// Which means this function will not tag things like that. Make sure when using this on a block it actually has an ItemBlock!!!
-        public static void addTagsToBlockAndItem(Block object, String... tags) {
-            addTagsToBlockAndItem(object, OreDictionary.WILDCARD_VALUE, tags);
-        }
-
-        /// Removes the following tags to both the block and its item too. If the item is not found it'll be removed from the item during init.
-        /// Probably doesn't work for pre-init so don't put this in your block's constructor.
-        ///
-        /// NOTE: Things like signs, beds, and skulls use a SEPARATE ITEM for their block.
-        /// Which means this function will not tag things like that. Make sure when using this on a block it actually has an ItemBlock!!!
-        public static void removeTagsFromBlockAndItem(Block object, int meta, String... tags) {
-            Item item = Item.getItemFromBlock(object);
-            if(item != null) {
-                ItemTags.removeTags(item, meta, tags);
+        registerTagContainer(HogTagsHelper.ItemTags.CONTAINER_ID, new TagContainer<ItemTagMapping>(ItemTagMapping.class){
+            @Override
+            protected List<String> getExtraTags(ItemTagMapping object) {
+                if(object.getMeta() != OreDictionary.WILDCARD_VALUE) {
+                    return getBaseTags(ItemTagMapping.of(object.getObject(), OreDictionary.WILDCARD_VALUE));
+                }
+                return super.getExtraTags(object);
             }
-            BlockTags.removeTags(object, item != null && item.getHasSubtypes() ? meta : OreDictionary.WILDCARD_VALUE, tags);
-        }
+        });
 
-        /// Removes the following tags to both the block and its item too.
-        /// Probably doesn't work for pre-init so don't put this in your block's constructor.
-        ///
-        /// NOTE: Things like signs, beds, and skulls use a SEPARATE ITEM for their block.
-        /// Which means this function will not tag things that do that. Make sure when using this on a block it actually has an ItemBlock!!!
-        public static void removeTagsFromBlockAndItem(Block object, String... tags) {
-            removeTagsFromBlockAndItem(object, OreDictionary.WILDCARD_VALUE, tags);
-        }
-
-        // Utils and helpers for random blocks
-        // TODO: Should we support N/EIDs or should modders using those IDs be expected to add the extra data themselves?
-
-        /// Add tags to this block, with meta presets designed for stuff where the variant wraps every 4 meta, like logs or leaves
-        public static void addTagsTo4ths(Block log, int meta, String... tags) {
-            addTagsToBlockAndItem(log, meta, tags);
-            BlockTags.addTags(log, meta + 4, tags);
-            BlockTags.addTags(log, meta + 8, tags);
-            BlockTags.addTags(log, meta + 12, tags);
-        }
-
-        /// Remove tags to this block, with meta presets designed for stuff where the variant wraps every 4 meta, like logs or leaves
-        public static void removeTagsFrom4ths(Block log, int meta, String... tags) {
-            addTagsToBlockAndItem(log, meta, tags);
-            BlockTags.removeTags(log, meta + 4, tags);
-            BlockTags.removeTags(log, meta + 8, tags);
-            BlockTags.removeTags(log, meta + 12, tags);
-        }
-
-        /// Add tags to this block, with meta presets designed for stuff where the variant wraps every 8 meta values, like slabs
-        public static void addTagsTo8ths(Block log, int meta, String... tags) {
-            addTagsToBlockAndItem(log, meta, tags);
-            BlockTags.addTags(log, meta + 8, tags);
-        }
-
-        /// Remove tags to this block, with meta presets designed for stuff where the variant wraps every 8 meta values, like slabs
-        public static void removeTagsFrom8ths(Block log, int meta, String... tags) {
-            addTagsToBlockAndItem(log, meta, tags);
-            BlockTags.removeTags(log, meta + 8, tags);
-        }
+        registerTagContainer(HogTagsHelper.BiomeTags.CONTAINER_ID, new TagContainer<BiomeGenBase>(BiomeGenBase.class));
     }
 
-    public static class ItemTags {
-        public static final String CONTAINER_ID = Tags.MOD_ID + ":item";
-        /// Adds the following tags to the specified item.
-        public static void addTags(Item item, int meta, String... tags) {
-            if(!RecipeHelper.validateItems(item)) return;
-            ItemTagMapping objToTag = ItemTagMapping.of(item, meta);
-            HogTagsRegistry.addTagsToObject(CONTAINER_ID, objToTag, tags);
+    private static String checkContainerIDForModID(String containerID) {
+        if(!containerID.contains(":")) {
+            try {
+                containerID = Loader.instance().activeModContainer().getModId() + ":" + containerID;
+            } catch (
+                Exception e) { //This could also happen if there's an error in the OreDictionary auto-tagging system, since that'd return an invalid mod container.
+                throw new RuntimeException("Could not determine mod id for unprefixed tag container ID " + containerID + "!" +
+                    "\nThis could be for several reasons, sometimes Forge's mod container fetcher just doesn't work, your code could be called from mixin'd vanilla code, etc..." +
+                    "\nIt's good practice to just add a mod prefix to your tag container. Do that please...");
+            }
         }
-
-        public static void addTags(Item item, String... tags) {
-            addTags(item, OreDictionary.WILDCARD_VALUE, tags);
-        }
-
-        /// Removes the following tags to the specified item.
-        /// If the removal doesn't work, it may be part of the wildcard tags instead, or part of an inherited tags list.
-        /// It may also be present in multiple lists in the inheritance tree.
-        ///
-        /// You can always use `/tags dump` to get a full dump of any tags registry, this one's id is `hogtags:item`.
-        public static void removeTags(Item item, int meta, String... tags) {
-            if(!RecipeHelper.validateItems(item)) return;
-            ItemTagMapping objToTag = ItemTagMapping.of(item, meta);
-            HogTagsRegistry.removeTagsFromObject(CONTAINER_ID, objToTag, tags);
-        }
-
-        public static void removeTags(Item item, String... tags) {
-            removeTags(item, OreDictionary.WILDCARD_VALUE, tags);
-        }
-
-        /// Get the tags for the passed in item. You can pass in a Block's ItemBlock, too.
-        /// (Typically obtained through Item#getItemFromBlock)
-        public static List<String> getTags(Item item, int meta) {
-            return HogTagsRegistry.getTagsFromObject(CONTAINER_ID, ItemTagMapping.of(item, meta));
-        }
-
-        /// Get the items for the passed in tag.
-        public static List<ItemTagMapping> getInTag(String tag) {
-            return HogTagsRegistry.getObjectsForTagInContainer(Tags.MOD_ID + ":item", tag);
-        }
-
-        /// Get the items for the passed in tag. Returns them as {@link ItemStack} objects of stack size 1.
-        /// Useful if you're accessing the registry via reflection, as an {@link ItemStack} would be easier to work with.
-        ///
-        /// Returns a new list independent of the ones in the registry, meaning it
-        /// may be mutated freely without making your own list to put them in for mutation.
-        public static List<ItemStack> getItemStacksInTag(String tag) {
-            return HogTagsRegistry.<ItemTagMapping>getObjectsForTagInContainer(Tags.MOD_ID + ":block", tag)
-                .stream().map(mapping -> new ItemStack(mapping.getObject(), 1, mapping.getMeta()))
-                .collect(Collectors.toCollection(ObjectArrayList::new));
-        }
-
-        //Returns true if the passed in item has any of the listed tags.
-        public static boolean hasTag(Item item, int meta, String... tags) {
-            return getTags(item, meta).stream().anyMatch(tag -> ArrayUtils.contains(tags, tag));
-        }
+        return containerID;
     }
 
-    public static class BlockTags {
-        public static final String CONTAINER_ID = Tags.MOD_ID + ":block";
-
-        /// Adds the following tags to the specified block.
-        public static void addTags(Block block, int meta, String... tags) {
-            if(!RecipeHelper.validateItems(block)) return;
-            BlockTagMapping objToTag = BlockTagMapping.of(block, meta);
-            HogTagsRegistry.addTagsToObject(CONTAINER_ID, objToTag, tags);
+    @SuppressWarnings("unchecked")
+    public static <E> TagContainer<E> getTagContainerFromID(String containerID) {
+        containerID = checkContainerIDForModID(containerID);
+        TagContainer<E> container = (TagContainer<E>) TAG_CONTAINERS.get(containerID);
+        if(container != null) {
+            return container;
         }
-
-        public static void addTags(Block block, String... tags) {
-            addTags(block, OreDictionary.WILDCARD_VALUE, tags);
-        }
-
-        /// Removes the following tags to the specified block.
-        /// If the removal doesn't work, it may be part of the wildcard tags instead, or part of an inherited tags list.
-        /// It may also be present in multiple lists in the inheritance tree.
-        ///
-        /// You can always use `/tags dump` to get a full dump of any tags registry, this one's id is `hogtags:block`.
-        public static void removeTags(Block block, int meta, String... tags) {
-            if(!RecipeHelper.validateItems(block)) return;
-            BlockTagMapping objToTag = BlockTagMapping.of(block, meta);
-            HogTagsRegistry.removeTagsFromObject(CONTAINER_ID, objToTag, tags);
-        }
-
-        public static void removeTags(Block block, String... tags) {
-            removeTags(block, OreDictionary.WILDCARD_VALUE, tags);
-        }
-
-        /// Get the tags for the passed in block.
-        public static List<String> getTags(Block block, int meta) {
-            return HogTagsRegistry.getTagsFromObject(CONTAINER_ID, BlockTagMapping.of(block, meta));
-        }
-
-        /// Get the blocks for the passed in tag via RegistryMapping
-        public static List<BlockTagMapping> getInTag(String tag) {
-            return HogTagsRegistry.getObjectsForTagInContainer(Tags.MOD_ID + ":block", tag);
-        }
-
-        /// Get the blocks for the passed in tag. Returns them as {@link ItemStack} objects of stack size 1.
-        /// Useful if you're accessing the registry via reflection, as an {@link ItemStack} would be easier to work with.
-        /// Note that any returned blocks which do not have an {@link ItemBlock} will not appear in this list.
-        ///
-        /// Returns a new list independent of the ones in the registry, meaning it
-        /// may be mutated freely without making your own list to put them in for mutation.
-        public static List<ItemStack> getItemStacksInTag(String tag) {
-            return HogTagsRegistry.<BlockTagMapping>getObjectsForTagInContainer(Tags.MOD_ID + ":block", tag)
-                .stream().map(mapping -> new ItemStack(mapping.getObject(), 1, mapping.getMeta()))
-                .collect(Collectors.toCollection(ObjectArrayList::new));
-        }
-
-        /// Get the blocks for the passed in tag. Returns them as {@link Pair}<{@link Block}, {@link Integer}> objects.
-        /// Useful if you're accessing the registry via reflection, as a {@link Pair} would be easier to work with.
-        ///
-        /// Returns a new list independent of the ones in the registry, meaning it
-        /// may be mutated freely without making your own list to put them in for mutation.
-        public static List<Pair<Block, Integer>> getBlockPairsInTag(String tag) {
-            return HogTagsRegistry.<BlockTagMapping>getObjectsForTagInContainer(Tags.MOD_ID + ":block", tag)
-                .stream().map(mapping -> Pair.of(mapping.getObject(), mapping.getMeta()))
-                .collect(Collectors.toCollection(ObjectArrayList::new));
-        }
-
-        //Returns true if the passed in item has any of the listed tags.
-        public static boolean hasTag(Block block, int meta, String... tags) {
-            return getTags(block, meta).stream().anyMatch(tag -> ArrayUtils.contains(tags, tag));
-        }
+        throw new RuntimeException("Attempting to get tag container for ID that doesn't exist! Passed in ID " + containerID);
     }
 
-    public static class Utils {
-        public static void applyFiltersToTags(String... tags) {
-            IntStream.range(0, tags.length).forEach(i -> tags[i] = applyFiltersToTag(tags[i]));
+    public static <T> void registerTagContainer(String containerID, TagContainer<T> container) {
+        if(TAG_CONTAINERS.containsKey(containerID)) {
+            throw new IllegalArgumentException("Tag container with ID " + containerID + " is already registered!");
+        }
+        if(TAG_CONTAINERS.containsValue(container)) {
+            throw new IllegalArgumentException("Tag container " + container + " is already registered! ");
+        }
+        TAG_CONTAINERS.put(checkContainerIDForModID(containerID), container);
+    }
+
+    // Might be useful in the future so keeping these commented for now
+    // Fetching the container from ID is messy, so I'm gonna enforce specifying the ID.
+//    @SuppressWarnings("unchecked")
+//    public static <T> TagContainer<T> getTagContainerForObject(T objToTag) {
+//        return (TagContainer<T>) getTagContainerFromID(getTagContainerIDFromObject(objToTag));
+//    }
+//
+//    public static <T> String getTagContainerIDFromObject(T objToTag) {
+//        if(objToTag == null) {
+//            throw new RuntimeException("Null object cannot be tagged!");
+//        }
+//
+//        for(Map.Entry<String, TagContainer<?>> entry : TAG_CONTAINERS.entrySet()) {
+//            if(entry.getValue().isValid(objToTag, false)) {
+//                return entry.getKey();
+//            }
+//        }
+//
+//        throw new RuntimeException("Object of " + objToTag.getClass() + " currently not supported for tagging!");
+//    }
+
+    public static <E> void addTagsToObject(String containerID, E objToTag, String... tags) {
+        getTagContainerFromID(containerID).putTags(objToTag, tags);
+    }
+
+    public static <E> void removeTagsFromObject(String containerID, E objToUntag, String... tags) {
+        getTagContainerFromID(containerID).removeTags(objToUntag, tags);
+    }
+
+    public static <E> List<String> getTagsFromObject(String containerID, E taggedObj) {
+        return getTagContainerFromID(containerID).getTags(taggedObj);
+    }
+
+    /// Only use this if you have registered your own custom taggable thing.
+    /// Blocks/Items for example use this to get the metadata of the wildcard as well as the normal one.
+    @SuppressWarnings("unchecked")
+    public static <E> List<E> getObjectsForTag(String containerID, String tag) {
+        return (List<E>) getTagContainerFromID(containerID).getObjectsInTag(tag);
+    }
+
+    public static void addInheritorsToTag(String containerID, String tag, String... inherits) {
+        getTagContainerFromID(containerID).addInheritors(tag, inherits);
+    }
+
+    public static void removeInheritorsFromTag(String containerID, String tag, String... inherits) {
+        getTagContainerFromID(containerID).removeInheritors(tag, inherits);
+    }
+
+    public static List<String> getInheritors(String containerID, String tag) {
+        return getTagContainerFromID(containerID).getInheritorsRecursive(tag);
+    }
+
+    public static class TagContainer<T> {
+        protected final Class<?> typeToEnforce;
+
+        protected final Map<T, List<String>> BASE_TAGS_MAP = new Reference2ObjectArrayMap<>();
+
+        protected final Map<T, List<String>> LOOKUPS = new Reference2ObjectArrayMap<>();
+        protected final Map<String, List<T>> REVERSE_LOOKUPS = new Object2ObjectArrayMap<>();
+
+        private final Map<String, ListPair<String>> INHERITORS = new Object2ObjectArrayMap<>();
+
+        public TagContainer(Class<?> typeToEnforce) {
+            this.typeToEnforce = typeToEnforce;
         }
 
-        public static String applyFiltersToTag(String tag) {
-            if (tag == null || tag.isEmpty() || tag.equals("#")) {
-                throw new RuntimeException("Cannot pass in empty tag (or just \"#\") to the tags registry!");
-            }
-            //Sanity checks passed, let's do some filtering
+        public void putTags(T objToTag, String... tags) {
+            isValid(objToTag, true);
+            //Run tag filters
+            HogTagsHelper.Utils.applyFiltersToTags(tags);
 
-            if (tag.startsWith("#")) {
-                tag = tag.substring(1);
-            }
-            if (!tag.contains(":")) {
-                try {
-                    tag = Loader.instance().activeModContainer().getModId() + ":" + tag;
-                } catch (
-                    Exception e) { //This could also happen if there's an error in the OreDictionary auto-tagging system, since that'd return an invalid mod container.
-                    throw new RuntimeException("Could not determine mod id for unprefixed tag " + tag + "!" +
-                        "\nThis could be for several reasons, sometimes Forge's mod container fetcher just doesn't work, your code could be called from mixin'd vanilla code, etc..." +
-                        "\nIt's good practice to just add a mod prefix to your tags. Do that please...");
+            //Add the tags to the object > tag list lookup
+            Collections.addAll(BASE_TAGS_MAP.computeIfAbsent(objToTag, o -> new ObjectArrayList<>()), tags);
+
+            invalidateCaches();
+        }
+
+        public void removeTags(T objToUntag, String... tags) {
+            isValid(objToUntag, true);
+            HogTagsHelper.Utils.applyFiltersToTags(tags);
+            BASE_TAGS_MAP.get(objToUntag).removeIf(s -> ArrayUtils.contains(tags, s));
+
+            //TODO: Is it worth it to just remove the list entirety if it is emptied?
+
+            invalidateCaches();
+        }
+
+        private void addInheritors(String tag, String... inherits) {
+            HogTagsHelper.Utils.applyFiltersToTags(inherits);
+            tag = HogTagsHelper.Utils.applyFiltersToTag(tag);
+            Collections.addAll(INHERITORS.computeIfAbsent(tag, o -> new ListPair<>(new ObjectArrayList<>())).getUnlocked(), inherits);
+
+            doRecursionSanity();
+            invalidateCaches();
+        }
+
+        private void doRecursionSanity() {
+            // Checks every entry in the list to be sure there's no list that also contains the key
+            // I feel like this probably needs work, something tells me this is not enough
+            // Probably does not stop tags inheriting each other from different lists
+            INHERITORS.forEach((tagToCheck, value) -> {
+                if (value.getLocked().contains(tagToCheck)) {
+                    throw new UnsupportedOperationException("Recursion in inheritors detected!");
                 }
+            });
+        }
+
+        private void removeInheritors(String tag, String... inherits) {
+            HogTagsHelper.Utils.applyFiltersToTags(inherits);
+            tag = HogTagsHelper.Utils.applyFiltersToTag(tag);
+
+            INHERITORS.get(tag).getUnlocked().removeIf(s -> ArrayUtils.contains(inherits, s));
+
+            invalidateCaches();
+        }
+
+        private List<String> getBaseInheritors(String tag) {
+            ListPair<String> tags = INHERITORS.get(tag);
+            if(tags == null) {
+                return ObjectImmutableList.of();
             }
-            return tag;
+            return tags.getLocked();
         }
 
-        /// Map for prefix-based {@link OreDictionary} registration. Example: oreIron becomes `c:ores/iron`
-        /// Takes the part after the prefix provided and converts it to lower camel case.
-        /// So because `ore` to `c:ores` is an entry in this map, if you passed in `oreMyMaterial` it'd detect the `ore` part due to the capital letter after it, and do the following:
-        ///  - Truncate the `ore` prefix
-        ///  - Converts the rest of the string to lower_snake_case.
-        ///  - Then finally, it adds `c:ores` to the beginning of the string,
-        ///
-        /// The right hand assignment is a boolean, determining if the "blank" tag should be added alongside the regular one.
-        ///
-        /// So the ores entry in this map has this as `TRUE` so in addition to the above, `c:ores` will also be added as a tag.
-        ///
-        /// If `FALSE`, a {@link OreDictionary} tag without a suffix (anything beyond the specified prefix) will not register anything.
-        public static final Map<String, Pair<String, Boolean>> PREFIX_BASED_TAGS = new Object2ObjectArrayMap<>();
-        static {
-            PREFIX_BASED_TAGS.put("ore", Pair.of("c:ores", true));
-            PREFIX_BASED_TAGS.put("ingot", Pair.of("c:ingots", true));
-            PREFIX_BASED_TAGS.put("gem", Pair.of("c:gems", true));
-            PREFIX_BASED_TAGS.put("block", Pair.of("c:storage_blocks", true));
-            PREFIX_BASED_TAGS.put("raw", Pair.of("c:raw_materials", true));
-        }
-
-        /// OreDict tags that are registered but have this at the beginning of their name, will not be hit by the prefix maps.
-        /// So since `oreQuartz` has no equivalent commons tag (like `c:storage_blocks/quartz`, because it isn't a storage block.
-        public static final Set<String> PREFIX_SUFFIX_TAG_EXEMPTIONS = new ObjectArraySet<>();
-        static {
-            PREFIX_SUFFIX_TAG_EXEMPTIONS.add("blockQuartz");
-            PREFIX_SUFFIX_TAG_EXEMPTIONS.add("blockGlass");
-            PREFIX_SUFFIX_TAG_EXEMPTIONS.add("paneGlass");
-        }
-
-        /// Simply put, oreDict tags that register a tag if the tag is an exact match.
-        /// One of the examples in the below map is `logWood` to `minecraft:logs`.
-        /// So if the tag is EXACTLY `logWood`, then `minecraft:logs` is registered.
-        public static final Map<String, String[]> FULL_SWAPS = new Object2ObjectArrayMap<>();
-        static {
-            FULL_SWAPS.put("logWood", new String[]{"minecraft:logs"});
-            FULL_SWAPS.put("blockGlass", new String[]{"c:glass_blocks", "c:glass_blocks/cheap"});
-            FULL_SWAPS.put("blockGlassColorless", new String[]{"c:glass_blocks/colorless"});
-            FULL_SWAPS.put("paneGlass", new String[]{"c:glass_panes", "c:glass_panes/cheap"});
-            FULL_SWAPS.put("paneGlassColorless", new String[]{"c:glass_panes/colorless"});
-            String[] modernColorsCamelCase = GenericUtils.Constants.MODERN_COLORS_CAMEL_CASE;
-            for (int i = 0; i < modernColorsCamelCase.length; i++) {
-                String color = modernColorsCamelCase[i];
-                String upperCase = String.valueOf(color.charAt(0)).toUpperCase();
-                FULL_SWAPS.put("blockGlass" + upperCase + color.substring(1)
-                    , new String[]{"c:" + GenericUtils.Constants.MODERN_COLORS_SNAKE_CASE[i] + "_glass_blocks"});
-                FULL_SWAPS.put("paneGlass" + upperCase + color.substring(1)
-                    , new String[]{"c:" + GenericUtils.Constants.MODERN_COLORS_SNAKE_CASE[i] + "_glass_panes"});
+        private List<String> getInheritorsRecursive(String tag) {
+            List<String> tags = getBaseInheritors(tag);
+            List<String> inheritors = new ObjectArrayList<>();
+            inheritors.addAll(tags);
+            for(String tagToInherit : tags) {
+                inheritors.addAll(getInheritorsRecursive(tagToInherit));
             }
+            return new ObjectImmutableList<>(inheritors);
         }
 
-        /// Converts an OreDictionary string to the [Fabric common tag standard](https://fabricmc.net/wiki/community:common_tags). Examples:
-        /// `oreIron` converts to `c:ores/iron`, `ingotCopper` becomes `c:ingots/copper`
-        /// Sometimes something may return MULTIPLE tags, hence the list, like `paneGlassPurple` will return a list containing both `c:purple_glass_panes` AND `c:dyed/purple`
-        /// Pass in the last boolean as `TRUE` if you want it to return a generic tag in place, for example `someRandomTag` would become `ore_dictionary:some_random_tag` instead of returning an empty list.
-        /// If the boolean is `FALSE`, tags not eligible to convert will not be added to the list, meaning the list would become empty.
-        /// See the maps this uses for more info on how they're being used. Instead of using the event, you may also add your own dynamic filters to the static maps, if you wish.
-        public static List<String> convertOreDictToTags(String oreDict, boolean returnsGenericTag) {
-            List<String> tags = new ObjectArrayList<>();
+        private List<String> getTags(T object) {
+            List<String> lookupResult = LOOKUPS.get(object);
+            if(lookupResult != null) {
+                return lookupResult;
+            }
 
+            List<String> extraTags = getExtraTags(object);
+            List<String> baseTags = getBaseTags(object);
+            if(!extraTags.isEmpty() || !baseTags.isEmpty()) {
+                List<String> finalTags = new ObjectArrayList<>();
+                finalTags.addAll(baseTags);
+                finalTags.addAll(extraTags);
 
-            //The below implementations originally used the indexes of the first/last capital letters to determine where to truncate the string
-            //The logic for this ended up being really messy so I sacrificed map lookup speed for cleaner code.
-
-            if (oreDict.equals("dye")) {
-                tags.add("c:dyes");
-            } else if (oreDict.startsWith("dye")) {
-                //De-capitalize first letter to use in contains check
-                String dye = String.valueOf(oreDict.charAt(3)).toLowerCase() + oreDict.substring(4);
-                int dyeID = ArrayUtils.indexOf(GenericUtils.Constants.MODERN_COLORS_CAMEL_CASE, dye);
-                if(dyeID > -1) {
-                    tags.add("c:dyes/" + CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, GenericUtils.Constants.MODERN_COLORS_SNAKE_CASE[dyeID]));
+                List<String> inheritors = new ObjectArrayList<>();
+                for(String tag : finalTags) {
+                    inheritors.addAll(getInheritorsRecursive(tag));
                 }
-            } else {
-                tagDyed(oreDict, tags);
+                finalTags.addAll(inheritors);
+
+                LOOKUPS.put(object, new ObjectImmutableList<>(finalTags));
+                return finalTags;
             }
 
-            if(FULL_SWAPS.containsKey(oreDict)) {
-                Collections.addAll(tags, FULL_SWAPS.get(oreDict));
+            // I don't think we need to cache empty lists. Unlike reverse lookups this doesn't iterate over the entire registry.
+            // Should be "fine"
+//            LOOKUPS.put(object, ObjectImmutableList.of());
+            return ObjectImmutableList.of();
+        }
+
+        /// Add extra tags to the list if desired. Return null if it's empty.
+        ///
+        /// Item and Block tags use this to fetch the wildcard tags that should apply to all items.
+        protected List<String> getExtraTags(T object) {
+            return ObjectImmutableList.of();
+        }
+
+        /// Gets the tags ONLY for this object, and not any extras. Used for debugging and internal purposes, it returns the raw list.
+        /// Returns an empty immutable list if there's no list associated with the object.
+        protected final List<String> getBaseTags(T object) {
+            List<String> tags = BASE_TAGS_MAP.get(object);
+            if(tags == null) {
+                return ObjectImmutableList.of();
             }
-
-            if(PREFIX_SUFFIX_TAG_EXEMPTIONS.stream().noneMatch(oreDict::startsWith)){
-                for (String checkPrefix : PREFIX_BASED_TAGS.keySet()) {
-                    if (oreDict.startsWith(checkPrefix)) {
-                        doPrefixingLogic(oreDict, checkPrefix, tags);
-                        break;
-                    }
-                }
-            }
-
-            List<String> eventTags = new ObjectArrayList<>();
-            MinecraftForge.EVENT_BUS.post(new OreDictionaryToTagStringEvent(oreDict, tags, eventTags));
-            tags.addAll(eventTags);
-
-            if(returnsGenericTag && !tags.isEmpty()) {
-                tags.add("ore_dictionary:" + CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, oreDict));
-            }
-
             return tags;
         }
 
-        private static void doPrefixingLogic(String oreDict, String prefix, List<String> tags) {
-            Pair<String, Boolean> data = PREFIX_BASED_TAGS.get(prefix);
+        private List<T> getObjectsInTag(String tag) {
+            // TODO: This could probably be more efficient. It iterates over the entire tag map for every new tag passed in.
+            // There is almost certainly a way to optimize this to just one pass where we bake the whole reverse lookup maps in one go.
 
-            //The other half of the oreDict tag
-            String oreDictSuffix = oreDict.substring(prefix.length());
+            tag = HogTagsHelper.Utils.applyFiltersToTag(tag);
+            List<T> lookupResult = REVERSE_LOOKUPS.get(tag);
+            if (lookupResult != null) {
+                return lookupResult;
+            }
 
-            if (data != null) {
-                String tagPrefix = data.getLeft();
-                if (data.getRight()) { // Adds the "plain" tag if this one should get it. Example: c:ores as well as c:ores/iron
-                    tags.add(tagPrefix);
-                }
-                if (!oreDictSuffix.isEmpty()) {
-                    tags.add(tagPrefix + "/" + CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, oreDictSuffix));
+            List<T> set = new ObjectArrayList<>();
+            for (Map.Entry<T, List<String>> entry : BASE_TAGS_MAP.entrySet()) {
+                List<String> tags = getTags(entry.getKey());
+                if (tags.contains(tag)) {
+                    set.add(entry.getKey());
                 }
             }
+
+            if(set.isEmpty()) {
+                // TODO: This could cause leakage if a mod checks for a lot of empty tags. The above rewrite would solve this.
+                REVERSE_LOOKUPS.put(tag, ObjectImmutableList.of());
+                return ObjectImmutableList.of();
+            }
+            REVERSE_LOOKUPS.put(tag, new ObjectImmutableList<>(set));
+            return set;
         }
 
-        private static void tagDyed(String oreDict, List<String> tags) {
-            String[] modernColorsCamelCase = GenericUtils.Constants.MODERN_COLORS_CAMEL_CASE;
-            for (int i = 0; i < modernColorsCamelCase.length; i++) {
-                String color = modernColorsCamelCase[i];
-                if (oreDict.endsWith(String.valueOf(color.charAt(0)).toUpperCase() + color.substring(1))) {
-                    tags.add("c:dyed");
-                    tags.add("c:dyed/" + GenericUtils.Constants.MODERN_COLORS_CAMEL_CASE[i]);
-                }
+        private String getName() {
+            return TAG_CONTAINERS.inverse().get(this);
+        }
+
+//        protected String printObjectNameForDebugging(T object) {
+//            return object.toString();
+//        }
+//
+//        @SneakyThrows
+//        private void dumpTags() {
+//            String name = TAG_CONTAINERS.inverse().get(this);
+//            File dump = new File(Launch.minecraftHome, "dumps/tags_dump_" + name + ".json");
+//            if(dump.createNewFile()) {
+//                PrintWriter writer = new PrintWriter(dump, StandardCharsets.UTF_8);
+//                StringBuilder builder = new StringBuilder("HogTags info for registry " + name + "\n\n");
+//                for(val entrySet : TAGS_MAP.entrySet()) {
+//                    builder.append("");
+//                }
+//                writer.print(builder.toString());
+//                writer.close();
+//            }
+//        }
+
+        /// Returns `TRUE` if the passed in object is a valid type for this TagsContainer, `FALSE` if otherwise.
+        /// If the second arg is `TRUE`, the game will crash instead of returning false.
+        ///
+        /// The `TRUE` arg is used by put/remove to crash the game if the tag isn't valid.
+        /// The `FALSE` arg is used when fetching a valid tag container for the object.
+        public boolean isValid(Object object, boolean enforce) {
+            if (typeToEnforce.isInstance(object)) {
+                return true;
+            }
+            if (enforce) {
+                throw new IllegalArgumentException("This object (" + object + ") isn't a valid type for this tag container! (Type must be of " + typeToEnforce + ")");
+            }
+            return false;
+        }
+
+        /// Invalidates reverse lookup cache
+        protected void invalidateCaches() {
+            REVERSE_LOOKUPS.clear();
+            LOOKUPS.clear();
+        }
+
+        protected final <E> List<E> getLockedSet(ListPair<E> set) {
+            return set.getLocked();
+        }
+
+        @Override
+        public String toString() {
+            return "TagContainer{" + "typeToEnforce=" + typeToEnforce + '}';
+        }
+
+        protected static final class ListPair<E> extends Pair<List<E>, List<E>> {
+
+            private final List<E> unlocked, locked;
+
+            public ListPair(List<E> unlocked) {
+                this.unlocked = unlocked;
+                this.locked = Collections.unmodifiableList(unlocked);
+            }
+
+            private List<E> getUnlocked() {
+                return unlocked;
+            }
+
+            @SuppressWarnings("getter")
+            public List<E> getLocked() {
+                return locked;
+            }
+
+            @Override
+            public List<E> getLeft() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public List<E> getRight() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public List<E> getValue() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public List<E> setValue(final List<E> value) {
+                throw new UnsupportedOperationException();
+            }
+
+            private static final ListPair<?> EMPTY = new ListPair<>(ImmutableList.of());
+
+            @SuppressWarnings("unchecked")
+            public static <E> ListPair<E> getEmpty() {
+                return (ListPair<E>) EMPTY;
             }
         }
     }

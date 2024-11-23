@@ -10,7 +10,9 @@ import net.minecraftforge.oredict.OreDictionary;
 import java.util.List;
 import java.util.Map;
 
-public class RegistryMapping<T> {
+/// Used as an easy way t
+public class RegistryMapping<T> /*extends Pair<T, Integer>*/ {
+    // TODO: Should I uncomment this? It can be annoying to use `.of` since it might sometimes clash with `Pair.of`
 
     /// Use the object instead of a RegistryMapping. This is so we can quickly fetch other RegistryMappings of the same type.
     /// We do this to not spam garbage collection, but this also
@@ -75,8 +77,16 @@ public class RegistryMapping<T> {
         return of(object, meta, true);
     }
 
+    /// Creates a new contained object for the specified block or item, assuming the metadata is {@link OreDictionary#WILDCARD_VALUE}.
+    ///
+    /// Comparisons against instance comparisons true if a matching object of any metadata is compared.
+    /// To force {@link RegistryMapping#equals(Object)} to only return TRUE on an exact metadata match, see {@link RegistryMapping#of(Object, int, boolean)}
+    public static <E> RegistryMapping<E> of(E object) {
+        return of(object, OreDictionary.WILDCARD_VALUE, true);
+    }
+
     public static RegistryMapping<Item> fromItemStack(ItemStack stack, boolean wildcardAlwaysEqual) {
-        return of(stack.getItem(), stack.getItemDamage(), true);
+        return of(stack.getItem(), stack.getItemDamage(), wildcardAlwaysEqual);
     }
 
     public static RegistryMapping<Item> fromItemStack(ItemStack stack) {
@@ -108,13 +118,16 @@ public class RegistryMapping<T> {
     }
 
     // Since we have the above enforcement of non-duplicate objects, is the below code needed now?
-    // Maybe it's a good idea to keep it just in case.
+    // Maybe it's a good idea to keep it just in case. The == part is the first line after all; "should" be fine
 
     @Override
     public boolean equals(Object obj) {
-        return obj == this || obj instanceof RegistryMapping<?> mapping && object == mapping.object
-            && ((isWildcardAlwaysEqual() && (meta == OreDictionary.WILDCARD_VALUE && mapping.meta == OreDictionary.WILDCARD_VALUE))
-            || meta == mapping.meta);
+        return obj == this || obj instanceof RegistryMapping<?> mapping && matches(mapping.getObject(), mapping.getMeta());
+    }
+
+    public boolean matches(Object compareObject, int compareMeta) {
+        return getObject() == compareObject && (getMeta() == compareMeta
+            || (isWildcardAlwaysEqual() && (getMeta() == OreDictionary.WILDCARD_VALUE || compareMeta == OreDictionary.WILDCARD_VALUE)));
     }
 
     @Override
@@ -130,4 +143,19 @@ public class RegistryMapping<T> {
             ", wildcardAlwaysEqual=" + isWildcardAlwaysEqual() +
             '}';
     }
+
+//    @Override
+//    public T getLeft() {
+//        return getObject();
+//    }
+//
+//    @Override
+//    public Integer getRight() {
+//        return getMeta();
+//    }
+//
+//    @Override
+//    public Integer setValue(Integer value) {
+//        throw new UnsupportedOperationException();
+//    }
 }

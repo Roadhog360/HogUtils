@@ -39,6 +39,8 @@ tasks.named('shadowJar', com.github.jengelman.gradle.plugins.shadow.tasks.Shadow
         exclude(dependency('me.mrnavastar:r'))
         exclude(dependency('com.github.makamys:MCLib'))
     }
+    relocate 'it.unimi', 'roadhog360.hogutils.repackaged.it.unimi'
+    relocate 'makamys', 'roadhog360.hogutils.repackaged.makamys'
 }
 
 dependencies {
@@ -49,5 +51,9 @@ dependencies {
     }
 
     shadowImplementation("me.mrnavastar:r:1.0.8")
+
+    //Minimized
     shadowImplementation("it.unimi.dsi:fastutil:8.5.15")
+//    shadowImplementation("org.projectlombok:lombok:1.18.36")
+
 }

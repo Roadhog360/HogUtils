@@ -9,16 +9,16 @@ import net.minecraft.util.MovingObjectPosition;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import org.apache.commons.lang3.tuple.Pair;
-import roadhog360.hogutils.api.hogtags.HogTags;
+import roadhog360.hogutils.api.hogtags.HogTagsHelper;
 import roadhog360.hogutils.api.utils.GenericUtils;
 
 import java.util.List;
 
-public class ClientEventHandler {
+public class HogTagsDisplayEventHandler {
 
-    private ClientEventHandler() {}
+    private HogTagsDisplayEventHandler() {}
 
-    public static final ClientEventHandler INSTANCE = new ClientEventHandler();
+    public static final HogTagsDisplayEventHandler INSTANCE = new HogTagsDisplayEventHandler();
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void injectHogTagsDisplay(RenderGameOverlayEvent.Text event) {
@@ -29,11 +29,12 @@ public class ClientEventHandler {
                 Pair<Block, Integer> blockAndMeta = GenericUtils.getBlockAndMetaFromMOP(null, mop);
                 Block lookingBlock = blockAndMeta.getLeft();
                 int lookingMeta = blockAndMeta.getRight();
-                List<String> tags = HogTags.BlockTags.getTags(lookingBlock, lookingMeta);
+                List<String> tags = HogTagsHelper.BlockTags.getTags(lookingBlock, lookingMeta);
 
                 if(!tags.isEmpty()) {
                     event.right.add(null);
-                    event.right.add("HogTags info for block: " + Block.blockRegistry.getNameForObject(lookingBlock) + ":" + lookingMeta);
+                    event.right.add("HogTags: (" + HogTagsHelper.BlockTags.CONTAINER_ID + " tag pool)"
+                        + Block.blockRegistry.getNameForObject(lookingBlock) + ":" + lookingMeta);
                     for (String tag : tags) {
                         event.right.add("#" + tag);
                     }
@@ -45,15 +46,15 @@ public class ClientEventHandler {
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void injectHogTagsTooltip(ItemTooltipEvent event) {
         if (event.showAdvancedItemTooltips && event.itemStack != null) {
-            List<String> tags = HogTags.ItemTags.getTags(event.itemStack.getItem(), event.itemStack.getItemDamage());
+            List<String> tags = HogTagsHelper.ItemTags.getTags(event.itemStack.getItem(), event.itemStack.getItemDamage());
             if(!tags.isEmpty()) {
                 if (GuiContainer.isCtrlKeyDown()) {
-                    event.toolTip.add("\u00a78HogTags:");
+                    event.toolTip.add("\u00a78HogTags: (" + HogTagsHelper.ItemTags.CONTAINER_ID + " tag pool)");
                     for (String tag : tags) {
                         event.toolTip.add("#" + tag);
                     }
                 } else {
-                    event.toolTip.add("\u00a78HogTags: " + tags.size() + " Tag(s)");
+                    event.toolTip.add("\u00a78HogTags:" + tags.size() + " Tag(s)");
                 }
             }
         }
