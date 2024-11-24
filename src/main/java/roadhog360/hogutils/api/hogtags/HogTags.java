@@ -2,12 +2,9 @@ package roadhog360.hogutils.api.hogtags;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import cpw.mods.fml.common.Loader;
-import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectImmutableList;
-import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
+import it.unimi.dsi.fastutil.objects.*;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.ArrayUtils;
@@ -18,6 +15,7 @@ import roadhog360.hogutils.api.hogtags.mappings.ItemTagMapping;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /// Internal backend for HogTags. Not intended to be called from.
 /// This package is just to help keep its internal components private; Please use the HogTags class to call to this, don't reflect or mixin here.
@@ -29,7 +27,7 @@ public final class HogTags {
     static {
         registerTagContainer(HogTagsHelper.BlockTags.CONTAINER_ID, new TagContainer<BlockTagMapping>(BlockTagMapping.class){
             @Override
-            protected List<String> getExtraTags(BlockTagMapping object) {
+            protected Set<String> getExtraTags(BlockTagMapping object) {
                 if(object.getMeta() != OreDictionary.WILDCARD_VALUE) {
                     return getBaseTags(BlockTagMapping.of(object.getObject(), OreDictionary.WILDCARD_VALUE));
                 }
@@ -39,7 +37,7 @@ public final class HogTags {
 
         registerTagContainer(HogTagsHelper.ItemTags.CONTAINER_ID, new TagContainer<ItemTagMapping>(ItemTagMapping.class){
             @Override
-            protected List<String> getExtraTags(ItemTagMapping object) {
+            protected Set<String> getExtraTags(ItemTagMapping object) {
                 if(object.getMeta() != OreDictionary.WILDCARD_VALUE) {
                     return getBaseTags(ItemTagMapping.of(object.getObject(), OreDictionary.WILDCARD_VALUE));
                 }
@@ -132,19 +130,19 @@ public final class HogTags {
         getTagContainerFromID(containerID).removeInheritors(tag, inherits);
     }
 
-    public static List<String> getInheritors(String containerID, String tag) {
+    public static Set<String> getInheritors(String containerID, String tag) {
         return getTagContainerFromID(containerID).getInheritorsRecursive(tag);
     }
 
     public static class TagContainer<T> {
         protected final Class<?> typeToEnforce;
 
-        protected final Map<T, List<String>> BASE_TAGS_MAP = new Reference2ObjectArrayMap<>();
+        protected final Map<T, Set<String>> BASE_TAGS_MAP = new Reference2ObjectArrayMap<>();
 
         protected final Map<T, List<String>> LOOKUPS = new Reference2ObjectArrayMap<>();
         protected final Map<String, List<T>> REVERSE_LOOKUPS = new Object2ObjectArrayMap<>();
 
-        private final Map<String, ListPair<String>> INHERITORS = new Object2ObjectArrayMap<>();
+        private final Map<String, SetPair<String>> INHERITORS = new Object2ObjectArrayMap<>();
 
         public TagContainer(Class<?> typeToEnforce) {
             this.typeToEnforce = typeToEnforce;
@@ -156,7 +154,7 @@ public final class HogTags {
             HogTagsHelper.Utils.applyFiltersToTags(tags);
 
             //Add the tags to the object > tag list lookup
-            Collections.addAll(BASE_TAGS_MAP.computeIfAbsent(objToTag, o -> new ObjectArrayList<>()), tags);
+            Collections.addAll(BASE_TAGS_MAP.computeIfAbsent(objToTag, o -> new ObjectArraySet<>()), tags);
 
             invalidateCaches();
         }
@@ -174,7 +172,7 @@ public final class HogTags {
         private void addInheritors(String tag, String... inherits) {
             HogTagsHelper.Utils.applyFiltersToTags(inherits);
             tag = HogTagsHelper.Utils.applyFiltersToTag(tag);
-            Collections.addAll(INHERITORS.computeIfAbsent(tag, o -> new ListPair<>(new ObjectArrayList<>())).getUnlocked(), inherits);
+            Collections.addAll(INHERITORS.computeIfAbsent(tag, o -> new SetPair<>(new ObjectArraySet<>())).getUnlocked(), inherits);
 
             doRecursionSanity();
             invalidateCaches();
@@ -200,32 +198,33 @@ public final class HogTags {
             invalidateCaches();
         }
 
-        private List<String> getBaseInheritors(String tag) {
-            ListPair<String> tags = INHERITORS.get(tag);
+        private Set<String> getBaseInheritors(String tag) {
+            SetPair<String> tags = INHERITORS.get(tag);
             if(tags == null) {
-                return ObjectImmutableList.of();
+                return ImmutableSet.of();
             }
             return tags.getLocked();
         }
 
-        private List<String> getInheritorsRecursive(String tag) {
-            List<String> tags = getBaseInheritors(tag);
-            List<String> inheritors = new ObjectArrayList<>();
+        private Set<String> getInheritorsRecursive(String tag) {
+            Set<String> tags = getBaseInheritors(tag);
+            Set<String> inheritors = new ObjectArraySet<>();
             inheritors.addAll(tags);
             for(String tagToInherit : tags) {
                 inheritors.addAll(getInheritorsRecursive(tagToInherit));
             }
-            return new ObjectImmutableList<>(inheritors);
+            return new ObjectArraySet<>(inheritors);
         }
 
         private List<String> getTags(T object) {
+            isValid(object, true);
             List<String> lookupResult = LOOKUPS.get(object);
             if(lookupResult != null) {
                 return lookupResult;
             }
 
-            List<String> extraTags = getExtraTags(object);
-            List<String> baseTags = getBaseTags(object);
+            Set<String> extraTags = getExtraTags(object);
+            Set<String> baseTags = getBaseTags(object);
             if(!extraTags.isEmpty() || !baseTags.isEmpty()) {
                 List<String> finalTags = new ObjectArrayList<>();
                 finalTags.addAll(baseTags);
@@ -250,16 +249,16 @@ public final class HogTags {
         /// Add extra tags to the list if desired. Return null if it's empty.
         ///
         /// Item and Block tags use this to fetch the wildcard tags that should apply to all items.
-        protected List<String> getExtraTags(T object) {
-            return ObjectImmutableList.of();
+        protected Set<String> getExtraTags(T object) {
+            return ImmutableSet.of();
         }
 
         /// Gets the tags ONLY for this object, and not any extras. Used for debugging and internal purposes, it returns the raw list.
         /// Returns an empty immutable list if there's no list associated with the object.
-        protected final List<String> getBaseTags(T object) {
-            List<String> tags = BASE_TAGS_MAP.get(object);
+        protected final Set<String> getBaseTags(T object) {
+            Set<String> tags = BASE_TAGS_MAP.get(object);
             if(tags == null) {
-                return ObjectImmutableList.of();
+                return ImmutableSet.of();
             }
             return tags;
         }
@@ -275,7 +274,7 @@ public final class HogTags {
             }
 
             List<T> set = new ObjectArrayList<>();
-            for (Map.Entry<T, List<String>> entry : BASE_TAGS_MAP.entrySet()) {
+            for (Map.Entry<T, Set<String>> entry : BASE_TAGS_MAP.entrySet()) {
                 List<String> tags = getTags(entry.getKey());
                 if (tags.contains(tag)) {
                     set.add(entry.getKey());
@@ -319,12 +318,16 @@ public final class HogTags {
         ///
         /// The `TRUE` arg is used by put/remove to crash the game if the tag isn't valid.
         /// The `FALSE` arg is used when fetching a valid tag container for the object.
+        ///
+        /// Will always return `TRUE` if typeToEnforce is null.
         public boolean isValid(Object object, boolean enforce) {
+            if(typeToEnforce == null) return true; //No type enforcement present
+
             if (typeToEnforce.isInstance(object)) {
                 return true;
             }
             if (enforce) {
-                throw new IllegalArgumentException("This object (" + object + ") isn't a valid type for this tag container! (Type must be of " + typeToEnforce + ")");
+                throw new IllegalStateException("This object (" + object + ") isn't a valid type for this tag container! (Type must be of " + typeToEnforce + ")");
             }
             return false;
         }
@@ -335,7 +338,7 @@ public final class HogTags {
             LOOKUPS.clear();
         }
 
-        protected final <E> List<E> getLockedSet(ListPair<E> set) {
+        protected final <E> Set<E> getLockedSet(SetPair<E> set) {
             return set.getLocked();
         }
 
@@ -344,49 +347,49 @@ public final class HogTags {
             return "TagContainer{" + "typeToEnforce=" + typeToEnforce + '}';
         }
 
-        protected static final class ListPair<E> extends Pair<List<E>, List<E>> {
+        protected static final class SetPair<E> extends Pair<Set<E>, Set<E>> {
 
-            private final List<E> unlocked, locked;
+            private final Set<E> unlocked, locked;
 
-            public ListPair(List<E> unlocked) {
+            public SetPair(Set<E> unlocked) {
                 this.unlocked = unlocked;
-                this.locked = Collections.unmodifiableList(unlocked);
+                this.locked = Collections.unmodifiableSet(unlocked);
             }
 
-            private List<E> getUnlocked() {
+            private Set<E> getUnlocked() {
                 return unlocked;
             }
 
             @SuppressWarnings("getter")
-            public List<E> getLocked() {
+            public Set<E> getLocked() {
                 return locked;
             }
 
             @Override
-            public List<E> getLeft() {
+            public Set<E> getLeft() {
                 throw new UnsupportedOperationException();
             }
 
             @Override
-            public List<E> getRight() {
+            public Set<E> getRight() {
                 throw new UnsupportedOperationException();
             }
 
             @Override
-            public List<E> getValue() {
+            public Set<E> getValue() {
                 throw new UnsupportedOperationException();
             }
 
             @Override
-            public List<E> setValue(final List<E> value) {
+            public Set<E> setValue(final Set<E> value) {
                 throw new UnsupportedOperationException();
             }
 
-            private static final ListPair<?> EMPTY = new ListPair<>(ImmutableList.of());
+            private static final SetPair<?> EMPTY = new SetPair<>(ImmutableSet.of());
 
             @SuppressWarnings("unchecked")
-            public static <E> ListPair<E> getEmpty() {
-                return (ListPair<E>) EMPTY;
+            public static <E> SetPair<E> getEmpty() {
+                return (SetPair<E>) EMPTY;
             }
         }
     }

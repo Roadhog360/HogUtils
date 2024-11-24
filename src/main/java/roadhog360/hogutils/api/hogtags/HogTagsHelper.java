@@ -5,7 +5,6 @@ import cpw.mods.fml.common.Loader;
 import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectArraySet;
-import it.unimi.dsi.fastutil.objects.ObjectImmutableList;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
@@ -122,17 +121,10 @@ public final class HogTagsHelper {
             HogTags.removeInheritorsFromTag(BlockTags.CONTAINER_ID, tag, inherits);
             HogTags.removeInheritorsFromTag(ItemTags.CONTAINER_ID, tag, inherits);
         }
-
-        public static List<String> getInheritorsForItemAndBlock(String tag) {
-            List<String> set = new ObjectArrayList<>();
-            set.addAll(HogTags.getInheritors(ItemTags.CONTAINER_ID, tag));
-            set.addAll(HogTags.getInheritors(BlockTags.CONTAINER_ID, tag));
-            return new ObjectImmutableList<>(set);
-        }
     }
 
     public static class ItemTags {
-        public static final String CONTAINER_ID = "minecraft:item";
+        public static final String CONTAINER_ID = "minecraft:items";
 
         /// Adds the following tags to the specified item.
         public static void addTags(Item item, int meta, String... tags) {
@@ -213,13 +205,13 @@ public final class HogTagsHelper {
             HogTags.removeInheritorsFromTag(CONTAINER_ID, tag, inherits);
         }
 
-        public static List<String> getInheritors(String tag) {
+        public static Set<String> getInheritors(String tag) {
             return HogTags.getInheritors(CONTAINER_ID, tag);
         }
     }
 
     public static class BlockTags {
-        public static final String CONTAINER_ID = "minecraft:block";
+        public static final String CONTAINER_ID = "minecraft:blocks";
 
         /// Adds the following tags to the specified block.
         public static void addTags(Block block, int meta, String... tags) {
@@ -300,7 +292,7 @@ public final class HogTagsHelper {
             HogTags.removeInheritorsFromTag(CONTAINER_ID, tag, inherits);
         }
 
-        public static List<String> getInheritors(String tag) {
+        public static Set<String> getInheritors(String tag) {
             return HogTags.getInheritors(CONTAINER_ID, tag);
         }
     }
@@ -376,7 +368,7 @@ public final class HogTagsHelper {
             HogTags.removeInheritorsFromTag(CONTAINER_ID, tag, inherits);
         }
 
-        public static List<String> getInheritors(String tag) {
+        public static Set<String> getInheritors(String tag) {
             return HogTags.getInheritors(CONTAINER_ID, tag);
         }
     }

@@ -2,6 +2,7 @@ package roadhog360.hogutils.proxy;
 
 import cpw.mods.fml.common.event.*;
 import net.minecraft.init.Blocks;
+import net.minecraft.world.biome.BiomeGenBase;
 import roadhog360.hogutils.api.hogtags.HogTagsHelper;
 import roadhog360.hogutils.api.utils.RecipeHelper;
 
@@ -10,7 +11,7 @@ public class CommonProxy {
     public void onConstructing(FMLConstructionEvent event) {
     }
 
-    // preInit "Run before anything else. Read your config, create blocks, items, etc, and register them with the
+    // preInit "Run before anything else. Read your config, create blocks, items, etc., and register them with the
     // GameRegistry." (Remove if not needed)
     public void preInit(FMLPreInitializationEvent event) {
         RecipeHelper.init();
@@ -40,5 +41,8 @@ public class CommonProxy {
         HogTagsHelper.MiscHelpers.addTagsTo4ths(Blocks.log, 3, "minecraft:jungle_logs");
         HogTagsHelper.MiscHelpers.addTagsTo4ths(Blocks.log2, 0, "minecraft:acacia_logs");
         HogTagsHelper.MiscHelpers.addTagsTo4ths(Blocks.log2, 1, "minecraft:dark_oak_logs");
+
+        HogTagsHelper.BiomeTags.addTags(BiomeGenBase.desert, "c:is_hot/overworld");
+        HogTagsHelper.BiomeTags.addTags(BiomeGenBase.plains, "test");
     }
 }
