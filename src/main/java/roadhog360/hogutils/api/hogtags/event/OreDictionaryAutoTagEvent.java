@@ -1,7 +1,8 @@
 package roadhog360.hogutils.api.hogtags.event;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
-import cpw.mods.fml.common.eventhandler.Event;
+import net.minecraft.item.ItemStack;
+import net.minecraftforge.oredict.OreDictionary;
 
 import java.util.Collections;
 import java.util.List;
@@ -11,15 +12,13 @@ import java.util.List;
 /// This way, you can make it so anything that registers your OreDictionary string automatically puts a tag on the object as well!
 /// See HogTags$Utils#convertOreDictTag and for more details on when this is called.
 /// This event is NOT {@link Cancelable}.
-public class OreDictionaryToTagStringEvent extends Event {
-    public final String oreDictTag;
+public class OreDictionaryAutoTagEvent extends OreDictionary.OreRegisterEvent {
     public final List<String> convertedTagsList;
     public final List<String> tagsToAdd;
 
-    public OreDictionaryToTagStringEvent(String oreDictTag, List<String> convertedTagsList, List<String> tagsToAdd) {
-        this.oreDictTag = oreDictTag;
+    public OreDictionaryAutoTagEvent(String oreDictTag, ItemStack stack, List<String> convertedTagsList, List<String> tagsToAdd) {
+        super(oreDictTag, stack);
         this.convertedTagsList = Collections.unmodifiableList(convertedTagsList);
         this.tagsToAdd = tagsToAdd;
     }
-
 }

@@ -1,9 +1,6 @@
 package roadhog360.hogutils.proxy;
 
 import cpw.mods.fml.common.event.*;
-import net.minecraft.init.Blocks;
-import net.minecraft.world.biome.BiomeGenBase;
-import roadhog360.hogutils.api.hogtags.HogTagsHelper;
 import roadhog360.hogutils.api.utils.RecipeHelper;
 
 public class CommonProxy {
@@ -35,14 +32,5 @@ public class CommonProxy {
     }
 
     private void finalizeTags() { //For new stuff that isn't auto-tagged by the OreDictionary auto-tagger.
-        HogTagsHelper.MiscHelpers.addTagsTo4ths(Blocks.log, 0, "minecraft:oak_logs");
-        HogTagsHelper.MiscHelpers.addTagsTo4ths(Blocks.log, 1, "minecraft:spruce_logs");
-        HogTagsHelper.MiscHelpers.addTagsTo4ths(Blocks.log, 2, "minecraft:birch_logs");
-        HogTagsHelper.MiscHelpers.addTagsTo4ths(Blocks.log, 3, "minecraft:jungle_logs");
-        HogTagsHelper.MiscHelpers.addTagsTo4ths(Blocks.log2, 0, "minecraft:acacia_logs");
-        HogTagsHelper.MiscHelpers.addTagsTo4ths(Blocks.log2, 1, "minecraft:dark_oak_logs");
-
-        HogTagsHelper.BiomeTags.addTags(BiomeGenBase.desert, "c:is_hot/overworld");
-        HogTagsHelper.BiomeTags.addTags(BiomeGenBase.plains, "test");
     }
 }

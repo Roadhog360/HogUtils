@@ -17,6 +17,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/// Modern-esque tag system.
+/// Uses [Fabric common tags standard](https://fabricmc.net/wiki/community:common_tags) as a standard rather than the vanilla or Forge standard tags.
+/// New tags and containers added by HogUtils will have the "hogutils" domain.
+///
 /// Internal backend for HogTags. Not intended to be called from.
 /// This package is just to help keep its internal components private; Please use the HogTags class to call to this, don't reflect or mixin here.
 /// If you think you can optimize this, or otherwise need a change, please submit a PR
@@ -151,7 +155,7 @@ public final class HogTags {
         public void putTags(T objToTag, String... tags) {
             isValid(objToTag, true);
             //Run tag filters
-            HogTagsHelper.Utils.applyFiltersToTags(tags);
+            HogTagsHelper.applyFiltersToTags(tags);
 
             //Add the tags to the object > tag list lookup
             Collections.addAll(BASE_TAGS_MAP.computeIfAbsent(objToTag, o -> new ObjectArraySet<>()), tags);
@@ -161,7 +165,7 @@ public final class HogTags {
 
         public void removeTags(T objToUntag, String... tags) {
             isValid(objToUntag, true);
-            HogTagsHelper.Utils.applyFiltersToTags(tags);
+            HogTagsHelper.applyFiltersToTags(tags);
             BASE_TAGS_MAP.get(objToUntag).removeIf(s -> ArrayUtils.contains(tags, s));
 
             //TODO: Is it worth it to just remove the list entirety if it is emptied?
@@ -170,8 +174,8 @@ public final class HogTags {
         }
 
         private void addInheritors(String tag, String... inherits) {
-            HogTagsHelper.Utils.applyFiltersToTags(inherits);
-            tag = HogTagsHelper.Utils.applyFiltersToTag(tag);
+            HogTagsHelper.applyFiltersToTags(inherits);
+            tag = HogTagsHelper.applyFiltersToTag(tag);
             Collections.addAll(INHERITORS.computeIfAbsent(tag, o -> new SetPair<>(new ObjectArraySet<>())).getUnlocked(), inherits);
 
             doRecursionSanity();
@@ -190,8 +194,8 @@ public final class HogTags {
         }
 
         private void removeInheritors(String tag, String... inherits) {
-            HogTagsHelper.Utils.applyFiltersToTags(inherits);
-            tag = HogTagsHelper.Utils.applyFiltersToTag(tag);
+            HogTagsHelper.applyFiltersToTags(inherits);
+            tag = HogTagsHelper.applyFiltersToTag(tag);
 
             INHERITORS.get(tag).getUnlocked().removeIf(s -> ArrayUtils.contains(inherits, s));
 
@@ -267,7 +271,7 @@ public final class HogTags {
             // TODO: This could probably be more efficient. It iterates over the entire tag map for every new tag passed in.
             // There is almost certainly a way to optimize this to just one pass where we bake the whole reverse lookup maps in one go.
 
-            tag = HogTagsHelper.Utils.applyFiltersToTag(tag);
+            tag = HogTagsHelper.applyFiltersToTag(tag);
             List<T> lookupResult = REVERSE_LOOKUPS.get(tag);
             if (lookupResult != null) {
                 return lookupResult;

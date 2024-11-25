@@ -3,6 +3,7 @@ package roadhog360.hogutils.api.utils;
 import cpw.mods.fml.client.FMLClientHandler;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.passive.EntitySheep;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemDye;
@@ -10,6 +11,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.tuple.Pair;
 import roadhog360.hogutils.api.RegistryMapping;
 
@@ -92,8 +94,44 @@ public final class GenericUtils {
     public static boolean anyContains(String match, Collection<String> collection) {
         return collection.stream().anyMatch(s -> s.contains(match));
     }
+    private static Integer maxMeta;
+    private static Integer minMeta;
+
+    public static int getMaxBlockMetadata() {
+        if (maxMeta == null) {
+//            if (ModsList.NOT_ENOUGH_IDS.isLoaded() && ModsList.NOT_ENOUGH_IDS.isVersionNewerOrEqual("2.0.0")) {
+//                maxMeta = (int) Short.MAX_VALUE;
+//            } else if (ModsList.ENDLESS_IDS_BLOCKITEM.isLoaded()) {
+//                maxMeta = 65536;
+//            } else {
+                maxMeta = 15;
+//            }
+        }
+        return maxMeta;
+    }
+
+    public static int getMinBlockMetadata() {
+        if (minMeta == null) {
+//            if (ModsList.NOT_ENOUGH_IDS.isLoaded() && ModsList.NOT_ENOUGH_IDS.isVersionNewerOrEqual("2.0.0")) {
+//                minMeta = (int) Short.MIN_VALUE;
+//            } else { //EIDs has min meta 0 too, so we don't need to check for it
+                minMeta = 0;
+//            }
+        }
+        return minMeta;
+    }
+
+    public static boolean isBlockMetaInBounds(int meta) {
+        return meta <= getMaxBlockMetadata() && meta >= getMinBlockMetadata();
+    }
+
+    public static boolean isBlockMetaInBoundsIgnoreWildcard(int meta) {
+        return meta == OreDictionary.WILDCARD_VALUE || isBlockMetaInBounds(meta);
+    }
 
     public static class Constants {
+        public static final float[][] COLORS_RGB = EntitySheep.fleeceColorTable;
+
         public static final String[] COLORS_SNAKE_CASE = ItemDye.field_150921_b;
         /// Used by the OreDictionary
         public static final String[] COLORS_CAMEL_CASE = ItemDye.field_150923_a;
