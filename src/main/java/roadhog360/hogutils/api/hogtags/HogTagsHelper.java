@@ -176,8 +176,9 @@ public final class HogTagsHelper {
         }
 
         /// Returns true if the passed in item has any of the listed tags.
-        public static boolean hasAnyTag(Item block, int meta, String... tags) {
-            return getTags(block, meta).stream().anyMatch(tag -> ArrayUtils.contains(tags, tag));
+        public static boolean hasAnyTag(Item item, int meta, String... tags) {
+            if(item == null) return false;
+            return getTags(item, meta).stream().anyMatch(tag -> ArrayUtils.contains(tags, tag));
         }
 
         public static void addInheritors(String tag, String... inherits) {
@@ -264,6 +265,7 @@ public final class HogTagsHelper {
 
         /// Returns true if the passed in block has any of the listed tags.
         public static boolean hasAnyTag(Block block, int meta, String... tags) {
+            if(block == null) return false;
             return getTags(block, meta).stream().anyMatch(tag -> ArrayUtils.contains(tags, tag));
         }
 

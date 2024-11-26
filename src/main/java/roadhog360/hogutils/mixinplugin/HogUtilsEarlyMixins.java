@@ -4,6 +4,9 @@ import com.gtnewhorizon.gtnhmixins.IEarlyMixinLoader;
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import roadhog360.hogutils.Tags;
+import roadhog360.hogutils.config.HogUtilsConfigs;
+import roadhog360.hogutils.repackaged.fplib.config.ConfigException;
+import roadhog360.hogutils.repackaged.fplib.config.ConfigurationManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,12 +24,13 @@ public class HogUtilsEarlyMixins implements IFMLLoadingPlugin, IEarlyMixinLoader
 
     @Override
     public List<String> getMixins(Set<String> loadedCoreMods) {
-        //Load configs here
-//        try {
-//            ConfigBase.initializeConfigs();
-//        } catch (Exception e) {
-//            throw new RuntimeException("Configs failed to load!", e);
-//        }
+        try {
+            if(SIDE == MixinEnvironment.Side.CLIENT) {
+                ConfigurationManager.registerConfig(HogUtilsConfigs.Utils.F3AndTooltips.class);
+            }
+        } catch (ConfigException e) {
+            throw new RuntimeException(e);
+        }
 
         List<String> mixins = new ArrayList<>();
         mixins.add("hogtags.MixinOreDictionary");

@@ -15,6 +15,9 @@ public class HogUtils {
     @SidedProxy(clientSide = Tags.MOD_GROUP + ".proxy.ClientProxy", serverSide = Tags.MOD_GROUP + ".proxy.CommonProxy")
     public static CommonProxy proxy;
 
+    @Mod.Instance(value = Tags.MOD_ID)
+    public static HogUtils instance;
+
     @Mod.EventHandler
     public void onConstructing(FMLConstructionEvent event) {
         proxy.onConstructing(event);

@@ -5,6 +5,7 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableSet;
 import cpw.mods.fml.common.Loader;
 import it.unimi.dsi.fastutil.objects.*;
+import lombok.NonNull;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.ArrayUtils;
@@ -152,7 +153,7 @@ public final class HogTags {
             this.typeToEnforce = typeToEnforce;
         }
 
-        public void putTags(T objToTag, String... tags) {
+        public void putTags(@NonNull T objToTag, String... tags) {
             isValid(objToTag, true);
             //Run tag filters
             HogTagsHelper.applyFiltersToTags(tags);
@@ -163,7 +164,7 @@ public final class HogTags {
             invalidateCaches();
         }
 
-        public void removeTags(T objToUntag, String... tags) {
+        public void removeTags(@NonNull T objToUntag, String... tags) {
             isValid(objToUntag, true);
             HogTagsHelper.applyFiltersToTags(tags);
             BASE_TAGS_MAP.get(objToUntag).removeIf(s -> ArrayUtils.contains(tags, s));

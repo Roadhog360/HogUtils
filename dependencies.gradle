@@ -45,6 +45,9 @@ tasks.named('shadowJar', com.github.jengelman.gradle.plugins.shadow.tasks.Shadow
 
 dependencies {
 //    runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.6.34-GTNH:dev")
+//    implementation("com.github.GTNewHorizons:GTNHLib:0.5.20:dev")
+//    implementation("com.falsepattern:falsepatternlib-mc1.7.10:1.4.6:dev")
+
 
     shadowImplementation('com.github.makamys:MCLib:0.3.7.7') {
         exclude group: "codechicken"
@@ -54,6 +57,8 @@ dependencies {
 
     //Minimized
     shadowImplementation("it.unimi.dsi:fastutil:8.5.15")
-//    shadowImplementation("org.projectlombok:lombok:1.18.36")
 
+    compileOnly('org.jetbrains:annotations:24.0.1')
+    compileOnly("org.projectlombok:lombok:1.18.22") {transitive = false }
+    annotationProcessor("org.projectlombok:lombok:1.18.22")
 }
