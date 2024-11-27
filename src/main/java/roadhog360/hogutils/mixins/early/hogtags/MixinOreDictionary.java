@@ -9,9 +9,9 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import roadhog360.hogutils.api.event.OreRegisterEventPre;
 import roadhog360.hogutils.api.hogtags.HogTagsHelper;
 import roadhog360.hogutils.api.hogtags.HogTagsOreDictionaryHelper;
-import roadhog360.hogutils.api.hogtags.event.OreRegisterEventPre;
 
 /// Handles the pre-register OreDict event as well as the auto-tagging logic
 @Mixin(OreDictionary.class)

@@ -5,7 +5,7 @@ import me.mrnavastar.r.R;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraftforge.common.MinecraftForge;
-import roadhog360.hogutils.api.hogtags.event.BlockItemIterateEvent;
+import roadhog360.hogutils.api.event.BlockItemIterateEvent;
 import roadhog360.hogutils.api.utils.RecipeHelper;
 
 import java.util.Map;

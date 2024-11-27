@@ -47,7 +47,7 @@ public class HogTagsDisplayEventHandler {
                 }
 
                 // Right hand side (block tags)
-                MovingObjectPosition mop = GenericUtils.getMovingObjectPositionFromEntity(world, player, false);
+                MovingObjectPosition mop = GenericUtils.getMovingObjectPositionFromEntity(world, player, false, false);
                 if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
                     Pair<Block, Integer> blockAndMeta = GenericUtils.getBlockAndMetaFromMOP(null, mop);
                     Block lookingBlock = blockAndMeta.getLeft();
@@ -56,8 +56,8 @@ public class HogTagsDisplayEventHandler {
 
                     if (!tags.isEmpty()) {
                         event.right.add(null);
-                        event.right.add("HogTags for " + Block.blockRegistry.getNameForObject(lookingBlock) + ":" + lookingMeta
-                            + ": (" + HogTagsHelper.BlockTags.CONTAINER_ID + " tag pool)");
+                        event.right.add("HogTags for " + Block.blockRegistry.getNameForObject(lookingBlock) + ":" + lookingMeta);
+                        event.right.add("(" + HogTagsHelper.BlockTags.CONTAINER_ID + " tag pool)");
                         for (String tag : tags) {
                             event.right.add("#" + tag);
                         }

@@ -1,4 +1,4 @@
-package roadhog360.hogutils.api.hogtags.event;
+package roadhog360.hogutils.api.event;
 
 import cpw.mods.fml.common.event.FMLConstructionEvent;
 import cpw.mods.fml.common.event.FMLInitializationEvent;

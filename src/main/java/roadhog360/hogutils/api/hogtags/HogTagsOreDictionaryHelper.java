@@ -9,7 +9,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import roadhog360.hogutils.api.hogtags.event.OreDictionaryAutoTagEvent;
+import roadhog360.hogutils.api.event.OreDictionaryAutoTagEvent;
 import roadhog360.hogutils.api.utils.GenericUtils;
 
 import java.util.Collections;

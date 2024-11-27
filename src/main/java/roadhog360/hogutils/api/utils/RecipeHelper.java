@@ -122,6 +122,39 @@ public final class RecipeHelper {
         CraftingManager.getInstance().getRecipeList().removeIf(removeCondition);
     }
 
+    /// Does not evaluate NBT of passed in stacks
+    public static void removeFirstRecipeWithOutput(ItemStack find) {
+        removeFirstRecipeWithOutput(find, true);
+    }
+
+    /// Does not evaluate NBT of passed in stacks
+    public static void removeFirstRecipeWithOutput(ItemStack find, boolean matchWildcards) {
+        removeFirstRecipeWithOutput(find.getItem(), find.getItemDamage(), matchWildcards);
+    }
+
+    public static void removeFirstRecipeWithOutput(Block block, int meta, boolean matchWildcards) {
+        removeFirstRecipeWithOutput(Item.getItemFromBlock(block), meta, matchWildcards);
+    }
+
+    public static void removeFirstRecipeWithOutput(Item item, int meta, boolean matchWildcards) {
+        removeFirstMatchingRecipe(iRecipe -> {
+            ItemStack stack = iRecipe.getRecipeOutput();
+            return stack != null
+                && stack.getItem() == item
+                && ((matchWildcards && stack.getItemDamage() == OreDictionary.WILDCARD_VALUE) || meta == stack.getItemDamage());
+        });
+    }
+
+    /// Removes any recipe that tests true for the specific predicate.
+    public static void removeFirstMatchingRecipe(Predicate<IRecipe> removeCondition) {
+        for(IRecipe recipe : CraftingManager.getInstance().getRecipeList()) {
+            if(removeCondition.test(recipe)) {
+                CraftingManager.getInstance().getRecipeList().remove(recipe);
+                return;
+            }
+        }
+    }
+
     /// Checks if the objects actually exist in the item/block registry, returns false if any of them are not registered.
     /// Useful for registering recipes and stuff, but will only really work after preInit.
     /// This is because we can't expect items and blocks to be finished rendering before that.

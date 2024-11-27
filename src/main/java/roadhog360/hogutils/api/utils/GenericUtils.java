@@ -22,7 +22,7 @@ public final class GenericUtils {
 
     private GenericUtils() {}
 
-    public static MovingObjectPosition getMovingObjectPositionFromEntity(World worldIn, Entity entity, boolean useLiquids) {
+    public static MovingObjectPosition getMovingObjectPositionFromEntity(World worldIn, Entity entity, boolean useNonSelectable, boolean ignoreNonCollidable) {
         float f = 1.0F;
         float f1 = entity.prevRotationPitch + (entity.rotationPitch - entity.prevRotationPitch) * f;
         float f2 = entity.prevRotationYaw + (entity.rotationYaw - entity.prevRotationYaw) * f;
@@ -38,7 +38,7 @@ public final class GenericUtils {
             d3 = ((EntityPlayerMP) entity).theItemInWorldManager.getBlockReachDistance();
         }
         Vec3 vec31 = vec3.addVector((double) f7 * d3, (double) f6 * d3, (double) f8 * d3);
-        return worldIn.func_147447_a/*rayTraceBlocks*/(vec3, vec31, useLiquids, !useLiquids, false);
+        return worldIn.func_147447_a/*rayTraceBlocks*/(vec3, vec31, useNonSelectable, ignoreNonCollidable, false);
     }
 
     public static Vec3 getVec3(World worldIn, Entity entity, double f) {

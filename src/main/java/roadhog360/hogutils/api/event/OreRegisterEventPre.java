@@ -1,4 +1,4 @@
-package roadhog360.hogutils.api.hogtags.event;
+package roadhog360.hogutils.api.event;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
 import net.minecraft.item.ItemStack;
