@@ -127,12 +127,12 @@ public final class HogTags {
         return (List<E>) getTagContainerFromID(containerID).getObjectsInTag(tag);
     }
 
-    public static void addInheritorsToTag(String containerID, String tag, String... inherits) {
-        getTagContainerFromID(containerID).addInheritors(tag, inherits);
+    public static void addInheritorsToTag(String containerID, String tag, String... inheritors) {
+        getTagContainerFromID(containerID).addInheritors(tag, inheritors);
     }
 
-    public static void removeInheritorsFromTag(String containerID, String tag, String... inherits) {
-        getTagContainerFromID(containerID).removeInheritors(tag, inherits);
+    public static void removeInheritorsFromTag(String containerID, String tag, String... inheritors) {
+        getTagContainerFromID(containerID).removeInheritors(tag, inheritors);
     }
 
     public static Set<String> getInheritors(String containerID, String tag) {
@@ -177,7 +177,9 @@ public final class HogTags {
         private void addInheritors(String tag, String... inherits) {
             HogTagsHelper.applyFiltersToTags(inherits);
             tag = HogTagsHelper.applyFiltersToTag(tag);
-            Collections.addAll(INHERITORS.computeIfAbsent(tag, o -> new SetPair<>(new ObjectArraySet<>())).getUnlocked(), inherits);
+            for(String inheritor : inherits) {
+                INHERITORS.computeIfAbsent(inheritor, o -> new SetPair<>(new ObjectArraySet<>())).getUnlocked().add(tag);
+            }
 
             doRecursionSanity();
             invalidateCaches();

@@ -14,6 +14,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.tuple.Pair;
 import roadhog360.hogutils.api.RegistryMapping;
+import roadhog360.hogutils.core.ModsList;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -99,24 +100,24 @@ public final class GenericUtils {
 
     public static int getMaxBlockMetadata() {
         if (maxMeta == null) {
-//            if (ModsList.NOT_ENOUGH_IDS.isLoaded() && ModsList.NOT_ENOUGH_IDS.isVersionNewerOrEqual("2.0.0")) {
-//                maxMeta = (int) Short.MAX_VALUE;
-//            } else if (ModsList.ENDLESS_IDS_BLOCKITEM.isLoaded()) {
-//                maxMeta = 65536;
-//            } else {
+            if (ModsList.NOT_ENOUGH_IDS.isLoaded() && ModsList.NOT_ENOUGH_IDS.isVersionNewerOrEqual("2.0.0")) {
+                maxMeta = (int) Short.MAX_VALUE;
+            } else if (ModsList.ENDLESS_IDS_BLOCKITEM.isLoaded()) {
+                maxMeta = 65536;
+            } else {
                 maxMeta = 15;
-//            }
+            }
         }
         return maxMeta;
     }
 
     public static int getMinBlockMetadata() {
         if (minMeta == null) {
-//            if (ModsList.NOT_ENOUGH_IDS.isLoaded() && ModsList.NOT_ENOUGH_IDS.isVersionNewerOrEqual("2.0.0")) {
-//                minMeta = (int) Short.MIN_VALUE;
-//            } else { //EIDs has min meta 0 too, so we don't need to check for it
+            if (ModsList.NOT_ENOUGH_IDS.isLoaded() && ModsList.NOT_ENOUGH_IDS.isVersionNewerOrEqual("2.0.0")) {
+                minMeta = (int) Short.MIN_VALUE;
+            } else { //EIDs has min meta 0 too, so we don't need to check for it
                 minMeta = 0;
-//            }
+            }
         }
         return minMeta;
     }

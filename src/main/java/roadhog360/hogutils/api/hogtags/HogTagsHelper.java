@@ -345,12 +345,12 @@ public final class HogTagsHelper {
             return hasAnyTag(getBiomeFromID(id));
         }
 
-        public static void addInheritors(String tag, String... inherits) {
-            HogTags.addInheritorsToTag(CONTAINER_ID, tag, inherits);
+        public static void addInheritors(String tag, String... inheritors) {
+            HogTags.addInheritorsToTag(CONTAINER_ID, tag, inheritors);
         }
 
-        public static void removeInheritors(String tag, String... inherits) {
-            HogTags.removeInheritorsFromTag(CONTAINER_ID, tag, inherits);
+        public static void removeInheritors(String tag, String... inheritors) {
+            HogTags.removeInheritorsFromTag(CONTAINER_ID, tag, inheritors);
         }
 
         public static Set<String> getInheritors(String tag) {
