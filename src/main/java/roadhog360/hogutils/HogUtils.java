@@ -7,17 +7,11 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.world.biome.BiomeGenBase;
-import net.minecraftforge.common.BiomeDictionary;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import roadhog360.hogutils.api.hogtags.HogTagsHelper;
 import roadhog360.hogutils.proxy.CommonProxy;
 
 import java.util.Map;
-
-import static net.minecraftforge.common.BiomeDictionary.Type.END;
-import static net.minecraftforge.common.BiomeDictionary.Type.NETHER;
 
 @Mod(modid = Tags.MOD_ID, version = Tags.VERSION, name = Tags.MOD_NAME, acceptedMinecraftVersions = "[1.7.10]")
 public class HogUtils {
@@ -36,11 +30,11 @@ public class HogUtils {
     @Mod.EventHandler
     public void onConstructing(FMLConstructionEvent event) {
         proxy.onConstructing(event);
-        for(BiomeGenBase biome : BiomeGenBase.getBiomeGenArray()) {
-            if(biome.getClass().getName().startsWith("net.minecraft.world.Biome")) { // Just in case a mod somehow registers a biome THIS EARLY
-                vanillaBiomes.put(biome, biome.biomeID);
-            }
-        }
+//        for(BiomeGenBase biome : BiomeGenBase.getBiomeGenArray()) {
+//            if(biome.getClass().getName().startsWith("net.minecraft.world.Biome")) {
+//                vanillaBiomes.put(biome, biome.biomeID);
+//            }
+//        }
     }
 
     @Mod.EventHandler
@@ -82,29 +76,29 @@ public class HogUtils {
     //TODO: Register more tags via these functions
 
     public void registerTags() {
-        HogTagsHelper.BiomeTags.addInheritors("c:is_dry", "c:is_dry/nether", "c:is_dry/end", "c:is_dry/overworld");
-
-        for(BiomeGenBase biome : BiomeGenBase.getBiomeGenArray()) {
-            BiomeDictionary.Type[] types = BiomeDictionary.getTypesForBiome(biome);
-            if(ArrayUtils.contains(types, NETHER)) {
-                HogTagsHelper.BiomeTags.addTags(biome, "c:is_nether");
-                continue;
-            }
-            if(ArrayUtils.contains(types, END)) {
-                HogTagsHelper.BiomeTags.addTags(biome, "c:is_end");
-                continue;
-            }
-        }
+//        HogTagsHelper.BiomeTags.addInheritors("c:is_dry", "c:is_dry/nether", "c:is_dry/end", "c:is_dry/overworld");
+//
+//        for(BiomeGenBase biome : BiomeGenBase.getBiomeGenArray()) {
+//            BiomeDictionary.Type[] types = BiomeDictionary.getTypesForBiome(biome);
+//            if(ArrayUtils.contains(types, NETHER)) {
+//                HogTagsHelper.BiomeTags.addTags(biome, "c:is_nether");
+//                continue;
+//            }
+//            if(ArrayUtils.contains(types, END)) {
+//                HogTagsHelper.BiomeTags.addTags(biome, "c:is_end");
+//                continue;
+//            }
+//        }
     }
 
     private void detectBiomeRegistryReplacement() {
-        for(Map.Entry<BiomeGenBase, Integer> biome : vanillaBiomes.entrySet()) {
-            if(BiomeGenBase.getBiomeGenArray()[biome.getValue()] != biome.getKey()) {
-                LOG.info("A mod has registry replaced the biome " + biome.getKey().biomeName + ", transferring tags over...");
-                String[] tags = HogTagsHelper.BiomeTags.getTags(biome.getKey()).toArray(new String[]{});
-                HogTagsHelper.BiomeTags.addTags(BiomeGenBase.getBiomeGenArray()[biome.getValue()], tags);
-            }
-        }
+//        for(Map.Entry<BiomeGenBase, Integer> biome : vanillaBiomes.entrySet()) {
+//            if(BiomeGenBase.getBiomeGenArray()[biome.getValue()] != biome.getKey()) {
+//                LOG.info("A mod has registry replaced the biome " + biome.getKey().biomeName + ", transferring tags over...");
+//                String[] tags = HogTagsHelper.BiomeTags.getTags(biome.getKey()).toArray(new String[]{});
+//                HogTagsHelper.BiomeTags.addTags(BiomeGenBase.getBiomeGenArray()[biome.getValue()], tags);
+//            }
+//        }
     }
 
     public static void registerTagDynamicBlock(Block block) {
