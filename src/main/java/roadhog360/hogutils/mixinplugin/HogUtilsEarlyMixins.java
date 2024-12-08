@@ -34,6 +34,8 @@ public class HogUtilsEarlyMixins implements IFMLLoadingPlugin, IEarlyMixinLoader
 
         List<String> mixins = new ArrayList<>();
         mixins.add("hogtags.MixinOreDictionary");
+        mixins.add("baseblock.MixinBlockDoor");
+        mixins.add("baseblock.MixinBlockTrapDoor");
         if (SIDE == MixinEnvironment.Side.CLIENT) {
 //            mixins.add("sample2");
         }
