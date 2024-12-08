@@ -50,7 +50,7 @@ public abstract class BaseSand extends BlockSand implements ISubBlocksBlock {
     @Override
     public String getNameFor(ItemStack stack) {
         String type = getTypes().get(stack.getItemDamage());
-        return type == null ? getUnlocalizedName() : type;
+        return type == null ? getUnlocalizedName() : BaseHelper.getUnlocalizedName(type, getNameDomain(type));
     }
 
     @Override

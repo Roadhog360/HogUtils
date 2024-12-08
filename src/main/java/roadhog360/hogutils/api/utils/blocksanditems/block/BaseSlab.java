@@ -130,12 +130,17 @@ public abstract class BaseSlab extends BlockSlab implements ISubBlocksBlock {
     @Override
     public String func_150002_b(int meta) {
         String type = getTypes().get(meta);
-        return type == null ? getUnlocalizedName() : type;
+        return type == null ? getUnlocalizedName() : BaseHelper.getUnlocalizedName(type, getNameDomain(type));
     }
 
     @Override
     public String getNameFor(ItemStack stack) {
         return func_150002_b(stack.getItemDamage());
+    }
+
+    @Override
+    public boolean usesMap() {
+        return getTypes().size() > 2;
     }
 
     public BaseSlab setNames(String name) {

@@ -22,11 +22,7 @@ public class BaseItemBlock extends ItemBlock {
         if(!getHasSubtypes()) {
             return super.getUnlocalizedName();
         }
-        return addTilePrefix(((ISubBlocksBlock) field_150939_a/*blockInstance*/).getNameFor(stack));
-    }
-
-    private String addTilePrefix(String name) {
-        return name.startsWith("tile.") ? name : "tile." + ((ISubBlocksBlock) field_150939_a/*blockInstance*/).getNameDomain() + "." + name;
+        return ((ISubBlocksBlock) field_150939_a/*blockInstance*/).getNameFor(stack);
     }
 
     @Override
