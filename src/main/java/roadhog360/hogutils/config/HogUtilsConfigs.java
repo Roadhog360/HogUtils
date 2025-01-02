@@ -1,12 +1,25 @@
 package roadhog360.hogutils.config;
 
+import org.spongepowered.asm.mixin.MixinEnvironment;
 import roadhog360.hogutils.Tags;
+import roadhog360.hogutils.mixinplugin.HogUtilsEarlyMixins;
 import roadhog360.hogutils.repackaged.fplib.config.Config;
+import roadhog360.hogutils.repackaged.fplib.config.ConfigException;
+import roadhog360.hogutils.repackaged.fplib.config.ConfigurationManager;
 
 public class HogUtilsConfigs {
 
-    public static class Utils {
+    public static void init() {
+        try {
+            if(HogUtilsEarlyMixins.SIDE == MixinEnvironment.Side.CLIENT) {
+                ConfigurationManager.registerConfig(HogUtilsConfigs.Utils.F3AndTooltips.class);
+            }
+        } catch (ConfigException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
+    public static class Utils {
         @Config(modid = Tags.MOD_ID, category = "F3 and Tooltips", configSubDirectory = Tags.MOD_ID, filename = "utils")
         @Config.Comment("Options relating to the F3 menu and tooltip info. Item tooltips usually require F3+H mode to be enabled.")
         public static class F3AndTooltips {
@@ -18,5 +31,12 @@ public class HogUtilsConfigs {
             @Config.DefaultBoolean(true)
             public static boolean hogTagsInItemTooltip;
         }
+
+        //Might just say EFR is the examples lol
+//        public static class Examples {
+//            @Config.Comment("Enables blocks and items and other API examples so developers can easily observe the results of the code in the example packages.")
+//            @Config.DefaultBoolean(false)
+//            public static boolean enableExamples;
+//        }
     }
 }

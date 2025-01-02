@@ -7,10 +7,12 @@ import net.minecraft.entity.passive.EntitySheep;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemDye;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.tuple.Pair;
 import roadhog360.hogutils.api.RegistryMapping;
@@ -132,6 +134,7 @@ public final class GenericUtils {
     }
 
     /// Code by Ben-Hur Langoni Junior on Stack Overflow, [original answer](https://stackoverflow.com/a/19759564)
+    /// Modified to slightly break Roman Numeral rules in favor of more compatibility, including support for numbers over 4999, and "support" for zero
     public static final class RomanNumbers {
         private final static TreeMap<Integer, String> map = new TreeMap<>();
         static {
@@ -150,7 +153,15 @@ public final class GenericUtils {
             map.put(1, "I");
         }
 
-        private static String getRomanNumeral(int number) {
+        /// @return A normal roman numeral for numbers above 0 and below 4000, else it will return the input integer represented as a string.
+        /// @see GenericUtils.RomanNumbers#getRomanNumeral GenericUtils.RomanNumbers.getRomanNumeral for unconventional Roman numerals to be allowed.
+        public static String getStrictRomanNumeral(int number) {
+            return number <= 0 || number >= 4000 ? String.valueOf(number) : getRomanNumeral(number);
+        }
+
+        /// @return A Roman representation of the input number, returning a non-conventional roman numeral for values above 3999 and below 1.
+        /// @see GenericUtils.RomanNumbers#getStrictRomanNumeral GenericUtils.RomanNumbers.getStrictRomanNumeral to only generate conventional Roman numerals.
+        public static String getRomanNumeral(int number) {
             String roman = toRoman(Math.abs(number));
             if(number < 0) {
                 roman = "-" + roman;
@@ -160,7 +171,7 @@ public final class GenericUtils {
 
         private static String toRoman(int number) {
             if(number == 0) {
-                return "NONE";
+                return "ZERO";
             }
             int l =  map.floorKey(number);
             if (number == l) {
@@ -187,5 +198,10 @@ public final class GenericUtils {
             MODERN_COLORS_CAMEL_CASE = Arrays.copyOf(COLORS_CAMEL_CASE, 16);
             MODERN_COLORS_CAMEL_CASE[7] = "lightGray";
         }
+
+        public static final ForgeDirection[] FORGE_DIRECTIONS = ForgeDirection.values();
+        public static final ForgeDirection[] HORIZONTAL_FORGE_DIRECTIONS = new ForgeDirection[]{ForgeDirection.NORTH, ForgeDirection.SOUTH, ForgeDirection.WEST, ForgeDirection.EAST};
+        public static final EnumFacing[] ENUM_FACING_VALUES = EnumFacing.values();
+        public static final EnumFacing[] HORIZONTAL_ENUM_FACING = new EnumFacing[]{EnumFacing.NORTH, EnumFacing.SOUTH, EnumFacing.WEST, EnumFacing.EAST};
     }
 }

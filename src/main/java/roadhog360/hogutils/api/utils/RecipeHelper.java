@@ -12,6 +12,7 @@ import net.minecraftforge.oredict.RecipeSorter;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 import net.minecraftforge.oredict.ShapelessOreRecipe;
 import roadhog360.hogutils.Tags;
+import roadhog360.hogutils.api.blocksanditems.ISubtypesBase;
 
 import java.util.function.Predicate;
 
@@ -163,9 +164,15 @@ public final class RecipeHelper {
             if (object == null || object == Blocks.air) return false;
             if (object instanceof String) continue;
 
-            if (object instanceof ItemStack) {
-                if (((ItemStack) object).getItem() == null || Item.itemRegistry.getNameForObject(((ItemStack) object).getItem()) == null) {
-                    return false;
+            if (object instanceof ItemStack stack) {
+                if (stack.getItem() == null || Item.itemRegistry.getNameForObject(stack.getItem()) == null) {
+                    ISubtypesBase base = null;
+                    if(stack.getItem() instanceof ISubtypesBase item) {
+                        base = item;
+                    } else if (Block.getBlockFromItem(stack.getItem()) instanceof ISubtypesBase block) {
+                        base = block;
+                    }
+                    return base != null && base.isMetadataEnabled(stack.getItemDamage());
                 }
             }
             if (object instanceof Item) {
@@ -240,5 +247,11 @@ public final class RecipeHelper {
         public HighPriorityShapelessRecipe(ItemStack result, Object... recipe) {
             super(result, recipe);
         }
+    }
+
+    public static enum RecipePriority {
+        HIGH,
+        NORMAL,
+        LOW
     }
 }

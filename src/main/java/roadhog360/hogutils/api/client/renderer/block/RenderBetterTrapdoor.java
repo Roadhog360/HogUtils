@@ -4,7 +4,7 @@ import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.world.IBlockAccess;
 import org.lwjgl.opengl.GL11;
-import roadhog360.hogutils.api.utils.blocksanditems.block.ITrapdoorRotation;
+import roadhog360.hogutils.api.blocksanditems.block.BaseTrapdoor;
 
 public class RenderBetterTrapdoor extends RendererBase {
 
@@ -24,7 +24,8 @@ public class RenderBetterTrapdoor extends RendererBase {
 
     @Override
     public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z, Block block, int modelId, RenderBlocks renderer) {
-        if (!(block instanceof ITrapdoorRotation trapdoor) || !trapdoor.rotateFaces(world, x, y, z)) {
+        /// If this trapdoor isn't a BaseTrapdoor, assume it should rotate the faces based on rotation.
+        if (!(block instanceof BaseTrapdoor trapdoor) || !trapdoor.hasRotatedRendering(world, x, y, z)) {
             int l = renderer.blockAccess.getBlockMetadata(x, y, z);
             if (l <= 3) {
                 renderer.uvRotateEast = 3;

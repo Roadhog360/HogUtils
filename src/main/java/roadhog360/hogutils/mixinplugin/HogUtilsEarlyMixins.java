@@ -5,8 +5,6 @@ import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import roadhog360.hogutils.Tags;
 import roadhog360.hogutils.config.HogUtilsConfigs;
-import roadhog360.hogutils.repackaged.fplib.config.ConfigException;
-import roadhog360.hogutils.repackaged.fplib.config.ConfigurationManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,20 +22,17 @@ public class HogUtilsEarlyMixins implements IFMLLoadingPlugin, IEarlyMixinLoader
 
     @Override
     public List<String> getMixins(Set<String> loadedCoreMods) {
-        try {
-            if(SIDE == MixinEnvironment.Side.CLIENT) {
-                ConfigurationManager.registerConfig(HogUtilsConfigs.Utils.F3AndTooltips.class);
-            }
-        } catch (ConfigException e) {
-            throw new RuntimeException(e);
-        }
+        HogUtilsConfigs.init();
 
         List<String> mixins = new ArrayList<>();
         mixins.add("hogtags.MixinOreDictionary");
-        mixins.add("baseblock.MixinBlockDoor");
-        mixins.add("baseblock.MixinBlockTrapDoor");
+
+        mixins.add("event.MixinWorld");
+        mixins.add("event.MixinPlaySoundAtEntityEvent");
+
+        mixins.add("baseblock.MixinBlockLeaves");
         if (SIDE == MixinEnvironment.Side.CLIENT) {
-//            mixins.add("sample2");
+            mixins.add("baseblock.MixinRenderBlocks");
         }
         return mixins;
     }

@@ -31,8 +31,8 @@ public class BlockItemIterateEvent<T> extends Event {
         }
 
         /// Called from an iterator in HogUtils sometime during {@link FMLPostInitializationEvent}
-        public static class Post extends BlockItemIterateEvent<Block> {
-            public Post(Block obj, String name) {
+        public static class PostInit extends BlockItemIterateEvent<Block> {
+            public PostInit(Block obj, String name) {
                 super(obj, name);
             }
         }

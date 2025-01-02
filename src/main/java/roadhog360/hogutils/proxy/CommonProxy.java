@@ -7,6 +7,7 @@ import net.minecraft.item.Item;
 import net.minecraftforge.common.MinecraftForge;
 import roadhog360.hogutils.api.event.BlockItemIterateEvent;
 import roadhog360.hogutils.api.utils.RecipeHelper;
+import roadhog360.hogutils.handlers.event.RegistryIterateEventHandler;
 
 import java.util.Map;
 
@@ -18,6 +19,7 @@ public class CommonProxy {
     Map<String, Item> mapItems = (Map<String, Item>) R.of(Item.itemRegistry).get("registryObjects", Map.class);
 
     public void onConstructing(FMLConstructionEvent event) {
+        MinecraftForge.EVENT_BUS.register(RegistryIterateEventHandler.INSTANCE);
     }
 
     // preInit "Run before anything else. Read your config, create blocks, items, etc., and register them with the
@@ -37,7 +39,7 @@ public class CommonProxy {
     // postInit "Handle interaction with other mods, complete your setup based on this." (Remove if not needed)
     public void postInit(FMLPostInitializationEvent event) {
         mapBlocks.entrySet().stream()
-            .map(entry -> new BlockItemIterateEvent.BlockRegister.Post(entry.getValue(), entry.getKey())).forEach(MinecraftForge.EVENT_BUS::post);
+            .map(entry -> new BlockItemIterateEvent.BlockRegister.PostInit(entry.getValue(), entry.getKey())).forEach(MinecraftForge.EVENT_BUS::post);
         mapItems.entrySet().stream()
             .map(entry -> new BlockItemIterateEvent.ItemRegister.PostInit(entry.getValue(), entry.getKey())).forEach(MinecraftForge.EVENT_BUS::post);
     }
