@@ -143,7 +143,7 @@ public class DummyWorld extends World {
         if (aBlock == Blocks.air) {
             FAKE_WORLD_DATA.remove(pos);
         } else {
-            FAKE_WORLD_DATA.put(pos, RegistryMapping.of(aBlock, aMeta, false));
+            FAKE_WORLD_DATA.put(pos, RegistryMapping.of(aBlock, aMeta));
         }
         return true;
     }

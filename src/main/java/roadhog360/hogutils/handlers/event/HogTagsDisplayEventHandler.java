@@ -17,7 +17,7 @@ import roadhog360.hogutils.api.hogtags.HogTagsHelper;
 import roadhog360.hogutils.api.utils.GenericUtils;
 import roadhog360.hogutils.config.HogUtilsConfigs;
 
-import java.util.List;
+import java.util.Set;
 
 public class HogTagsDisplayEventHandler {
 
@@ -35,7 +35,7 @@ public class HogTagsDisplayEventHandler {
                 // Left hand side (biome tags)
                 BiomeGenBase biome = world.getBiomeGenForCoords(MathHelper.floor_double(player.posX), MathHelper.floor_double(player.posZ));
                 if (biome != null) {
-                    List<String> tags = HogTagsHelper.BiomeTags.getTags(biome);
+                    Set<String> tags = HogTagsHelper.BiomeTags.getTags(biome);
                     if (!tags.isEmpty()) {
                         event.left.add(null);
                         event.left.add("HogTags for " + biome.biomeName
@@ -52,7 +52,7 @@ public class HogTagsDisplayEventHandler {
                     Pair<Block, Integer> blockAndMeta = GenericUtils.getBlockAndMetaFromMOP(null, mop);
                     Block lookingBlock = blockAndMeta.getLeft();
                     int lookingMeta = blockAndMeta.getRight();
-                    List<String> tags = HogTagsHelper.BlockTags.getTags(lookingBlock, lookingMeta);
+                    Set<String> tags = HogTagsHelper.BlockTags.getTags(lookingBlock, lookingMeta);
 
                     if (!tags.isEmpty()) {
                         event.right.add(null);
@@ -71,7 +71,7 @@ public class HogTagsDisplayEventHandler {
     public void injectHogTagsTooltip(ItemTooltipEvent event) {
         if (event.showAdvancedItemTooltips && HogUtilsConfigs.Utils.F3AndTooltips.hogTagsInItemTooltip
             && event.itemStack != null && event.itemStack.getItem() != null) {
-            List<String> tags = HogTagsHelper.ItemTags.getTags(event.itemStack.getItem(), event.itemStack.getItemDamage());
+            Set<String> tags = HogTagsHelper.ItemTags.getTags(event.itemStack.getItem(), event.itemStack.getItemDamage());
             if(!tags.isEmpty()) {
                 if (GuiContainer.isCtrlKeyDown()) {
                     event.toolTip.add("\u00a78HogTags: (" + HogTagsHelper.ItemTags.CONTAINER_ID + " tag pool)");

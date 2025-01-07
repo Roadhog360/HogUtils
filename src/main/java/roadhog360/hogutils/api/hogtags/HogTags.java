@@ -6,15 +6,15 @@ import com.google.common.collect.ImmutableSet;
 import cpw.mods.fml.common.Loader;
 import it.unimi.dsi.fastutil.objects.*;
 import lombok.NonNull;
+import net.minecraft.block.Block;
+import net.minecraft.item.Item;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import roadhog360.hogutils.api.hogtags.mappings.BlockTagMapping;
-import roadhog360.hogutils.api.hogtags.mappings.ItemTagMapping;
+import roadhog360.hogutils.api.RegistryMapping;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -23,34 +23,44 @@ import java.util.Set;
 /// New tags and containers added by HogUtils will have the "hogutils" domain.
 ///
 /// Internal backend for HogTags. Not intended to be called from.
-/// This package is just to help keep its internal components private; Please use the HogTags class to call to this, don't reflect or mixin here.
+/// This package is just to help keep its internal components private; Please use the HogTagsHelper class to call to this, don't reflect or mixin here.
 /// If you think you can optimize this, or otherwise need a change, please submit a PR
 public final class HogTags {
     private HogTags() {}
 
     private static final BiMap<String, TagContainer<?>> TAG_CONTAINERS = HashBiMap.create(new Object2ObjectArrayMap<>());
     static {
-        registerTagContainer(HogTagsHelper.BlockTags.CONTAINER_ID, new TagContainer<BlockTagMapping>(BlockTagMapping.class){
+        registerTagContainer(HogTagsHelper.BlockTags.CONTAINER_ID, new TagContainer<RegistryMapping<Block>>(){
             @Override
-            protected Set<String> getExtraTags(BlockTagMapping object) {
+            protected Set<String> getExtraTags(RegistryMapping<Block> object) {
                 if(object.getMeta() != OreDictionary.WILDCARD_VALUE) {
-                    return getBaseTags(BlockTagMapping.of(object.getObject(), OreDictionary.WILDCARD_VALUE));
+                    return getBaseTags(RegistryMapping.of(object.getObject(), OreDictionary.WILDCARD_VALUE));
                 }
                 return super.getExtraTags(object);
             }
-        });
 
-        registerTagContainer(HogTagsHelper.ItemTags.CONTAINER_ID, new TagContainer<ItemTagMapping>(ItemTagMapping.class){
             @Override
-            protected Set<String> getExtraTags(ItemTagMapping object) {
-                if(object.getMeta() != OreDictionary.WILDCARD_VALUE) {
-                    return getBaseTags(ItemTagMapping.of(object.getObject(), OreDictionary.WILDCARD_VALUE));
-                }
-                return super.getExtraTags(object);
+            public boolean isValid(RegistryMapping<Block> object) {
+                return object.getObject() instanceof Block;
             }
         });
 
-        registerTagContainer(HogTagsHelper.BiomeTags.CONTAINER_ID, new TagContainer<BiomeGenBase>(BiomeGenBase.class));
+        registerTagContainer(HogTagsHelper.ItemTags.CONTAINER_ID, new TagContainer<RegistryMapping<Item>>(){
+            @Override
+            protected Set<String> getExtraTags(RegistryMapping<Item> object) {
+                if(object.getMeta() != OreDictionary.WILDCARD_VALUE) {
+                    return getBaseTags(RegistryMapping.of(object.getObject(), OreDictionary.WILDCARD_VALUE));
+                }
+                return super.getExtraTags(object);
+            }
+
+            @Override
+            public boolean isValid(RegistryMapping<Item> object) {
+                return object.getObject() instanceof Item;
+            }
+        });
+
+        registerTagContainer(HogTagsHelper.BiomeTags.CONTAINER_ID, new TagContainer<BiomeGenBase>());
     }
 
     private static String checkContainerIDForModID(String containerID) {
@@ -100,7 +110,7 @@ public final class HogTags {
 //        }
 //
 //        for(Map.Entry<String, TagContainer<?>> entry : TAG_CONTAINERS.entrySet()) {
-//            if(entry.getValue().isValid(objToTag, false)) {
+//            if(entry.getValue().isValid(objToTag)) {
 //                return entry.getKey();
 //            }
 //        }
@@ -116,15 +126,15 @@ public final class HogTags {
         getTagContainerFromID(containerID).removeTags(objToUntag, tags);
     }
 
-    public static <E> List<String> getTagsFromObject(String containerID, E taggedObj) {
+    public static <E> Set<String> getTagsFromObject(String containerID, E taggedObj) {
         return getTagContainerFromID(containerID).getTags(taggedObj);
     }
 
     /// Only use this if you have registered your own custom taggable thing.
     /// Blocks/Items for example use this to get the metadata of the wildcard as well as the normal one.
     @SuppressWarnings("unchecked")
-    public static <E> List<E> getObjectsForTag(String containerID, String tag) {
-        return (List<E>) getTagContainerFromID(containerID).getObjectsInTag(tag);
+    public static <E> Set<E> getObjectsForTag(String containerID, String tag) {
+        return (Set<E>) getTagContainerFromID(containerID).getObjectsInTag(tag);
     }
 
     public static void addInheritorsToTag(String containerID, String tag, String... inheritors) {
@@ -140,32 +150,27 @@ public final class HogTags {
     }
 
     public static class TagContainer<T> {
-        protected final Class<?> typeToEnforce;
-
         protected final Map<T, Set<String>> BASE_TAGS_MAP = new Reference2ObjectArrayMap<>();
 
-        protected final Map<T, List<String>> LOOKUPS = new Reference2ObjectArrayMap<>();
-        protected final Map<String, List<T>> REVERSE_LOOKUPS = new Object2ObjectArrayMap<>();
+        protected final Map<T, Set<String>> LOOKUPS = new Reference2ObjectArrayMap<>();
+        protected final Map<String, Set<T>> REVERSE_LOOKUPS = new Object2ObjectArrayMap<>();
 
         private final Map<String, SetPair<String>> INHERITORS = new Object2ObjectArrayMap<>();
 
-        public TagContainer(Class<?> typeToEnforce) {
-            this.typeToEnforce = typeToEnforce;
-        }
-
         public void putTags(@NonNull T objToTag, String... tags) {
-            isValid(objToTag, true);
+            if(!isValid(objToTag)) {
+                throw new IllegalArgumentException("Blocked " + objToTag + " from being added to the tag container; object not valid for container!");
+            }
             //Run tag filters
             HogTagsHelper.applyFiltersToTags(tags);
 
             //Add the tags to the object > tag list lookup
-            Collections.addAll(BASE_TAGS_MAP.computeIfAbsent(objToTag, o -> new ObjectArraySet<>()), tags);
+            Collections.addAll(BASE_TAGS_MAP.computeIfAbsent(objToTag, o -> new ObjectRBTreeSet<>()), tags);
 
             invalidateCaches();
         }
 
         public void removeTags(@NonNull T objToUntag, String... tags) {
-            isValid(objToUntag, true);
             HogTagsHelper.applyFiltersToTags(tags);
             BASE_TAGS_MAP.get(objToUntag).removeIf(s -> ArrayUtils.contains(tags, s));
 
@@ -178,7 +183,7 @@ public final class HogTags {
             HogTagsHelper.applyFiltersToTags(inherits);
             tag = HogTagsHelper.applyFiltersToTag(tag);
             for(String inheritor : inherits) {
-                INHERITORS.computeIfAbsent(inheritor, o -> new SetPair<>(new ObjectArraySet<>())).getUnlocked().add(tag);
+                INHERITORS.computeIfAbsent(inheritor, o -> new SetPair<>(new ObjectAVLTreeSet<>())).getUnlocked().add(tag);
             }
 
             doRecursionSanity();
@@ -223,9 +228,8 @@ public final class HogTags {
             return new ObjectArraySet<>(inheritors);
         }
 
-        private List<String> getTags(T object) {
-            isValid(object, true);
-            List<String> lookupResult = LOOKUPS.get(object);
+        private Set<String> getTags(T object) {
+            Set<String> lookupResult = LOOKUPS.get(object);
             if(lookupResult != null) {
                 return lookupResult;
             }
@@ -233,24 +237,28 @@ public final class HogTags {
             Set<String> extraTags = getExtraTags(object);
             Set<String> baseTags = getBaseTags(object);
             if(!extraTags.isEmpty() || !baseTags.isEmpty()) {
-                List<String> finalTags = new ObjectArrayList<>();
+                Set<String> finalTags = new ObjectAVLTreeSet<>();
                 finalTags.addAll(baseTags);
                 finalTags.addAll(extraTags);
 
-                List<String> inheritors = new ObjectArrayList<>();
+                Set<String> inheritors = new ObjectAVLTreeSet<>();
                 for(String tag : finalTags) {
                     inheritors.addAll(getInheritorsRecursive(tag));
                 }
                 finalTags.addAll(inheritors);
 
-                LOOKUPS.put(object, new ObjectImmutableList<>(finalTags));
+                LOOKUPS.put(object, Collections.unmodifiableSet(finalTags));
                 return finalTags;
             }
 
             // I don't think we need to cache empty lists. Unlike reverse lookups this doesn't iterate over the entire registry.
             // Should be "fine"
 //            LOOKUPS.put(object, ObjectImmutableList.of());
-            return ObjectImmutableList.of();
+            return ImmutableSet.of();
+        }
+
+        public boolean isValid(T object) {
+            return true;
         }
 
         /// Add extra tags to the list if desired. Return null if it's empty.
@@ -270,19 +278,19 @@ public final class HogTags {
             return tags;
         }
 
-        private List<T> getObjectsInTag(String tag) {
+        private Set<T> getObjectsInTag(String tag) {
             // TODO: This could probably be more efficient. It iterates over the entire tag map for every new tag passed in.
             // There is almost certainly a way to optimize this to just one pass where we bake the whole reverse lookup maps in one go.
 
             tag = HogTagsHelper.applyFiltersToTag(tag);
-            List<T> lookupResult = REVERSE_LOOKUPS.get(tag);
+            Set<T> lookupResult = REVERSE_LOOKUPS.get(tag);
             if (lookupResult != null) {
                 return lookupResult;
             }
 
-            List<T> set = new ObjectArrayList<>();
+            Set<T> set = new ObjectAVLTreeSet<>();
             for (Map.Entry<T, Set<String>> entry : BASE_TAGS_MAP.entrySet()) {
-                List<String> tags = getTags(entry.getKey());
+                Set<String> tags = getTags(entry.getKey());
                 if (tags.contains(tag)) {
                     set.add(entry.getKey());
                 }
@@ -290,10 +298,10 @@ public final class HogTags {
 
             if(set.isEmpty()) {
                 // TODO: This could cause leakage if a mod checks for a lot of empty tags. The above rewrite would solve this.
-                REVERSE_LOOKUPS.put(tag, ObjectImmutableList.of());
-                return ObjectImmutableList.of();
+                REVERSE_LOOKUPS.put(tag, ImmutableSet.of());
+                return ImmutableSet.of();
             }
-            REVERSE_LOOKUPS.put(tag, new ObjectImmutableList<>(set));
+            REVERSE_LOOKUPS.put(tag, Collections.unmodifiableSet(set));
             return set;
         }
 
@@ -320,25 +328,6 @@ public final class HogTags {
 //            }
 //        }
 
-        /// Returns `TRUE` if the passed in object is a valid type for this TagsContainer, `FALSE` if otherwise.
-        /// If the second arg is `TRUE`, the game will crash instead of returning false.
-        ///
-        /// The `TRUE` arg is used by put/remove to crash the game if the tag isn't valid.
-        /// The `FALSE` arg is used when fetching a valid tag container for the object.
-        ///
-        /// Will always return `TRUE` if typeToEnforce is null.
-        public boolean isValid(Object object, boolean enforce) {
-            if(typeToEnforce == null) return true; //No type enforcement present
-
-            if (typeToEnforce.isInstance(object)) {
-                return true;
-            }
-            if (enforce) {
-                throw new IllegalStateException("This object (" + object + ") isn't a valid type for this tag container! (Type must be of " + typeToEnforce + ")");
-            }
-            return false;
-        }
-
         /// Invalidates reverse lookup cache
         protected void invalidateCaches() {
             REVERSE_LOOKUPS.clear();
@@ -347,11 +336,6 @@ public final class HogTags {
 
         protected final <E> Set<E> getLockedSet(SetPair<E> set) {
             return set.getLocked();
-        }
-
-        @Override
-        public String toString() {
-            return "TagContainer{" + "typeToEnforce=" + typeToEnforce + '}';
         }
 
         protected static final class SetPair<E> extends Pair<Set<E>, Set<E>> {

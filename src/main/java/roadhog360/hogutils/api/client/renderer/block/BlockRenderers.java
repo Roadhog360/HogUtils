@@ -9,7 +9,7 @@ public final class BlockRenderers {
     public static final RenderBetterTrapdoor TRAPDOOR = new RenderBetterTrapdoor();
 
     public static void RegisterRenderers() {
-        RenderingRegistry.registerBlockHandler(DOOR);
+//        RenderingRegistry.registerBlockHandler(DOOR); //Not needed; it overrides the regular door renderer.
         RenderingRegistry.registerBlockHandler(TRAPDOOR);
     }
 }

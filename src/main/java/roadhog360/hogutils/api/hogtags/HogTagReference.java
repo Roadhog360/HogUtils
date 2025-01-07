@@ -1,6 +1,6 @@
 package roadhog360.hogutils.api.hogtags;
 
-import java.util.List;
+import java.util.Set;
 
 /// Used by recipes to reference a HogTag
 public class HogTagReference<T> {
@@ -12,7 +12,7 @@ public class HogTagReference<T> {
         this.tag = tag;
     }
 
-    public List<T> reference() {
+    public Set<T> reference() {
         return HogTags.getObjectsForTag(container, tag);
     }
 }

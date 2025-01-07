@@ -27,6 +27,8 @@ public class HogUtilsEarlyMixins implements IFMLLoadingPlugin, IEarlyMixinLoader
         List<String> mixins = new ArrayList<>();
         mixins.add("hogtags.MixinOreDictionary");
 
+        mixins.add("setblocksniper.MixinChunk");
+
         mixins.add("event.MixinWorld");
         mixins.add("event.MixinPlaySoundAtEntityEvent");
 

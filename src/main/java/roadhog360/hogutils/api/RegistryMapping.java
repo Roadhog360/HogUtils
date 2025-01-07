@@ -1,32 +1,34 @@
 package roadhog360.hogutils.api;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
+import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.List;
 import java.util.Map;
 
-/// Used as an easy way t
-public class RegistryMapping<T> /*extends Pair<T, Integer>*/ {
-    // TODO: Should I uncomment this? It can be annoying to use `.of` since it might sometimes clash with `Pair.of`
-
-    /// Use the object instead of a RegistryMapping. This is so we can quickly fetch other RegistryMappings of the same type.
-    /// We do this to not spam garbage collection, but this also
-    private static final Map<Object, List<RegistryMapping<?>>> createdKeys = new Reference2ObjectArrayMap<>();
-
-
+/// Used as an easy way to make a container object for comparing block/item and meta instances.
+///
+/// Here's how you should reference these in maps:
+/// If you want exact/"strict" matches only (meta has to be equal regardless of wildcards) then use:
+/// - Reference/Identity maps for maps
+/// - Tree sets for sets (AVL if iteration speed is a priority, else AB maps are a good all-rounder for this)
+/// - Lists don't really have any reference-based types. If you need one as opposed to a set feel free to PR a list implementation for HogUtils.
+///
+/// If you want loose matches (meta can either be equal, or it's considered a match if either side has a wildcard) then use other types of lists/sets/maps.
+/// The rule of thumb here mainly being for loose matching, use things that do {@link Object#equals} and for strict matching, use things which don't.
+/// And finally, if you want loose matches, be careful where you insert mapping objects that have {@link OreDictionary#WILDCARD_VALUE}.
+public final class RegistryMapping<T> extends Pair<T, Integer> {
     private final T object;
     private final transient int meta;
-    private final transient boolean wildcardAlwaysEqual;
 
-    protected RegistryMapping(T obj, int meta, boolean wildcardAlwaysEqual) {
+    private RegistryMapping(T obj, int meta) {
         this.object = obj;
         this.meta = meta;
-        this.wildcardAlwaysEqual = wildcardAlwaysEqual;
     }
 
     public T getObject() {
@@ -35,62 +37,6 @@ public class RegistryMapping<T> /*extends Pair<T, Integer>*/ {
 
     public int getMeta() {
         return meta;
-    }
-
-    public boolean isWildcardAlwaysEqual() {
-        return wildcardAlwaysEqual;
-    }
-
-    /// Creates a new contained object for the specified block or item, and metadata. Supports wildcard values.
-    ///
-    /// If the last arg is `TRUE`, comparisons against instance comparisons true if a matching object of any metadata is compared, if this has a {@link OreDictionary#WILDCARD_VALUE} meta.
-    ///
-    /// If the last arg is `FALSE`, this instance only returns true if the object it is being compared against has the same metadata as it,
-    /// not counting wildcards unless that object also has a wildcard for its metadata.
-    ///
-    /// This only affects the left hand side of the comparison; which would be if you are calling Object#equals on THIS instead of passing it in as the argument.
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public static <E> RegistryMapping<E> of(E object, int meta, boolean wildcardAlwaysEqual) {
-        if (!(object instanceof Block) && !(object instanceof Item)) {
-            throw new IllegalArgumentException("RegistryMapping must be either an item or a block!");
-        }
-        List<RegistryMapping<?>> bucket = createdKeys.get(object);
-        if(bucket != null) {
-            for(RegistryMapping<?> bucketItem : bucket) {
-                // We already know the block is equal, just focus on the other stuff
-                if(meta == bucketItem.getMeta() && wildcardAlwaysEqual == bucketItem.isWildcardAlwaysEqual()) {
-                    return (RegistryMapping<E>) bucketItem;
-                }
-            }
-        }
-
-        RegistryMapping mapping = new RegistryMapping<>(object, meta, wildcardAlwaysEqual);
-        createdKeys.computeIfAbsent(object, o -> new ObjectArrayList<>()).add(mapping);
-        return mapping;
-    }
-
-    /// Creates a new contained object for the specified block or item, and metadata. Supports wildcard values.
-    ///
-    /// Comparisons against instance comparisons true if a matching object of any metadata is compared, if this has a {@link OreDictionary#WILDCARD_VALUE} meta.
-    /// To force {@link RegistryMapping#equals(Object)} to only return TRUE on an exact metadata match, see {@link RegistryMapping#of(Object, int, boolean)}
-    public static <E> RegistryMapping<E> of(E object, int meta) {
-        return of(object, meta, true);
-    }
-
-    /// Creates a new contained object for the specified block or item, assuming the metadata is {@link OreDictionary#WILDCARD_VALUE}.
-    ///
-    /// Comparisons against instance comparisons true if a matching object of any metadata is compared.
-    /// To force {@link RegistryMapping#equals(Object)} to only return TRUE on an exact metadata match, see {@link RegistryMapping#of(Object, int, boolean)}
-    public static <E> RegistryMapping<E> of(E object) {
-        return of(object, OreDictionary.WILDCARD_VALUE, true);
-    }
-
-    public static RegistryMapping<Item> fromItemStack(ItemStack stack, boolean wildcardAlwaysEqual) {
-        return of(stack.getItem(), stack.getItemDamage(), wildcardAlwaysEqual);
-    }
-
-    public static RegistryMapping<Item> fromItemStack(ItemStack stack) {
-        return fromItemStack(stack, true);
     }
 
     /// Creates a new ItemStack with stack size of 1.
@@ -127,7 +73,7 @@ public class RegistryMapping<T> /*extends Pair<T, Integer>*/ {
 
     public boolean matches(Object compareObject, int compareMeta) {
         return getObject() == compareObject && (getMeta() == compareMeta
-            || (isWildcardAlwaysEqual() && (getMeta() == OreDictionary.WILDCARD_VALUE || compareMeta == OreDictionary.WILDCARD_VALUE)));
+            || (getMeta() == OreDictionary.WILDCARD_VALUE || compareMeta == OreDictionary.WILDCARD_VALUE));
     }
 
     @Override
@@ -137,25 +83,112 @@ public class RegistryMapping<T> /*extends Pair<T, Integer>*/ {
 
     @Override
     public String toString() {
-        return "RegistryMapping{" +
+        return getClass().getSimpleName() + "{" +
             "object=" + object +
             ", meta=" + meta +
-            ", wildcardAlwaysEqual=" + isWildcardAlwaysEqual() +
             '}';
     }
 
-//    @Override
-//    public T getLeft() {
-//        return getObject();
-//    }
-//
-//    @Override
-//    public Integer getRight() {
-//        return getMeta();
-//    }
-//
-//    @Override
-//    public Integer setValue(Integer value) {
-//        throw new UnsupportedOperationException();
-//    }
+    @Override
+    public T getLeft() {
+        return getObject();
+    }
+
+    @Override
+    public Integer getRight() {
+        return getMeta();
+    }
+
+    @Override
+    public Integer setValue(Integer value) {
+        throw new UnsupportedOperationException();
+    }
+
+    /// Used to make sure {@link Pair#of(Object, Object)} is not accidentally called from this class, to prevent confusing results.
+    /// This is to ensure the correct calls to the below functions are guaranteed, and to remove any margin of error when calling `of`
+    public static Pair<?, ?> of(Object o1, Object o2) {
+        throw new UnsupportedOperationException("Called Pair.of from RegistryMapping!" +
+            " Note that RegistryMapping can only be of type Block or Item and metatata! (Integer)");
+    }
+
+    private static final Map<Object, Int2ObjectArrayMap<RegistryMapping<?>>> INTERNER = new Reference2ObjectArrayMap<>();
+
+    @SuppressWarnings("unchecked")
+    private synchronized static <E> RegistryMapping<E> getOrCreateMapping(E object, int meta) {
+        return (RegistryMapping<E>) INTERNER.computeIfAbsent(object, o -> new Int2ObjectArrayMap<>())
+            .computeIfAbsent(meta, o -> new RegistryMapping<>(object, meta));
+    }
+
+    /// Creates a new contained object for the specified block, and metadata. Supports wildcard values.
+    ///
+    /// Comparisons against instance comparisons true if a matching object of any metadata is compared, if this has a {@link OreDictionary#WILDCARD_VALUE} meta.
+    /// To force {@link RegistryMapping#equals(Object)} to only return TRUE on an *exact* metadata match, see {@link RegistryMapping}
+    public synchronized static RegistryMapping<Block> of(Block object, int meta) {
+        return getOrCreateMapping(object, meta);
+    }
+
+    /// Creates a new contained object for the specified block, and metadata. Supports wildcard values.
+    ///
+    /// Comparisons against instance comparisons true if a matching object of any metadata is compared, if this has a {@link OreDictionary#WILDCARD_VALUE} meta.
+    /// To force {@link RegistryMapping#equals(Object)} to only return TRUE on an exact metadata match, see {@link RegistryMapping}
+    ///
+    /// Exists so that passing in non-Primitive integers doesn't call {@link Pair#of(Object, Object)} instead.
+    public synchronized static RegistryMapping<Block> of(Block object, Integer meta) {
+        return of(object, (int) meta);
+    }
+
+    /// Creates a new contained object for the specified block, assuming the metadata is {@link OreDictionary#WILDCARD_VALUE}.
+    ///
+    /// Comparisons against instance comparisons true if a matching object of any metadata is compared.
+    /// To force {@link RegistryMapping#equals(Object)} to only return TRUE on an exact metadata match, see {@link RegistryMapping}
+    public synchronized static RegistryMapping<Block> of(Block object) {
+        return of(object, OreDictionary.WILDCARD_VALUE);
+    }
+
+    /// Creates a new contained object for the specified item, and metadata. Supports wildcard values.
+    ///
+    /// Comparisons against instance comparisons true if a matching object of any metadata is compared, if this has a {@link OreDictionary#WILDCARD_VALUE} meta.
+    /// To force {@link RegistryMapping#equals(Object)} to only return TRUE on an *exact* metadata match, see {@link RegistryMapping}
+    public synchronized static RegistryMapping<Item> of(Item object, int meta) {
+        return getOrCreateMapping(object, meta);
+    }
+
+    /// Creates a new contained object for the specified item, and metadata. Supports wildcard values.
+    ///
+    /// Comparisons against instance comparisons true if a matching object of any metadata is compared, if this has a {@link OreDictionary#WILDCARD_VALUE} meta.
+    /// To force {@link RegistryMapping#equals(Object)} to only return TRUE on an exact metadata match, see {@link RegistryMapping}
+    ///
+    /// Exists so that passing in non-Primitive integers doesn't call {@link Pair#of(Object, Object)} instead.
+    public synchronized static RegistryMapping<Item> of(Item object, Integer meta) {
+        return of(object, (int) meta);
+    }
+
+    /// Creates a new contained object for the specified item, assuming the metadata is {@link OreDictionary#WILDCARD_VALUE}.
+    ///
+    /// Comparisons against instance comparisons true if a matching object of any metadata is compared.
+    /// To force {@link RegistryMapping#equals(Object)} to only return TRUE on an exact metadata match, see {@link RegistryMapping}
+    public synchronized static RegistryMapping<Item> of(Item object) {
+        return of(object, OreDictionary.WILDCARD_VALUE);
+    }
+
+    /// Returns a {@link RegistryMapping} based on the current ItemStack. The type can be as a {@link Block} or {@link Item}.
+    ///
+    /// @param stack The {@link ItemStack} to convert to a {@link RegistryMapping}
+    /// @param alwaysItem If true, then even if the {@link ItemStack} contains an {@link ItemBlock}, this will return a {@link RegistryMapping<Item>} anyways,
+    /// containing a reference to the {@link ItemBlock} in the stack instead of its corresponding {@link Block}.
+    public static RegistryMapping<?> fromItemStack(ItemStack stack, boolean alwaysItem) {
+        if(!alwaysItem && stack.getItem() instanceof ItemBlock) {
+            return of(Block.getBlockFromItem(stack.getItem()), stack.getItemDamage());
+        }
+        return of(stack.getItem(), stack.getItemDamage());
+    }
+
+
+    /// Returns a {@link RegistryMapping} based on the current ItemStack. The type can be as a {@link Block} or {@link Item},
+    /// this depends on if the {@link ItemStack} passed in is of an {@link ItemBlock} or a regular {@link Item}.
+    ///
+    /// @param stack The {@link ItemStack} to convert to a {@link RegistryMapping}
+    public static RegistryMapping<?> fromItemStack(ItemStack stack) {
+        return fromItemStack(stack, false);
+    }
 }

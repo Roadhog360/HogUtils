@@ -30,6 +30,7 @@ public class HogUtils {
     @Mod.EventHandler
     public void onConstructing(FMLConstructionEvent event) {
         proxy.onConstructing(event);
+        // Set up registry replacement detection to transfer the tags to the replacement biome
 //        for(BiomeGenBase biome : BiomeGenBase.getBiomeGenArray()) {
 //            if(biome.getClass().getName().startsWith("net.minecraft.world.Biome")) {
 //                vanillaBiomes.put(biome, biome.biomeID);
@@ -91,6 +92,7 @@ public class HogUtils {
 //        }
     }
 
+    /// Finds biomes that have been registry replaced by a mod and transfer all of the tags to the new one
     private void detectBiomeRegistryReplacement() {
 //        for(Map.Entry<BiomeGenBase, Integer> biome : vanillaBiomes.entrySet()) {
 //            if(BiomeGenBase.getBiomeGenArray()[biome.getValue()] != biome.getKey()) {
