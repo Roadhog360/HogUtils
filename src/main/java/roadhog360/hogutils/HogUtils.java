@@ -13,7 +13,8 @@ import roadhog360.hogutils.proxy.CommonProxy;
 
 import java.util.Map;
 
-@Mod(modid = Tags.MOD_ID, version = Tags.VERSION, name = Tags.MOD_NAME, acceptedMinecraftVersions = "[1.7.10]")
+@Mod(modid = Tags.MOD_ID, version = Tags.VERSION, name = Tags.MOD_NAME, acceptedMinecraftVersions = "[1.7.10]",
+    dependencies = "required-after:gtnhlib")
 public class HogUtils {
 
     public static final Logger LOG = LogManager.getLogger(Tags.MOD_ID);
@@ -29,6 +30,7 @@ public class HogUtils {
 
     @Mod.EventHandler
     public void onConstructing(FMLConstructionEvent event) {
+
         proxy.onConstructing(event);
         // Set up registry replacement detection to transfer the tags to the replacement biome
 //        for(BiomeGenBase biome : BiomeGenBase.getBiomeGenArray()) {

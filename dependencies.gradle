@@ -39,13 +39,12 @@ tasks.named('shadowJar', com.github.jengelman.gradle.plugins.shadow.tasks.Shadow
         exclude(dependency('me.mrnavastar:r'))
         exclude(dependency('com.github.makamys:MCLib'))
     }
-    relocate 'it.unimi', 'roadhog360.hogutils.repackaged.it.unimi'
     relocate 'makamys', 'roadhog360.hogutils.repackaged.makamys'
 }
 
 dependencies {
 //    runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.6.34-GTNH:dev")
-//    implementation("com.github.GTNewHorizons:GTNHLib:0.5.20:dev")
+    implementation("com.github.GTNewHorizons:GTNHLib:0.5.20:dev")
 //    implementation("com.falsepattern:falsepatternlib-mc1.7.10:1.4.6:dev")
 
 
@@ -54,9 +53,6 @@ dependencies {
     }
 
     shadowImplementation("me.mrnavastar:r:1.0.8")
-
-    //Minimized
-    shadowImplementation("it.unimi.dsi:fastutil:8.5.15")
 
     compileOnly('org.jetbrains:annotations:24.0.1')
     compileOnly("org.projectlombok:lombok:1.18.22") {transitive = false }

@@ -1,11 +1,11 @@
 package roadhog360.hogutils.config;
 
+import com.gtnewhorizon.gtnhlib.config.Config;
+import com.gtnewhorizon.gtnhlib.config.ConfigException;
+import com.gtnewhorizon.gtnhlib.config.ConfigurationManager;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import roadhog360.hogutils.Tags;
 import roadhog360.hogutils.mixinplugin.HogUtilsEarlyMixins;
-import roadhog360.hogutils.repackaged.fplib.config.Config;
-import roadhog360.hogutils.repackaged.fplib.config.ConfigException;
-import roadhog360.hogutils.repackaged.fplib.config.ConfigurationManager;
 
 public class HogUtilsConfigs {
 
