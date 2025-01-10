@@ -4,6 +4,7 @@ import com.gtnewhorizon.gtnhlib.blockpos.BlockPos;
 import com.gtnewhorizon.gtnhlib.client.renderer.quad.Quad;
 import com.gtnewhorizon.gtnhlib.client.renderer.quad.QuadProvider;
 import com.gtnewhorizon.gtnhlib.client.renderer.quad.QuadView;
+import com.gtnewhorizon.gtnhlib.client.renderer.util.DirectionUtil;
 import com.gtnewhorizon.gtnhlib.util.ObjectPooler;
 import lombok.NonNull;
 import net.minecraft.block.Block;
@@ -65,7 +66,7 @@ public abstract class RenderJSONBase extends RendererBase {
         final int a = color >> 24 & 255;
 
 // ALL_DIRECTIONS comes from NHLib too - caches .values() to avoid allocating a bunch
-        for (ForgeDirection dir : ForgeDirection.values()) {
+        for (ForgeDirection dir : DirectionUtil.ALL_DIRECTIONS) {
             // Saves a little performance if you cull faces ASAP, although you'd have to write this yourself
             if (world != null && this.isCulled(world, pos, block, meta, dir)) continue;
 
