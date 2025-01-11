@@ -57,4 +57,8 @@ dependencies {
     compileOnly('org.jetbrains:annotations:24.0.1')
     compileOnly("org.projectlombok:lombok:1.18.22") {transitive = false }
     annotationProcessor("org.projectlombok:lombok:1.18.36")
+
+    compileOnly("com.github.GTNewHorizons:Angelica:1.0.0-beta4:api") {
+        transitive = false
+    }
 }

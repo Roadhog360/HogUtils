@@ -11,6 +11,7 @@ import com.gtnewhorizon.gtnhlib.client.renderer.quad.QuadView;
 import com.gtnewhorizon.gtnhlib.client.renderer.util.DirectionUtil;
 import com.gtnewhorizon.gtnhlib.client.renderer.util.MathUtil;
 import com.gtnewhorizon.gtnhlib.util.ObjectPooler;
+import com.gtnewhorizons.angelica.api.ThreadSafeISBRH;
 import lombok.NonNull;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
@@ -50,8 +51,13 @@ public abstract class RenderJSONBase extends RendererBase {
     @Override
     public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z, Block block, int modelId, RenderBlocks renderer) {
         int meta = world.getBlockMetadata(x, y, z);
-        doRender(getWorldModel(world, x, y, z, meta), block, meta, renderer, world, x, y, z);
+        renderJSONInWorld(world, x, y, z, block, modelId, renderer, meta);
         return true;
+    }
+
+    /// Override this to add more render steps, render more than one model at once
+    protected void renderJSONInWorld(IBlockAccess world, int x, int y, int z, Block block, int modelId, RenderBlocks renderer, int meta) {
+        doRender(getWorldModel(world, x, y, z, meta), block, meta, renderer, world, x, y, z);
     }
 
     @Override
@@ -97,13 +103,25 @@ public abstract class RenderJSONBase extends RendererBase {
                 for (int i = 0; i < 4; ++i) {
                     int normal = quad.getNormal(i);
                     tesselator.addVertexWithUV(
-                        quad.getX(i) + x,
-                        quad.getY(i) + y,
-                        quad.getZ(i) + z,
+                        getRenderX(x, quad, model, i),
+                        getRenderY(y, quad, model, i),
+                        getRenderZ(z, quad, model, i),
                         getU(quad, renderer, i), getV(quad, renderer, i));
                 }
             }
         }
+    }
+
+    protected float getRenderX(float x, QuadView quad, QuadProvider model, int idx) {
+        return quad.getX(idx) + x;
+    }
+
+    protected float getRenderY(float y, QuadView quad, QuadProvider model, int idx) {
+        return quad.getY(idx) + y;
+    }
+
+    protected float getRenderZ(float z, QuadView quad, QuadProvider model, int idx) {
+        return quad.getZ(idx) + z;
     }
 
     protected float getU(QuadView quad, RenderBlocks renderer, int idx) {

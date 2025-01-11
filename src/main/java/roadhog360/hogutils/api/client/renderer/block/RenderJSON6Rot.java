@@ -3,6 +3,7 @@ package roadhog360.hogutils.api.client.renderer.block;
 import com.gtnewhorizon.gtnhlib.client.model.ModelLoader;
 import com.gtnewhorizon.gtnhlib.client.model.Variant;
 import com.gtnewhorizon.gtnhlib.client.renderer.quad.QuadProvider;
+import com.gtnewhorizons.angelica.api.ThreadSafeISBRH;
 import net.minecraft.block.Block;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.IBlockAccess;
@@ -10,6 +11,7 @@ import roadhog360.hogutils.api.client.renderer.modelcontainer.Model6Rot;
 
 import javax.annotation.Nullable;
 
+@ThreadSafeISBRH(perThread = false)
 public class RenderJSON6Rot extends RenderJSONBase {
 
     private final int metaOffset;

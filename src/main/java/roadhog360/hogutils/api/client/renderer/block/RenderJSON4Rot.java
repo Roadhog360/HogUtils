@@ -4,12 +4,14 @@ import com.gtnewhorizon.gtnhlib.client.model.ModelLoader;
 import com.gtnewhorizon.gtnhlib.client.model.Variant;
 import com.gtnewhorizon.gtnhlib.client.model.template.Model4Rot;
 import com.gtnewhorizon.gtnhlib.client.renderer.quad.QuadProvider;
+import com.gtnewhorizons.angelica.api.ThreadSafeISBRH;
 import net.minecraft.block.Block;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.IBlockAccess;
 
 import javax.annotation.Nullable;
 
+@ThreadSafeISBRH(perThread = false)
 public class RenderJSON4Rot extends RenderJSONBase {
 
     private final int metaOffset;

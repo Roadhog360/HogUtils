@@ -5,6 +5,7 @@ import com.gtnewhorizon.gtnhlib.client.model.Variant;
 import com.gtnewhorizon.gtnhlib.client.renderer.quad.Quad;
 import com.gtnewhorizon.gtnhlib.client.renderer.quad.QuadProvider;
 import com.gtnewhorizon.gtnhlib.util.ObjectPooler;
+import com.gtnewhorizons.angelica.api.ThreadSafeISBRH;
 import net.minecraft.block.Block;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.IBlockAccess;
@@ -12,6 +13,7 @@ import roadhog360.hogutils.api.utils.FastRandom;
 
 import javax.annotation.Nullable;
 
+@ThreadSafeISBRH(perThread = false)
 public class RenderJSONBasic extends RenderJSONBase {
 
     protected QuadProvider modelBlock;

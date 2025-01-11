@@ -32,46 +32,6 @@ public class CommonProxy {
     // GameRegistry." (Remove if not needed)
     public void preInit(FMLPreInitializationEvent event) {
         RecipeHelper.init();
-        GameRegistry.registerBlock(new BaseBlock(Material.cloth, "stone") {
-            @Override
-            public @Nullable String getTextureDomain(String textureName) {
-                return null;
-            }
-
-            @Override
-            public @Nullable String getNameDomain(String unlocalizedName) {
-                return null;
-            }
-
-            @Override
-            public boolean isOpaqueCube() {
-                return false;
-            }
-
-            @Override
-            public int getLightOpacity() {
-                return 0;
-            }
-
-            @Override
-            public boolean renderAsNormalBlock() {
-                return false;
-            }
-
-            @Override
-            public int getRenderType() {
-                return BlockRenderers.LECTERN_TEST.getRenderId();
-            }
-
-            @Override
-            public void registerBlockIcons(IIconRegister reg) {
-                super.registerBlockIcons(reg);
-                reg.registerIcon("lectern_base");
-                reg.registerIcon("lectern_front");
-                reg.registerIcon("lectern_sides");
-                reg.registerIcon("lectern_top");
-            }
-        }.setHardness(5), "test_block");
     }
 
     // load "Do your mod setup. Build whatever data structures you care about. Register recipes." (Remove if not needed)
