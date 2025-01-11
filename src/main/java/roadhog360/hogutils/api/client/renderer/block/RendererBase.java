@@ -12,7 +12,6 @@ public abstract class RendererBase implements ISimpleBlockRenderingHandler {
 
     private final int renderID = RenderingRegistry.getNextAvailableRenderId();
 
-
     @Override
     public void renderInventoryBlock(Block block, int meta, int modelID, RenderBlocks renderer) {
         final Tessellator tessellator = Tessellator.instance;

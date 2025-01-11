@@ -17,12 +17,14 @@ public class MixinRenderBlocks {
     @Shadow
     public IBlockAccess blockAccess;
 
-    @Redirect(method = "renderBlockByRenderType", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RenderBlocks;renderBlockDoor(Lnet/minecraft/block/Block;III)Z"))
+    @Redirect(method = "renderBlockByRenderType", remap = false,
+        at = @At(value = "INVOKE",
+            target = "Lnet/minecraft/client/renderer/RenderBlocks;renderBlockDoor(Lnet/minecraft/block/Block;III)Z"))
     private boolean redirectDoorRendering(RenderBlocks instance, Block block, int x, int y, int z) {
         return BlockRenderers.DOOR.renderWorldBlock(blockAccess, x, y, z, block, BlockRenderers.DOOR.getRenderId(), instance);
     }
 
-    @Redirect(method = "renderBlockAsItem",
+    @Redirect(method = "renderBlockAsItem", remap = false,
         slice = @Slice(
             from = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glTranslatef(FFF)V", ordinal = 7),
             to = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glTranslatef(FFF)V", ordinal = 8)),

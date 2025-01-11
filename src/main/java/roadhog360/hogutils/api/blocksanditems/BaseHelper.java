@@ -29,7 +29,7 @@ public final class BaseHelper {
     }
 
     public static String getUnlocalizedName(String name, @Nullable String domain) {
-        return getTextureName(name, domain, null);
+        return getTextureName(name, domain, null).replace(':', '.');
     }
 
     /// For now, contains hardcoded lists of commonly used materials for block names
@@ -66,4 +66,6 @@ public final class BaseHelper {
             block.stepSound = Block.soundTypeGlass;
         }
     }
+
+    //TODO: Auto harvest levels?
 }

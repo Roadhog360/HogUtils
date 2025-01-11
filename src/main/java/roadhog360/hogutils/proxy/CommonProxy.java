@@ -1,10 +1,16 @@
 package roadhog360.hogutils.proxy;
 
 import cpw.mods.fml.common.event.*;
+import cpw.mods.fml.common.registry.GameRegistry;
 import me.mrnavastar.r.R;
 import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
+import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.item.Item;
 import net.minecraftforge.common.MinecraftForge;
+import org.jetbrains.annotations.Nullable;
+import roadhog360.hogutils.api.blocksanditems.block.BaseBlock;
+import roadhog360.hogutils.api.client.renderer.block.BlockRenderers;
 import roadhog360.hogutils.api.event.BlockItemIterateEvent;
 import roadhog360.hogutils.api.utils.RecipeHelper;
 import roadhog360.hogutils.handlers.event.RegistryIterateEventHandler;
@@ -26,6 +32,46 @@ public class CommonProxy {
     // GameRegistry." (Remove if not needed)
     public void preInit(FMLPreInitializationEvent event) {
         RecipeHelper.init();
+        GameRegistry.registerBlock(new BaseBlock(Material.cloth, "stone") {
+            @Override
+            public @Nullable String getTextureDomain(String textureName) {
+                return null;
+            }
+
+            @Override
+            public @Nullable String getNameDomain(String unlocalizedName) {
+                return null;
+            }
+
+            @Override
+            public boolean isOpaqueCube() {
+                return false;
+            }
+
+            @Override
+            public int getLightOpacity() {
+                return 0;
+            }
+
+            @Override
+            public boolean renderAsNormalBlock() {
+                return false;
+            }
+
+            @Override
+            public int getRenderType() {
+                return BlockRenderers.LECTERN_TEST.getRenderId();
+            }
+
+            @Override
+            public void registerBlockIcons(IIconRegister reg) {
+                super.registerBlockIcons(reg);
+                reg.registerIcon("lectern_base");
+                reg.registerIcon("lectern_front");
+                reg.registerIcon("lectern_sides");
+                reg.registerIcon("lectern_top");
+            }
+        }.setHardness(5), "test_block");
     }
 
     // load "Do your mod setup. Build whatever data structures you care about. Register recipes." (Remove if not needed)

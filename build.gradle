@@ -35,7 +35,7 @@ if (isDirty && !noCommitHash) {
 version = NEXT_VERSION
 
 //If version is blank we'll use the above version instead.
-if(ext.modVersion.isEmpty()) {
+if(ext.modVersion.isEmpty() && !noCommitHash) {
     ext.modVersion = NEXT_VERSION
 }
 
@@ -55,6 +55,7 @@ minecraft {
                 || NEXT_VERSION.contains("nightly")
                 || NEXT_VERSION.contains("alpha")
                 || NEXT_VERSION.contains("beta")
-                || NEXT_VERSION.contains("rc")
+                || (NEXT_VERSION.contains("rc") && !details.gitHash.contains("rc"))
+                || (NEXT_VERSION.contains("pre") && !details.gitHash.contains("pre"))
                 || (NEXT_VERSION.contains("release") && NEXT_VERSION.contains("candidate")))
 }
