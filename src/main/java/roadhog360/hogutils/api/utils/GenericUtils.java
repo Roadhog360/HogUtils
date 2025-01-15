@@ -3,6 +3,7 @@ package roadhog360.hogutils.api.utils;
 import cpw.mods.fml.client.FMLClientHandler;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.monster.EntityEnderman;
 import net.minecraft.entity.passive.EntitySheep;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -16,6 +17,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.tuple.Pair;
 import roadhog360.hogutils.api.RegistryMapping;
+import roadhog360.hogutils.api.world.DummyWorld;
 import roadhog360.hogutils.core.ModsList;
 
 import java.util.Arrays;
@@ -179,6 +181,19 @@ public final class GenericUtils {
             }
             return map.get(l) + toRoman(number-l);
         }
+    }
+
+    private static Boolean ENDERMAN_CARRYING_FIX;
+
+    /// Does NOT work during the mixin/transformer phase
+    public static boolean isEndermanCarryingFixInstalled() {
+        // Test if a fix for enderman carrying is installed
+        if(ENDERMAN_CARRYING_FIX == null) {
+            EntityEnderman testEnderman = new EntityEnderman(DummyWorld.getGlobalInstance());
+            testEnderman.setCarryingData(4096);
+            ENDERMAN_CARRYING_FIX = testEnderman.getCarryingData() == 4096;
+        }
+        return ENDERMAN_CARRYING_FIX;
     }
 
     public static class Constants {

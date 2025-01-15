@@ -15,6 +15,6 @@ public class ClientProxy extends CommonProxy {
         MinecraftForge.EVENT_BUS.register(HogTagsDisplayEventHandler.INSTANCE);
         MinecraftForge.EVENT_BUS.register(MultiBlockSoundEventHandler.INSTANCE);
 
-        BlockRenderers.RegisterRenderers();
+        BlockRenderers.registerRenderers();
     }
 }

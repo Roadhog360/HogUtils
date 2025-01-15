@@ -79,6 +79,9 @@ public abstract class BaseBlock extends Block implements ISubtypesBlock {
     @SideOnly(Side.CLIENT)
     public void registerBlockIcons(IIconRegister reg) {
         getIcons().clear();
+
+        /// TODO: Some way to inject to and modify the icon names before they're registered?
+
         for (Map.Entry<Integer, String> entry : getTypes().entrySet()) {
             getIcons().put(entry.getKey(),
                 reg.registerIcon(

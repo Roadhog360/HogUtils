@@ -36,4 +36,8 @@ public class RenderBetterDoor extends RendererBase {
         return false;
     }
 
+    @Override
+    public int getRenderId() {
+        return 7;
+    }
 }

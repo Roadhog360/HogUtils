@@ -12,7 +12,6 @@ public abstract class RendererBase implements ISimpleBlockRenderingHandler {
 
     private final int renderID = RenderingRegistry.getNextAvailableRenderId();
 
-
     @Override
     public void renderInventoryBlock(Block block, int meta, int modelID, RenderBlocks renderer) {
         final Tessellator tessellator = Tessellator.instance;
@@ -23,15 +22,17 @@ public abstract class RendererBase implements ISimpleBlockRenderingHandler {
         OpenGLHelper.translate(-0.5F, -0.5F, -0.5F);
 
         tessellator.startDrawingQuads();
-        renderInventoryModel(block, meta, modelID, renderer, block.getBlockBoundsMinX(), block.getBlockBoundsMinY(), block.getBlockBoundsMinZ(), block.getBlockBoundsMaxX(), block.getBlockBoundsMaxY(), block.getBlockBoundsMaxZ());
+        renderInventoryModel(block, meta, modelID, renderer);
         tessellator.draw();
 
         OpenGLHelper.translate(0.5F, 0.5F, 0.5F);
         OpenGLHelper.disableBlend();
     }
 
-    protected void renderInventoryModel(Block block, int meta, int modelId, RenderBlocks renderer, double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        renderStandardInventoryCube(block, meta, modelId, renderer, block.getBlockBoundsMinX(), block.getBlockBoundsMinY(), block.getBlockBoundsMinZ(), block.getBlockBoundsMaxX(), block.getBlockBoundsMaxY(), block.getBlockBoundsMaxZ());
+    protected void renderInventoryModel(Block block, int meta, int modelId, RenderBlocks renderer) {
+        renderStandardInventoryCube(block, meta, modelId, renderer,
+            block.getBlockBoundsMinX(), block.getBlockBoundsMinY(), block.getBlockBoundsMinZ(),
+            block.getBlockBoundsMaxX(), block.getBlockBoundsMaxY(), block.getBlockBoundsMaxZ());
     }
 
     protected void renderStandardInventoryCube(Block block, int meta, int modelId, RenderBlocks renderer, double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {

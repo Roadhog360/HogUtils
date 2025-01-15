@@ -3,6 +3,7 @@ package roadhog360.hogutils.api.blocksanditems.block;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockFence;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
@@ -39,6 +40,8 @@ public abstract class BaseFence extends BlockFence implements ISubtypesBlock {
             setNames(getTypes().get(0));
         }
 
+        setHardness(2.0F);
+        setResistance(5.0F);
         BaseHelper.setupStepSound(this);
     }
 
