@@ -15,9 +15,10 @@ public class MixinBlockLeaves {
                                   @Local(argsOnly = true) World world,
                                   @Local(argsOnly = true, ordinal = 0) int x,
                                   @Local(argsOnly = true, ordinal = 1) int y,
-                                  @Local(argsOnly = true, ordinal = 2) int z) {
+                                  @Local(argsOnly = true, ordinal = 2) int z,
+                                  @Local(ordinal = 3) int meta) {
         if(this instanceof ILeavesDecayRange leaves) {
-            return leaves.getDecayCheckRange(world, x, y, z);
+            return leaves.getDecayCheckRange(world, x, y, z, meta);
         }
         return value;
     }

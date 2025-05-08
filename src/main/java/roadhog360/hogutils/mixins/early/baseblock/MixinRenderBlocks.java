@@ -19,13 +19,13 @@ public class MixinRenderBlocks {
 
     @Redirect(method = "renderBlockByRenderType", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RenderBlocks;renderBlockDoor(Lnet/minecraft/block/Block;III)Z"))
     private boolean redirectDoorRendering(RenderBlocks instance, Block block, int x, int y, int z) {
-        return BlockRenderers.DOOR.renderWorldBlock(blockAccess, x, y, z, block, BlockRenderers.DOOR.getRenderId(), instance);
+        return BlockRenderers.DOOR.renderWorldBlock(blockAccess, x, y, z, block, block.getRenderType(), instance);
     }
 
     @Redirect(method = "renderBlockAsItem",
         slice = @Slice(
-            from = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glTranslatef(FFF)V", ordinal = 7),
-            to = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glTranslatef(FFF)V", ordinal = 8)),
+            from = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glTranslatef(FFF)V", ordinal = 7, remap = false),
+            to = @At(value = "INVOKE", target = "Lorg/lwjgl/opengl/GL11;glTranslatef(FFF)V", ordinal = 8, remap = false)),
         at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/RenderBlocks;getBlockIconFromSide(Lnet/minecraft/block/Block;I)Lnet/minecraft/util/IIcon;"))
     private IIcon redirectWrongIconAccesses(RenderBlocks instance, Block block, int side, @Local(argsOnly = true) int meta) {
         return instance.getBlockIconFromSideAndMetadata(block, side, meta);

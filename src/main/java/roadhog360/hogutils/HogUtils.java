@@ -14,7 +14,7 @@ import roadhog360.hogutils.proxy.CommonProxy;
 import java.util.Map;
 
 @Mod(modid = Tags.MOD_ID, version = Tags.VERSION, name = Tags.MOD_NAME, acceptedMinecraftVersions = "[1.7.10]",
-    dependencies = "required-after:gtnhlib")
+    dependencies = "required-after:gtnhlib") //TODO: Put version here when model system is in a release
 public class HogUtils {
 
     public static final Logger LOG = LogManager.getLogger(Tags.MOD_ID);
@@ -30,7 +30,6 @@ public class HogUtils {
 
     @Mod.EventHandler
     public void onConstructing(FMLConstructionEvent event) {
-
         proxy.onConstructing(event);
         // Set up registry replacement detection to transfer the tags to the replacement biome
 //        for(BiomeGenBase biome : BiomeGenBase.getBiomeGenArray()) {
@@ -79,16 +78,16 @@ public class HogUtils {
     //TODO: Register more tags via these functions
 
     public void registerTags() {
-//        HogTagsHelper.BiomeTags.addInheritors("c:is_dry", "c:is_dry/nether", "c:is_dry/end", "c:is_dry/overworld");
+//        HogTags.BiomeTags.addInheritors("c:is_dry", "c:is_dry/nether", "c:is_dry/end", "c:is_dry/overworld");
 //
 //        for(BiomeGenBase biome : BiomeGenBase.getBiomeGenArray()) {
 //            BiomeDictionary.Type[] types = BiomeDictionary.getTypesForBiome(biome);
 //            if(ArrayUtils.contains(types, NETHER)) {
-//                HogTagsHelper.BiomeTags.addTags(biome, "c:is_nether");
+//                HogTags.BiomeTags.addTags(biome, "c:is_nether");
 //                continue;
 //            }
 //            if(ArrayUtils.contains(types, END)) {
-//                HogTagsHelper.BiomeTags.addTags(biome, "c:is_end");
+//                HogTags.BiomeTags.addTags(biome, "c:is_end");
 //                continue;
 //            }
 //        }
@@ -99,8 +98,8 @@ public class HogUtils {
 //        for(Map.Entry<BiomeGenBase, Integer> biome : vanillaBiomes.entrySet()) {
 //            if(BiomeGenBase.getBiomeGenArray()[biome.getValue()] != biome.getKey()) {
 //                LOG.info("A mod has registry replaced the biome " + biome.getKey().biomeName + ", transferring tags over...");
-//                String[] tags = HogTagsHelper.BiomeTags.getTags(biome.getKey()).toArray(new String[]{});
-//                HogTagsHelper.BiomeTags.addTags(BiomeGenBase.getBiomeGenArray()[biome.getValue()], tags);
+//                String[] tags = HogTags.BiomeTags.getTags(biome.getKey()).toArray(new String[]{});
+//                HogTags.BiomeTags.addTags(BiomeGenBase.getBiomeGenArray()[biome.getValue()], tags);
 //            }
 //        }
     }

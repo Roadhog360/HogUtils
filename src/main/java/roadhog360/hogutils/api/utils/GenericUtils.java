@@ -1,8 +1,9 @@
 package roadhog360.hogutils.api.utils;
 
-import cpw.mods.fml.client.FMLClientHandler;
+import lombok.NonNull;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.monster.EntityEnderman;
 import net.minecraft.entity.passive.EntitySheep;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -15,7 +16,8 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.tuple.Pair;
-import roadhog360.hogutils.api.RegistryMapping;
+import roadhog360.hogutils.api.blocksanditems.block.container.BlockMetaPair;
+import roadhog360.hogutils.api.world.DummyWorld;
 import roadhog360.hogutils.core.ModsList;
 
 import java.util.Arrays;
@@ -67,18 +69,8 @@ public final class GenericUtils {
     }
 
     /// If {@link World} is null, uses the client world. This will crash on a server, obviously, so be careful doing that.
-    public static Pair<Block, Integer> getBlockAndMetaFromMOP(World world, MovingObjectPosition mop) {
-        if(world == null) {
-            world = FMLClientHandler.instance().getWorldClient();
-        }
-        return Pair.of(world.getBlock(mop.blockX, mop.blockY, mop.blockZ), world.getBlockMetadata(mop.blockX, mop.blockY, mop.blockZ));
-    }
-
-    /// If {@link World} is null, uses the client world. This will crash on a server, obviously, so be careful doing that.
-    /// Returns a {@link RegistryMapping} for ease in getting a key from a {@link MovingObjectPosition}.
-    public static RegistryMapping<Block> getRegistryMappingFromMOP(World world, MovingObjectPosition mop) {
-        Pair<Block, Integer> pair = getBlockAndMetaFromMOP(world, mop);
-        return RegistryMapping.of(pair.getLeft(), pair.getRight());
+    public static Pair<Block, Integer> getBlockAndMetaFromMOP(@NonNull World world, MovingObjectPosition mop) {
+        return BlockMetaPair.intern(world.getBlock(mop.blockX, mop.blockY, mop.blockZ), world.getBlockMetadata(mop.blockX, mop.blockY, mop.blockZ));
     }
 
     /// Returns the capital letter closest to the beginning of the string.
@@ -179,6 +171,19 @@ public final class GenericUtils {
             }
             return map.get(l) + toRoman(number-l);
         }
+    }
+
+    private static Boolean ENDERMAN_CARRYING_FIX;
+
+    /// Does NOT work during the mixin/transformer phase
+    public static boolean isEndermanCarryingFixInstalled() {
+        // Test if a fix for enderman carrying is installed
+        if(ENDERMAN_CARRYING_FIX == null) {
+            EntityEnderman testEnderman = new EntityEnderman(DummyWorld.getGlobalInstance());
+            testEnderman.setCarryingData(4096);
+            ENDERMAN_CARRYING_FIX = testEnderman.getCarryingData() == 4096;
+        }
+        return ENDERMAN_CARRYING_FIX;
     }
 
     public static class Constants {

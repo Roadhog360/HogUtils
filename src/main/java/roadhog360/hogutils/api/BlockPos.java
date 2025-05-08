@@ -139,7 +139,7 @@ public class BlockPos extends Vec3i {
     }
 
     public long toLong() {
-        return (getX() & X_MASK) << X_SHIFT | (getY() & Y_MASK) << Y_SHIFT | (getZ() & Z_MASK) << 0;
+        return (getX() & X_MASK) << X_SHIFT | (getY() & Y_MASK) << Y_SHIFT | (getZ() & Z_MASK);
     }
 
     public static BlockPos fromLong(long serialized) {

@@ -35,7 +35,7 @@ if (isDirty && !noCommitHash) {
 version = NEXT_VERSION
 
 //If version is blank we'll use the above version instead.
-if(ext.modVersion.isEmpty()) {
+if(ext.modVersion.isEmpty() && !noCommitHash) {
     ext.modVersion = NEXT_VERSION
 }
 

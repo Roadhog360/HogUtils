@@ -25,13 +25,20 @@ public class HogUtilsEarlyMixins implements IFMLLoadingPlugin, IEarlyMixinLoader
         HogUtilsConfigs.init();
 
         List<String> mixins = new ArrayList<>();
+        // Tags
         mixins.add("hogtags.MixinOreDictionary");
+        mixins.add("hogtags.MixinBlock");
+        mixins.add("hogtags.MixinItem");
+        mixins.add("hogtags.MixinBiomeGenBase");
 
+        // SetBlockSniper
         mixins.add("setblocksniper.MixinChunk");
 
+        // Custom events
         mixins.add("event.MixinWorld");
         mixins.add("event.MixinPlaySoundAtEntityEvent");
 
+        // Base block fixes/tools
         mixins.add("baseblock.MixinBlockLeaves");
         if (SIDE == MixinEnvironment.Side.CLIENT) {
             mixins.add("baseblock.MixinRenderBlocks");

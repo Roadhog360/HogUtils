@@ -13,7 +13,9 @@ import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import org.apache.commons.lang3.tuple.Pair;
-import roadhog360.hogutils.api.hogtags.HogTagsHelper;
+import roadhog360.hogutils.api.hogtags.helpers.BiomeTags;
+import roadhog360.hogutils.api.hogtags.helpers.BlockTags;
+import roadhog360.hogutils.api.hogtags.helpers.ItemTags;
 import roadhog360.hogutils.api.utils.GenericUtils;
 import roadhog360.hogutils.config.HogUtilsConfigs;
 
@@ -35,11 +37,11 @@ public class HogTagsDisplayEventHandler {
                 // Left hand side (biome tags)
                 BiomeGenBase biome = world.getBiomeGenForCoords(MathHelper.floor_double(player.posX), MathHelper.floor_double(player.posZ));
                 if (biome != null) {
-                    Set<String> tags = HogTagsHelper.BiomeTags.getTags(biome);
+                    Set<String> tags = BiomeTags.getTags(biome);
                     if (!tags.isEmpty()) {
                         event.left.add(null);
                         event.left.add("HogTags for " + biome.biomeName
-                            + ": (" + HogTagsHelper.BiomeTags.CONTAINER_ID + " tag pool)");
+                            + ": (" + BiomeTags.CONTAINER_ID + " tag pool)");
                         for (String tag : tags) {
                             event.left.add("#" + tag);
                         }
@@ -49,15 +51,15 @@ public class HogTagsDisplayEventHandler {
                 // Right hand side (block tags)
                 MovingObjectPosition mop = GenericUtils.getMovingObjectPositionFromEntity(world, player, false, false);
                 if (mop != null && mop.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                    Pair<Block, Integer> blockAndMeta = GenericUtils.getBlockAndMetaFromMOP(null, mop);
+                    Pair<Block, Integer> blockAndMeta = GenericUtils.getBlockAndMetaFromMOP(FMLClientHandler.instance().getWorldClient(), mop);
                     Block lookingBlock = blockAndMeta.getLeft();
                     int lookingMeta = blockAndMeta.getRight();
-                    Set<String> tags = HogTagsHelper.BlockTags.getTags(lookingBlock, lookingMeta);
+                    Set<String> tags = BlockTags.getTags(lookingBlock, lookingMeta);
 
                     if (!tags.isEmpty()) {
                         event.right.add(null);
                         event.right.add("HogTags for " + Block.blockRegistry.getNameForObject(lookingBlock) + ":" + lookingMeta);
-                        event.right.add("(" + HogTagsHelper.BlockTags.CONTAINER_ID + " tag pool)");
+                        event.right.add("(" + BlockTags.CONTAINER_ID + " tag pool)");
                         for (String tag : tags) {
                             event.right.add("#" + tag);
                         }
@@ -71,10 +73,10 @@ public class HogTagsDisplayEventHandler {
     public void injectHogTagsTooltip(ItemTooltipEvent event) {
         if (event.showAdvancedItemTooltips && HogUtilsConfigs.Utils.F3AndTooltips.hogTagsInItemTooltip
             && event.itemStack != null && event.itemStack.getItem() != null) {
-            Set<String> tags = HogTagsHelper.ItemTags.getTags(event.itemStack.getItem(), event.itemStack.getItemDamage());
+            Set<String> tags = ItemTags.getTags(event.itemStack.getItem(), event.itemStack.getItemDamage());
             if(!tags.isEmpty()) {
                 if (GuiContainer.isCtrlKeyDown()) {
-                    event.toolTip.add("\u00a78HogTags: (" + HogTagsHelper.ItemTags.CONTAINER_ID + " tag pool)");
+                    event.toolTip.add("\u00a78HogTags: (" + ItemTags.CONTAINER_ID + " tag pool)");
                     for (String tag : tags) {
                         event.toolTip.add("#" + tag);
                     }

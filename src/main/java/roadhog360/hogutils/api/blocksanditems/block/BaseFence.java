@@ -39,6 +39,8 @@ public abstract class BaseFence extends BlockFence implements ISubtypesBlock {
             setNames(getTypes().get(0));
         }
 
+        setHardness(2.0F);
+        setResistance(5.0F);
         BaseHelper.setupStepSound(this);
     }
 

@@ -1,6 +1,6 @@
 package roadhog360.hogutils.api.blocksanditems;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public interface IItemAndBlockBase {
     @Nullable

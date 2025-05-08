@@ -1,14 +1,15 @@
 package roadhog360.hogutils.api.blocksanditems;
 
+import lombok.NonNull;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 
 public final class BaseHelper {
     private BaseHelper() {}
 
-    public static String getTextureName(String name, @Nullable String domain, @Nullable String subfolder) {
+    public static String getTextureName(@NonNull String name, @Nullable String domain, @Nullable String subfolder) {
         String finalName = "";
 
         if(domain != null) {
@@ -29,7 +30,7 @@ public final class BaseHelper {
     }
 
     public static String getUnlocalizedName(String name, @Nullable String domain) {
-        return getTextureName(name, domain, null);
+        return getTextureName(name, domain, null).replace(':', '.');
     }
 
     /// For now, contains hardcoded lists of commonly used materials for block names
@@ -66,4 +67,6 @@ public final class BaseHelper {
             block.stepSound = Block.soundTypeGlass;
         }
     }
+
+    //TODO: Auto harvest levels?
 }

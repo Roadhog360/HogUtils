@@ -23,7 +23,7 @@ public abstract class BaseFlower extends BlockFlower implements ISubtypesBlock {
     private final Map<Integer, String> types = new Int2ObjectArrayMap<>();
 
     protected BaseFlower(String... types) {
-        this();
+        super(0); //Dummy value, we really don't care what we put here because we're not using this value
         for(int i = 0; i < types.length; i++) {
             if(types[i] != null && !types[i].isEmpty()) {
                 getTypes().put(i, types[i]);
@@ -34,11 +34,6 @@ public abstract class BaseFlower extends BlockFlower implements ISubtypesBlock {
         }
 
         setStepSound(BlockSand.soundTypeGrass);
-    }
-
-    protected BaseFlower() {
-        super(0); //Dummy value, we really don't care what we put here because we're not using this value
-        setStepSound(soundTypeGrass);
     }
 
     @Override
@@ -68,7 +63,7 @@ public abstract class BaseFlower extends BlockFlower implements ISubtypesBlock {
 
     @Override
     public IIcon getIcon(int side, int meta) {
-        return getIcons().getOrDefault(meta, super.getIcon(side, meta));
+        return getIcons().getOrDefault(meta, blockIcon);
     }
 
     @Override
@@ -116,7 +111,7 @@ public abstract class BaseFlower extends BlockFlower implements ISubtypesBlock {
     @Override
     public void getSubBlocks(Item itemIn, CreativeTabs tab, List<ItemStack> list) {
         if(getTypes().isEmpty()) {
-            super.getSubBlocks(itemIn, tab, list);
+            list.add(new ItemStack(itemIn)); //We don't refer to super here because it uses the freaking icon array to populate the list.
         } else for (Map.Entry<Integer, String> entry : getTypes().entrySet()) {
             if(isMetadataEnabled(entry.getKey())) {
                 list.add(new ItemStack(itemIn, 1, entry.getKey()));

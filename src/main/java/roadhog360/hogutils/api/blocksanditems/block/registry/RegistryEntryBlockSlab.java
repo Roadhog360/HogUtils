@@ -5,10 +5,8 @@ import lombok.SneakyThrows;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.item.ItemBlock;
+import org.jetbrains.annotations.Nullable;
 import roadhog360.hogutils.api.blocksanditems.block.BaseSlab;
-
-import javax.annotation.Nullable;
-
 public class RegistryEntryBlockSlab extends RegistryEntryBlock {
 
     protected final BaseSlab doubleSlab;

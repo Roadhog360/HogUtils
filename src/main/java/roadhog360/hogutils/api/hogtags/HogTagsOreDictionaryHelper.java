@@ -1,9 +1,9 @@
 package roadhog360.hogutils.api.hogtags;
 
 import com.google.common.base.CaseFormat;
-import it.unimi.dsi.fastutil.objects.Object2ObjectArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import it.unimi.dsi.fastutil.objects.ObjectArraySet;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.oredict.OreDictionary;
@@ -25,13 +25,14 @@ public class HogTagsOreDictionaryHelper {
     ///  - Truncate the `ore` prefix
     ///  - Converts the rest of the string to lower_snake_case.
     ///  - Then finally, it adds `c:ores` to the beginning of the string,
+    ///  - The result is `c:ores/my_material`.
     ///
     /// The right hand assignment is a boolean, determining if the "blank" tag should be added alongside the regular one.
     ///
     /// So the ores entry in this map has this as `TRUE` so in addition to the above, `c:ores` will also be added as a tag.
     ///
     /// If `FALSE`, a {@link OreDictionary} tag without a suffix (anything beyond the specified prefix) will not register anything.
-    public static final Map<String, Pair<String, Boolean>> PREFIX_BASED_TAGS = new Object2ObjectArrayMap<>();
+    public static final Map<String, Pair<String, Boolean>> PREFIX_BASED_TAGS = new Object2ObjectOpenHashMap<>();
     static {
         PREFIX_BASED_TAGS.put("ore", Pair.of("c:ores", true));
         PREFIX_BASED_TAGS.put("ingot", Pair.of("c:ingots", true));
@@ -42,7 +43,7 @@ public class HogTagsOreDictionaryHelper {
 
     /// OreDict tags that are registered but have this at the beginning of their name, will not be hit by the prefix maps.
     /// So since `oreQuartz` has no equivalent commons tag (like `c:storage_blocks/quartz`, because it isn't a storage block.
-    public static final Set<String> PREFIX_SUFFIX_TAG_EXEMPTIONS = new ObjectArraySet<>();
+    public static final Set<String> PREFIX_SUFFIX_TAG_EXEMPTIONS = new ObjectOpenHashSet<>();
     static {
         PREFIX_SUFFIX_TAG_EXEMPTIONS.add("blockQuartz");
         PREFIX_SUFFIX_TAG_EXEMPTIONS.add("blockGlass");
@@ -52,7 +53,7 @@ public class HogTagsOreDictionaryHelper {
     /// Simply put, oreDict tags that register a tag if the tag is an exact match.
     /// One of the examples in the below map is `logWood` to `minecraft:logs`.
     /// So if the tag is EXACTLY `logWood`, then `minecraft:logs` is registered.
-    public static final Map<String, String[]> FULL_SWAPS = new Object2ObjectArrayMap<>();
+    public static final Map<String, String[]> FULL_SWAPS = new Object2ObjectOpenHashMap<>();
     static {
         FULL_SWAPS.put("logWood", new String[]{"minecraft:logs"});
         FULL_SWAPS.put("blockGlass", new String[]{"c:glass_blocks", "c:glass_blocks/cheap"});

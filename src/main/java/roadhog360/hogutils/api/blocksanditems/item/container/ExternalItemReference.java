@@ -1,4 +1,4 @@
-package roadhog360.hogutils.api.blocksanditems.item.externalref;
+package roadhog360.hogutils.api.blocksanditems.item.container;
 
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.item.Item;

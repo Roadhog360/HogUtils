@@ -1,6 +1,5 @@
 package roadhog360.hogutils.api.blocksanditems.block;
 
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockTrapDoor;
 import net.minecraft.block.material.Material;
 import net.minecraft.world.IBlockAccess;
@@ -12,9 +11,9 @@ public abstract class BaseTrapdoor extends BlockTrapDoor implements IItemAndBloc
     protected BaseTrapdoor(Material material, String name) {
         super(material);
         setHardness(3.0F);
-        setBlockTextureName(name + "_door");
-        setBlockName(name + "_door");
-        setStepSound(getMaterial() == Material.iron ? Block.soundTypeMetal : Block.soundTypeWood);
+        setBlockTextureName(name + "_trapdoor");
+        setBlockName(name + "_trapdoor");
+        BaseHelper.setupStepSound(this);
     }
 
     public BaseTrapdoor(String type) {

@@ -35,16 +35,16 @@
  */
 
 tasks.named('shadowJar', com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar) {
-    minimize {
-        exclude(dependency('me.mrnavastar:r'))
-        exclude(dependency('com.github.makamys:MCLib'))
-    }
+//    minimize {
+//        exclude(dependency('me.mrnavastar:r'))
+//        exclude(dependency('com.github.makamys:MCLib'))
+//    }
     relocate 'makamys', 'roadhog360.hogutils.repackaged.makamys'
 }
 
 dependencies {
 //    runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.6.34-GTNH:dev")
-    implementation("com.github.GTNewHorizons:GTNHLib:0.5.20:dev")
+    implementation("com.github.GTNewHorizons:GTNHLib:0.6.1-json2.10+e3e257408c-dirty:dev") // Make sure you have added my GTNHLib Json2 branch fork to MavenLocal
 //    implementation("com.falsepattern:falsepatternlib-mc1.7.10:1.4.6:dev")
 
 
@@ -54,7 +54,9 @@ dependencies {
 
     shadowImplementation("me.mrnavastar:r:1.0.8")
 
+    compileOnly('curse.maven:hardcore-ender-expansion-228015:2316923')
+
     compileOnly('org.jetbrains:annotations:24.0.1')
-    compileOnly("org.projectlombok:lombok:1.18.22") {transitive = false }
+    compileOnly("org.projectlombok:lombok:1.18.36") { transitive = false }
     annotationProcessor("org.projectlombok:lombok:1.18.36")
 }

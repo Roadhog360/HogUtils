@@ -6,11 +6,13 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockStairs;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.item.ItemStack;
+import net.minecraft.world.IBlockAccess;
+import net.minecraftforge.common.util.ForgeDirection;
+import org.jetbrains.annotations.Nullable;
 import roadhog360.hogutils.api.blocksanditems.BaseHelper;
 import roadhog360.hogutils.api.blocksanditems.IItemAndBlockBase;
-import roadhog360.hogutils.api.utils.RecipeHelper;
-
-import javax.annotation.Nullable;
+import roadhog360.hogutils.api.blocksanditems.block.sound.IMultiBlockSound;
+import roadhog360.hogutils.api.world.DummyWorld;
 
 public class BaseStairsCopy extends BlockStairs implements IItemAndBlockBase {
 
@@ -24,20 +26,24 @@ public class BaseStairsCopy extends BlockStairs implements IItemAndBlockBase {
     /// TODO: Base stairs block that doesn't require an input block?
 
     protected void copyStairInfo() {
-        var dummyStack = new ItemStack(field_150149_b, 1, field_150151_M);
-        if(!RecipeHelper.validateItems(dummyStack)) {
-            throw new IllegalArgumentException("Attempted to copy disabled block to stairs!");
-        }
         if(unlocalizedName == null) { //name not already specified
             if (field_150149_b instanceof ISubtypesBlock subtypesBlock) {
                 unlocalizedName = BaseHelper.depluralizeName(subtypesBlock.getTypes().get(field_150151_M))
                     .replace("_plank", "") + "_stairs";
             } else {
+                var dummyStack = new ItemStack(field_150149_b, 1, field_150151_M);
                 unlocalizedName = BaseHelper.depluralizeName(
                     dummyStack.getUnlocalizedName().replace("tile.", "")).replace("_plank", "") + "_stairs";
             }
         }
         setCreativeTab(field_150149_b.displayOnCreativeTab);
+        if(field_150149_b instanceof IMultiBlockSound mbs) {
+            DummyWorld world = DummyWorld.getGlobalInstance();
+            world.setBlock(0, 0, 0, field_150149_b, field_150151_M, 3);
+            setStepSound(mbs.getSoundType(world, 0, 0, 0, IMultiBlockSound.SoundMode.PLACE));
+        } else {
+            setStepSound(field_150149_b.stepSound);
+        }
     }
 
     @Override
@@ -78,5 +84,26 @@ public class BaseStairsCopy extends BlockStairs implements IItemAndBlockBase {
     public boolean canCollideCheck(int meta, boolean includeLiquid)
     {
         return this.field_150149_b.canCollideCheck(field_150151_M, includeLiquid);
+    }
+
+    @Override
+    public int getFlammability(IBlockAccess w, int x, int y, int z, ForgeDirection face) {
+        DummyWorld world = DummyWorld.getGlobalInstance();
+        world.setBlock(0, 0, 0, field_150149_b, field_150151_M, 0);
+        return field_150149_b.getFlammability(world, 0, 0, 0, face);
+    }
+
+    @Override
+    public int getFireSpreadSpeed(IBlockAccess w, int x, int y, int z, ForgeDirection face) {
+        DummyWorld world = DummyWorld.getGlobalInstance();
+        world.setBlock(0, 0, 0, field_150149_b, field_150151_M, 0);
+        return field_150149_b.getFireSpreadSpeed(world, 0, 0, 0, face);
+    }
+
+    @Override
+    public boolean isFlammable(IBlockAccess w, int x, int y, int z, ForgeDirection face) {
+        DummyWorld world = DummyWorld.getGlobalInstance();
+        world.setBlock(0, 0, 0, field_150149_b, field_150151_M, 0);
+        return field_150149_b.isFlammable(world, 0, 0, 0, face);
     }
 }
