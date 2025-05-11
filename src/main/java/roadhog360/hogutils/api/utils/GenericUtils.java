@@ -13,6 +13,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.tuple.Pair;
@@ -123,6 +124,13 @@ public final class GenericUtils {
 
     public static boolean isBlockMetaInBoundsIgnoreWildcard(int meta) {
         return meta == OreDictionary.WILDCARD_VALUE || isBlockMetaInBounds(meta);
+    }
+
+    public static BiomeGenBase getBiomeFromID(int id) {
+        if (id >= 0 && id < BiomeGenBase.getBiomeGenArray().length && BiomeGenBase.getBiomeGenArray()[id] != null) {
+            return BiomeGenBase.getBiomeGenArray()[id];
+        }
+        throw new IllegalArgumentException(id + " is not a valid Biome ID!");
     }
 
     /// Code by Ben-Hur Langoni Junior on Stack Overflow, [original answer](https://stackoverflow.com/a/19759564)

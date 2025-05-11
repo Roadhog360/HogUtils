@@ -2,15 +2,14 @@ package roadhog360.hogutils.api.hogtags.helpers;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectAVLTreeMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectRBTreeMap;
-import it.unimi.dsi.fastutil.objects.ObjectAVLTreeSet;
 import lombok.NonNull;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraftforge.oredict.OreDictionary;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.ApiStatus;
 import roadhog360.hogutils.api.blocksanditems.item.container.ItemMetaPair;
-import roadhog360.hogutils.api.hogtags.HogTags;
 import roadhog360.hogutils.api.hogtags.interfaces.ITaggable;
 import roadhog360.hogutils.api.hogtags.interfaces.ITaggableBlockItem;
 import roadhog360.hogutils.api.utils.SetPair;
@@ -72,49 +71,24 @@ public final class ItemTags {
         return REVERSE_LOOKUP_TABLE.getOrDefault(tag, SetPair.getEmpty()).getLocked();
     }
 
-    public static void addInheritors(String tag, String... inherits) {
-        for(ItemMetaPair pair : getInTag(tag)) {
-            ((ITaggable<Block>) pair.get()).clearCaches();
-        }
-        for(String inhering : inherits) {
-            for (ItemMetaPair pair : getInTag(inhering)) {
-                ((ITaggable<Block>) pair.get()).clearCaches();
+    public static void addInheritors(String inheritor, String... toInherit) {
+        for(String tag : ArrayUtils.add(toInherit, inheritor)) {
+            for (ItemMetaPair pair : getInTag(tag)) {
+                ((ITaggable<Item>) pair.get()).clearCaches();
             }
         }
 
-        Set<ItemMetaPair> parentObjects = REVERSE_LOOKUP_TABLE.computeIfAbsent(tag, o -> new SetPair<>(new ObjectAVLTreeSet<>())).getLocked();
-        if (parentObjects != null) {
-            for (String inheriting : inherits) {
-                for (ItemMetaPair object : parentObjects) {
-                    REVERSE_LOOKUP_TABLE.computeIfAbsent(inheriting, o -> new SetPair<>(new ObjectAVLTreeSet<>())).getUnlocked()
-                        .add(object);
-                }
-            }
-        }
-
-        HogTags.addInheritors(tag, INHERITOR_TABLE, inherits);
+        InheritorHelper.addInheritors(REVERSE_LOOKUP_TABLE, INHERITOR_TABLE, inheritor, toInherit);
     }
 
-    public static void removeInheritors(String tag, String... inherits) {
-        for(ItemMetaPair pair : getInTag(tag)) {
-            ((ITaggable<Item>) pair.get()).clearCaches();
-        }
-
-
-        Set<ItemMetaPair> parentObjects = REVERSE_LOOKUP_TABLE.get(tag).getLocked();
-        if (parentObjects != null) {
-            for (String inheriting : inherits) {
-                for (ItemMetaPair object : parentObjects) {
-                    SetPair<ItemMetaPair> tagSet = REVERSE_LOOKUP_TABLE.get(inheriting);
-                    tagSet.getUnlocked().remove(object);
-                    if(!tagSet.getUnlocked().isEmpty()) {
-                        REVERSE_LOOKUP_TABLE.remove(inheriting);
-                    }
-                }
+    public static void removeInheritors(String inheritor, String... toRemove) {
+        for(String tag : ArrayUtils.add(toRemove, inheritor)) {
+            for (ItemMetaPair pair : getInTag(tag)) {
+                ((ITaggable<Item>) pair.get()).clearCaches();
             }
         }
 
-        HogTags.removeInheritors(tag, INHERITOR_TABLE, inherits);
+        InheritorHelper.removeInheritors(REVERSE_LOOKUP_TABLE, INHERITOR_TABLE, inheritor, toRemove);
     }
 
     public static Set<String> getInheritors(String tag) {

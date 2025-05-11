@@ -3,6 +3,10 @@
 repositories {
     mavenLocal()
     maven {
+        name = "JitPack"
+        url = "https://jitpack.io"
+    }
+    maven {
         name = "gt"
         url = "https://gregtech.mechaenetia.com/"
     }
@@ -13,8 +17,5 @@ repositories {
     maven {
         name = "MEGA/FalsePattern Maven"
         url = "https://mvn.falsepattern.com/releases/"
-    }
-    maven {
-        url 'https://jitpack.io'
     }
 }

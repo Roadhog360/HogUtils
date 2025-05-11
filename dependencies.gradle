@@ -44,7 +44,7 @@ tasks.named('shadowJar', com.github.jengelman.gradle.plugins.shadow.tasks.Shadow
 
 dependencies {
 //    runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.6.34-GTNH:dev")
-    implementation("com.github.GTNewHorizons:GTNHLib:0.6.1-json2.10+e3e257408c-dirty:dev") // Make sure you have added my GTNHLib Json2 branch fork to MavenLocal
+    implementation("com.github.GTNewHorizons:GTNHLib:0.6.21")
 //    implementation("com.falsepattern:falsepatternlib-mc1.7.10:1.4.6:dev")
 
 

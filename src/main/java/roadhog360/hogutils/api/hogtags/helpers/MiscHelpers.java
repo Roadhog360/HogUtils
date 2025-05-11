@@ -1,8 +1,12 @@
 package roadhog360.hogutils.api.hogtags.helpers;
 
+import cpw.mods.fml.common.Loader;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraftforge.oredict.OreDictionary;
+import roadhog360.hogutils.HogUtils;
+
+import java.util.stream.IntStream;
 
 @SuppressWarnings({"unused"})
 public final class MiscHelpers {
@@ -58,5 +62,31 @@ public final class MiscHelpers {
     public static void removeInheritorsFromItemAndBlock(String tag, String... inherits) {
         BlockTags.removeInheritors(tag, inherits);
         ItemTags.removeInheritors(tag, inherits);
+    }
+
+    public static void checkTagsSpec(String... tags) {
+        IntStream.range(0, tags.length).forEach(i -> tags[i] = checkTagSpec(tags[i]));
+    }
+
+    public static String checkTagSpec(String tag) {
+        if (tag == null || tag.isEmpty() || tag.equals("#")) {
+            throw new RuntimeException("Cannot pass in empty tag (or just \"#\") to the tags registry!");
+        }
+        //Sanity checks passed, let's do some filtering
+
+        if (tag.startsWith("#")) {
+            tag = tag.substring(1);
+        }
+        if (!tag.contains(":")) {
+            String domain;
+            try {
+                domain = Loader.instance().activeModContainer().getModId();
+            } catch (Exception e) {
+                domain = "minecraft";
+            }
+            HogUtils.LOG.warn("Adding tag " + tag + " with no domain! Assuming " + domain + ":" + tag);
+            tag = domain + ":" + tag;
+        }
+        return tag;
     }
 }

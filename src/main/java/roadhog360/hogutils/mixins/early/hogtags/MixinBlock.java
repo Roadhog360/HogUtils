@@ -9,8 +9,9 @@ import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.ArrayUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import roadhog360.hogutils.api.blocksanditems.block.container.BlockMetaPair;
-import roadhog360.hogutils.api.hogtags.HogTags;
 import roadhog360.hogutils.api.hogtags.helpers.BlockTags;
+import roadhog360.hogutils.api.hogtags.helpers.InheritorHelper;
+import roadhog360.hogutils.api.hogtags.helpers.MiscHelpers;
 import roadhog360.hogutils.api.hogtags.interfaces.ITaggableBlockItem;
 import roadhog360.hogutils.api.utils.SetPair;
 
@@ -24,7 +25,7 @@ public class MixinBlock implements ITaggableBlockItem<BlockMetaPair> {
 
     @Override
     public synchronized void addTags(int meta, String... tags) {
-        HogTags.checkTagsSpec(tags);
+        MiscHelpers.checkTagsSpec(tags);
         Collections.addAll(TAG_TABLE.computeIfAbsent(meta, o -> new ObjectRBTreeSet<>()), tags);
 
         // Maintain reverse lookup table
@@ -38,7 +39,7 @@ public class MixinBlock implements ITaggableBlockItem<BlockMetaPair> {
 
     @Override
     public synchronized void removeTags(int meta, String... tags) {
-        HogTags.checkTagsSpec(tags);
+        MiscHelpers.checkTagsSpec(tags);
         Set<String> set = TAG_TABLE.get(meta);
         set.removeIf(s -> ArrayUtils.contains(tags, s));
         if(set.isEmpty()) {
@@ -74,7 +75,7 @@ public class MixinBlock implements ITaggableBlockItem<BlockMetaPair> {
                 finalTags.addAll(extraTags);
 
                 for (String tag : finalTags) {
-                    HogTags.addInheritedRecursive(tag, finalTags, BlockTags.INHERITOR_TABLE);
+                    InheritorHelper.addInheritedRecursive(tag, finalTags, BlockTags.INHERITOR_TABLE);
                 }
 
                 LOOKUP_CACHE.put(meta, Collections.unmodifiableSet(finalTags));

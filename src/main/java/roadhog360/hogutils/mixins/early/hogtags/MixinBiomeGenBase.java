@@ -5,8 +5,9 @@ import it.unimi.dsi.fastutil.objects.ObjectRBTreeSet;
 import net.minecraft.world.biome.BiomeGenBase;
 import org.apache.commons.lang3.ArrayUtils;
 import org.spongepowered.asm.mixin.Mixin;
-import roadhog360.hogutils.api.hogtags.HogTags;
 import roadhog360.hogutils.api.hogtags.helpers.BiomeTags;
+import roadhog360.hogutils.api.hogtags.helpers.InheritorHelper;
+import roadhog360.hogutils.api.hogtags.helpers.MiscHelpers;
 import roadhog360.hogutils.api.hogtags.interfaces.ITaggable;
 
 import java.util.Collections;
@@ -20,7 +21,7 @@ public class MixinBiomeGenBase implements ITaggable<BiomeGenBase> {
 
     @Override
     public synchronized void addTags(String... tags) {
-        HogTags.checkTagsSpec(tags);
+        MiscHelpers.checkTagsSpec(tags);
         Collections.addAll(TAGS, tags);
 
         clearCaches();
@@ -28,7 +29,7 @@ public class MixinBiomeGenBase implements ITaggable<BiomeGenBase> {
 
     @Override
     public synchronized void removeTags(String... tags) {
-        HogTags.checkTagsSpec(tags);
+        MiscHelpers.checkTagsSpec(tags);
         TAGS.removeIf(s -> ArrayUtils.contains(tags, s));
 
         clearCaches();
@@ -44,7 +45,7 @@ public class MixinBiomeGenBase implements ITaggable<BiomeGenBase> {
             LOOKUP_CACHE = new ObjectAVLTreeSet<>(TAGS);
 
             for(String tag : LOOKUP_CACHE) {
-                HogTags.addInheritedRecursive(tag, LOOKUP_CACHE, BiomeTags.INHERITOR_TABLE);
+                InheritorHelper.addInheritedRecursive(tag, LOOKUP_CACHE, BiomeTags.INHERITOR_TABLE);
             }
 
             LOOKUP_CACHE = Collections.unmodifiableSet(LOOKUP_CACHE);

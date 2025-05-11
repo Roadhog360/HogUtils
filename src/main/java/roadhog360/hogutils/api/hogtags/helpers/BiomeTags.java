@@ -2,28 +2,21 @@ package roadhog360.hogutils.api.hogtags.helpers;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectAVLTreeMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectRBTreeMap;
-import it.unimi.dsi.fastutil.objects.ObjectAVLTreeSet;
 import lombok.NonNull;
-import net.minecraft.block.Block;
 import net.minecraft.world.biome.BiomeGenBase;
+import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.ApiStatus;
-import roadhog360.hogutils.api.hogtags.HogTags;
 import roadhog360.hogutils.api.hogtags.interfaces.ITaggable;
+import roadhog360.hogutils.api.utils.GenericUtils;
 import roadhog360.hogutils.api.utils.SetPair;
 
+import java.util.Map;
 import java.util.Set;
 
 @SuppressWarnings({"unchecked", "unused"})
 public final class BiomeTags {
 
     public static final String CONTAINER_ID = "minecraft:worldgen/biome";
-
-    public static BiomeGenBase getBiomeFromID(int id) {
-        if (id >= 0 && id < BiomeGenBase.getBiomeGenArray().length && BiomeGenBase.getBiomeGenArray()[id] != null) {
-            return BiomeGenBase.getBiomeGenArray()[id];
-        }
-        throw new IllegalArgumentException(id + " is not a valid Biome ID!");
-    }
 
     /// Adds the following tags to the specified biome.
     public static void addTags(BiomeGenBase biome, String... tags) {
@@ -32,7 +25,7 @@ public final class BiomeTags {
 
     /// Adds the following tags to the specified biome via its ID.
     public static void addTags(int id, String... tags) {
-        addTags(getBiomeFromID(id));
+        addTags(GenericUtils.getBiomeFromID(id));
     }
 
     /// Removes the following tags to the specified biome.
@@ -50,7 +43,7 @@ public final class BiomeTags {
     ///
     /// You can always use `/tags dump` to get a full dump of any tags registry, this one's id is `minecraft:worldgen/biome`.
     public static void removeTags(int id, String... tags) {
-        removeTags(getBiomeFromID(id), tags);
+        removeTags(GenericUtils.getBiomeFromID(id), tags);
     }
 
     /// Get the tags for the passed in biome.
@@ -60,7 +53,7 @@ public final class BiomeTags {
 
     /// Get the tags for the passed in biome via its ID.
     public static Set<String> getTags(int id) {
-        return getTags(getBiomeFromID(id));
+        return getTags(GenericUtils.getBiomeFromID(id));
     }
 
     /// Returns true if the passed in biome has any of the listed tags.
@@ -69,57 +62,33 @@ public final class BiomeTags {
     }
 
     @ApiStatus.Internal
-    public static final Object2ObjectRBTreeMap<String, SetPair<String>> INHERITOR_TABLE = new Object2ObjectRBTreeMap<>();
+    public static final Map<String, SetPair<String>> INHERITOR_TABLE = new Object2ObjectRBTreeMap<>();
     @ApiStatus.Internal
-    public static final Object2ObjectAVLTreeMap<String, SetPair<BiomeGenBase>> REVERSE_LOOKUP_TABLE = new Object2ObjectAVLTreeMap<>();
+    public static final Map<String, SetPair<BiomeGenBase>> REVERSE_LOOKUP_TABLE = new Object2ObjectAVLTreeMap<>();
 
     /// Get the {@link BiomeGenBase}s in this tag.
     public static Set<BiomeGenBase> getInTag(String tag) {
         return REVERSE_LOOKUP_TABLE.getOrDefault(tag, SetPair.getEmpty()).getLocked();
     }
 
-    public static void addInheritors(String tag, String... inherits) {
-        for(BiomeGenBase biome : getInTag(tag)) {
-            ((ITaggable<BiomeGenBase>) biome).clearCaches();
-        }
-        for(String inhering : inherits) {
-            for (BiomeGenBase biome : getInTag(inhering)) {
-                ((ITaggable<Block>) biome).clearCaches();
+    public static void addInheritors(String inheritor, String... toInherit) {
+        for(String tag : ArrayUtils.add(toInherit, inheritor)) {
+            for (BiomeGenBase biome : getInTag(tag)) {
+                ((ITaggable<BiomeGenBase>) biome).clearCaches();
             }
         }
 
-        Set<BiomeGenBase> parentObjects = REVERSE_LOOKUP_TABLE.computeIfAbsent(tag, o -> new SetPair<>(new ObjectAVLTreeSet<>())).getLocked();
-        if (parentObjects != null) {
-            for (String inheriting : inherits) {
-                for (BiomeGenBase object : parentObjects) {
-                    REVERSE_LOOKUP_TABLE.computeIfAbsent(inheriting, o -> new SetPair<>(new ObjectAVLTreeSet<>())).getUnlocked()
-                        .add(object);
-                }
-            }
-        }
-
-        HogTags.addInheritors(tag, INHERITOR_TABLE, inherits);
+        InheritorHelper.addInheritors(REVERSE_LOOKUP_TABLE, INHERITOR_TABLE, inheritor, toInherit);
     }
 
-    public static void removeInheritors(String tag, String... inherits) {
-        for(BiomeGenBase pair : getInTag(tag)) {
-            ((ITaggable<BiomeGenBase>) pair).clearCaches();
-        }
-
-        Set<BiomeGenBase> parentObjects = REVERSE_LOOKUP_TABLE.get(tag).getLocked();
-        if (parentObjects != null) {
-            for (String inheriting : inherits) {
-                for (BiomeGenBase object : parentObjects) {
-                    SetPair<BiomeGenBase> tagSet = REVERSE_LOOKUP_TABLE.get(inheriting);
-                    tagSet.getUnlocked().remove(object);
-                    if(!tagSet.getUnlocked().isEmpty()) {
-                        REVERSE_LOOKUP_TABLE.remove(inheriting);
-                    }
-                }
+    public static void removeInheritors(String inheritor, String... toRemove) {
+        for(String tag : ArrayUtils.add(toRemove, inheritor)) {
+            for (BiomeGenBase biome : getInTag(tag)) {
+                ((ITaggable<BiomeGenBase>) biome).clearCaches();
             }
         }
 
-        HogTags.removeInheritors(tag, INHERITOR_TABLE, inherits);
+        InheritorHelper.removeInheritors(REVERSE_LOOKUP_TABLE, INHERITOR_TABLE, inheritor, toRemove);
     }
 
     public static Set<String> getInheritors(String tag) {
