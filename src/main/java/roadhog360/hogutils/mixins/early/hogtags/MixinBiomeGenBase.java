@@ -21,7 +21,7 @@ public class MixinBiomeGenBase implements ITaggable<BiomeGenBase> {
 
     @Override
     public synchronized void addTags(String... tags) {
-        MiscHelpers.checkTagsSpec(tags);
+        MiscHelpers.enforceTagsSpec(tags);
         Collections.addAll(TAGS, tags);
 
         clearCaches();
@@ -29,7 +29,7 @@ public class MixinBiomeGenBase implements ITaggable<BiomeGenBase> {
 
     @Override
     public synchronized void removeTags(String... tags) {
-        MiscHelpers.checkTagsSpec(tags);
+        MiscHelpers.enforceTagsSpec(tags);
         TAGS.removeIf(s -> ArrayUtils.contains(tags, s));
 
         clearCaches();

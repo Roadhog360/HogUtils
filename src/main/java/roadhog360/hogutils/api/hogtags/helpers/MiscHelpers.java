@@ -1,10 +1,9 @@
 package roadhog360.hogutils.api.hogtags.helpers;
 
-import cpw.mods.fml.common.Loader;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraftforge.oredict.OreDictionary;
-import roadhog360.hogutils.HogUtils;
+import roadhog360.hogutils.api.utils.GenericUtils;
 
 import java.util.stream.IntStream;
 
@@ -59,34 +58,46 @@ public final class MiscHelpers {
         ItemTags.addInheritors(tag, inherits);
     }
 
+    /// Ensures the spec of tags is enforced, and checks the passed in tags for compliance.
+    /// Spec is the following:
+    /// - Must have a namespace ID within.
+    /// - `#` is purely for display purposes and tags in the registry do not have it.
+    /// If these conditions are not met, the game will throw an {@link IllegalArgumentException}.
     public static void removeInheritorsFromItemAndBlock(String tag, String... inherits) {
         BlockTags.removeInheritors(tag, inherits);
         ItemTags.removeInheritors(tag, inherits);
     }
 
-    public static void checkTagsSpec(String... tags) {
-        IntStream.range(0, tags.length).forEach(i -> tags[i] = checkTagSpec(tags[i]));
+    /// Ensures the spec of tags is enforced, and checks the passed in tags for compliance.
+    /// If the following spec is not met for any passed in tag, the game will throw an {@link IllegalArgumentException}.
+    /// - Must have a properly namespaced ID. For example, `examplemod:example` is correct, but `examplemod` isn't.
+    /// - `#` is purely for display purposes and tags in the registry do not have it.
+    public static void enforceTagsSpec(String... tags) {
+        IntStream.range(0, tags.length).forEach(i -> enforceTagSpec(tags[i]));
     }
 
-    public static String checkTagSpec(String tag) {
-        if (tag == null || tag.isEmpty() || tag.equals("#")) {
-            throw new RuntimeException("Cannot pass in empty tag (or just \"#\") to the tags registry!");
-        }
-        //Sanity checks passed, let's do some filtering
+    private static final char[] ALLOWED_CHARS = new char[]{':', '/'};
 
+    /// Ensures the spec of tags is enforced, and checks the passed in tags for compliance.
+    /// If the following spec is not met, the game will throw an {@link IllegalArgumentException}.
+    /// - Must have a properly namespaced ID. For example, `examplemod:example` is correct, but `examplemod` isn't.
+    /// - `#` is purely for display purposes and tags in the registry do not have it.
+    /// If these conditions are not met, the game will throw an {@link IllegalArgumentException}.
+    public static void enforceTagSpec(String tag) {
+        if (tag == null || tag.isEmpty() || tag.equals("#") || tag.equals(":") || tag.equals("#:")) {
+            throw new IllegalArgumentException("Cannot pass in empty tag (or just \"#\") to the tags registry!");
+        }
+        if (!GenericUtils.verifyFilenameIntegrity(tag, ALLOWED_CHARS)) {
+            throw new IllegalArgumentException("Cannot instantiate tag with disallowed characters from Windows filesystem! Received [" + tag + "]");
+        }
         if (tag.startsWith("#")) {
-            tag = tag.substring(1);
+            throw new IllegalArgumentException("Tag should not start with #; the # is for display purposes only and doesn't \"exist\". Received [" + tag + "]");
         }
-        if (!tag.contains(":")) {
-            String domain;
-            try {
-                domain = Loader.instance().activeModContainer().getModId();
-            } catch (Exception e) {
-                domain = "minecraft";
-            }
-            HogUtils.LOG.warn("Adding tag " + tag + " with no domain! Assuming " + domain + ":" + tag);
-            tag = domain + ":" + tag;
+        if (!tag.contains(":") || tag.startsWith(":")) {
+            throw new IllegalArgumentException("Tag does not adhere to the namespace ID conventions! Received [" + tag + "]");
         }
-        return tag;
+        if (!GenericUtils.verifyFilenameIntegrity(tag, ALLOWED_CHARS)) {
+            throw new IllegalArgumentException("Tag must not contain chars not allowed in Windows file names! Received [" + tag + "]");
+        }
     }
 }

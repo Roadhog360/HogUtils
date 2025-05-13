@@ -72,13 +72,13 @@ public final class ItemTags {
     }
 
     public static void addInheritors(String inheritor, String... toInherit) {
+        InheritorHelper.addInheritors(REVERSE_LOOKUP_TABLE, INHERITOR_TABLE, inheritor, toInherit);
+
         for(String tag : ArrayUtils.add(toInherit, inheritor)) {
             for (ItemMetaPair pair : getInTag(tag)) {
                 ((ITaggable<Item>) pair.get()).clearCaches();
             }
         }
-
-        InheritorHelper.addInheritors(REVERSE_LOOKUP_TABLE, INHERITOR_TABLE, inheritor, toInherit);
     }
 
     public static void removeInheritors(String inheritor, String... toRemove) {

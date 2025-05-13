@@ -55,8 +55,8 @@ public final class InheritorHelper {
     public static <Type> void addInheritors(@Nullable Map<String, SetPair<Type>> revLookupTable,
                                             @NonNull Map<String, SetPair<String>> inheritorTable,
                                             @NonNull String inheritor, @NonNull String... toInherit) {
-        MiscHelpers.checkTagsSpec(toInherit);
-        inheritor = MiscHelpers.checkTagSpec(inheritor);
+        MiscHelpers.enforceTagsSpec(toInherit);
+        MiscHelpers.enforceTagSpec(inheritor);
 
         if(revLookupTable != null) { // In case a taggable object needs its own reverse lookup logic, it can pass in null.
             Set<Type> parentObjects = revLookupTable.computeIfAbsent(inheritor, o -> new SetPair<>(new ObjectAVLTreeSet<>())).getLocked();
@@ -79,6 +79,8 @@ public final class InheritorHelper {
     public static <Type> void removeInheritors(@Nullable Map<String, SetPair<Type>> revLookupTable,
                                                @NonNull Map<String, SetPair<String>> inheritorTable,
                                                @NonNull String inheritor, @NonNull String... toRemove) {
+        MiscHelpers.enforceTagsSpec(toRemove);
+        MiscHelpers.enforceTagSpec(inheritor);
         if(revLookupTable != null) { // In case a taggable object needs its own reverse lookup logic, it can pass in null.
             Set<Type> parentObjects = revLookupTable.get(inheritor).getLocked();
             if (parentObjects != null) {

@@ -70,13 +70,13 @@ public final class BlockTags {
     }
 
     public static void addInheritors(String inheritor, String... toInherit) {
+        InheritorHelper.addInheritors(REVERSE_LOOKUP_TABLE, INHERITOR_TABLE, inheritor, toInherit);
+
         for(String tag : ArrayUtils.add(toInherit, inheritor)) {
             for (BlockMetaPair pair : getInTag(tag)) {
                 ((ITaggable<Block>) pair.get()).clearCaches();
             }
         }
-
-        InheritorHelper.addInheritors(REVERSE_LOOKUP_TABLE, INHERITOR_TABLE, inheritor, toInherit);
     }
 
     public static void removeInheritors(String inheritor, String... toRemove) {

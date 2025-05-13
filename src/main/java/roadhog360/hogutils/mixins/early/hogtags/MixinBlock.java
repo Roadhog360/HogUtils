@@ -25,7 +25,7 @@ public class MixinBlock implements ITaggableBlockItem<BlockMetaPair> {
 
     @Override
     public synchronized void addTags(int meta, String... tags) {
-        MiscHelpers.checkTagsSpec(tags);
+        MiscHelpers.enforceTagsSpec(tags);
         Collections.addAll(TAG_TABLE.computeIfAbsent(meta, o -> new ObjectRBTreeSet<>()), tags);
 
         // Maintain reverse lookup table
@@ -39,7 +39,7 @@ public class MixinBlock implements ITaggableBlockItem<BlockMetaPair> {
 
     @Override
     public synchronized void removeTags(int meta, String... tags) {
-        MiscHelpers.checkTagsSpec(tags);
+        MiscHelpers.enforceTagsSpec(tags);
         Set<String> set = TAG_TABLE.get(meta);
         set.removeIf(s -> ArrayUtils.contains(tags, s));
         if(set.isEmpty()) {

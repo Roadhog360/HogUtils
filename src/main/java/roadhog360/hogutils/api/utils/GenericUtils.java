@@ -1,5 +1,7 @@
 package roadhog360.hogutils.api.utils;
 
+import it.unimi.dsi.fastutil.chars.CharOpenHashSet;
+import it.unimi.dsi.fastutil.chars.CharSets;
 import lombok.NonNull;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
@@ -16,13 +18,16 @@ import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.oredict.OreDictionary;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.Nullable;
 import roadhog360.hogutils.api.blocksanditems.block.container.BlockMetaPair;
 import roadhog360.hogutils.api.world.DummyWorld;
 import roadhog360.hogutils.core.ModsList;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Set;
 import java.util.TreeMap;
 
 public final class GenericUtils {
@@ -192,6 +197,27 @@ public final class GenericUtils {
             ENDERMAN_CARRYING_FIX = testEnderman.getCarryingData() == 4096;
         }
         return ENDERMAN_CARRYING_FIX;
+    }
+
+    private static final Set<Character> INVALID_FILENAME_CHARS = CharSets.unmodifiable(new CharOpenHashSet(new char[]{'<', '>', ':', '"', '/', '\\', '|', '?', '*'}));
+
+    public static boolean verifyFilenameIntegrity(@NonNull String string) {
+        return verifyFilenameIntegrity(string, (char[]) null);
+    }
+
+    /// Is this string compatible with Windows' allowed file names?
+    /// If the string contains any of the following: `<, >, :, ", /, \, |, ?, *` then this function will return false.
+    /// @param exceptions Is for specifying if you want to ignore any of the characters.
+    public static boolean verifyFilenameIntegrity(@NonNull String string, char @Nullable ... exceptions) {
+        for(char c : INVALID_FILENAME_CHARS) {
+            for (int i = 0; i < string.length(); i++) {
+                // ArrayUtils.contains also has a null check
+                if(!ArrayUtils.contains(exceptions, c) && string.charAt(i) == c) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     public static class Constants {
