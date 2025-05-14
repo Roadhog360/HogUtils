@@ -79,6 +79,7 @@ public class HogUtils {
 
     public void registerTags() {
 //        HogTags.BiomeTags.addInheritors("c:is_dry", "c:is_dry/nether", "c:is_dry/end", "c:is_dry/overworld");
+//        TODO: The above is now backwards; when uncommented it needs to be flipped
 //
 //        for(BiomeGenBase biome : BiomeGenBase.getBiomeGenArray()) {
 //            BiomeDictionary.Type[] types = BiomeDictionary.getTypesForBiome(biome);
@@ -93,7 +94,7 @@ public class HogUtils {
 //        }
     }
 
-    /// Finds biomes that have been registry replaced by a mod and transfer all of the tags to the new one
+    /// Finds biomes that have been registry replaced by a mod and transfer all the tags to the new one
     private void detectBiomeRegistryReplacement() {
 //        for(Map.Entry<BiomeGenBase, Integer> biome : vanillaBiomes.entrySet()) {
 //            if(BiomeGenBase.getBiomeGenArray()[biome.getValue()] != biome.getKey()) {

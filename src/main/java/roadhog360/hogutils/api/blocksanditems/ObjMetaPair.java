@@ -1,9 +1,13 @@
 package roadhog360.hogutils.api.blocksanditems;
 
+import net.minecraft.block.Block;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.ApiStatus;
+import roadhog360.hogutils.api.blocksanditems.block.container.BlockMetaPair;
+import roadhog360.hogutils.api.blocksanditems.item.container.ItemMetaPair;
 
 /// Used as an easy way to make a container object for comparing block/item and meta instances.
 @ApiStatus.NonExtendable
@@ -51,30 +55,40 @@ public class ObjMetaPair<T> extends Pair<T, Integer> implements IReferenceBase<T
             '}';
     }
 
+    /// Should only be used when being fetched from a mod via reflection that doesn't have access to this class or its children.
     @Override
+    @Deprecated
     public T getLeft() {
         return get();
     }
 
+    /// Should only be used when being fetched from a mod via reflection that doesn't have access to this class or its children.
     @Override
+    @Deprecated
     public Integer getRight() {
         return getMeta();
     }
 
+    /// Not supported, throws {@link UnsupportedOperationException}; this view is immutable.
     @Override
+    @Deprecated
     public Integer setValue(Integer value) {
         throw new UnsupportedOperationException();
     }
 
     /// Used to make sure {@link Pair#of(Object, Object)} is not accidentally called from this class, to prevent confusing results.
-    /// This is to ensure the correct calls to the below functions are guaranteed, and to remove any margin of error when calling `of`
+    /// This helps remind the developer using this class to call {@link ItemMetaPair#of(Item, int)}/{@link BlockMetaPair#of(Block, int)}
+    /// This is to ensure the correct calls to the below functions are guaranteed, and to remove any margin of error when calling `of`.
+    /// Throws {@link UnsupportedOperationException} when called.
+    @Deprecated
     public static Pair<?, ?> of(Object o1, Object o2) {
         throw new UnsupportedOperationException("Called Pair.of from ObjMetaPair!" +
             " Note that ObjMetaPair can only be of type Block or Item and metatata! (Integer)");
     }
 
-    /// Not really used for this purpose.
-    /// Just put this here because I don't feel like moving this specific value to a separate interface.
+    /// Not used for pairs.
+    /// Just put this here because I don't feel like moving this ONE field to a separate interface.
+    /// @return Always returns true.
     @Override
     @Deprecated
     public boolean isEnabled() {
