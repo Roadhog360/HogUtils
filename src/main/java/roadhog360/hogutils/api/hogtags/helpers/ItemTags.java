@@ -1,32 +1,40 @@
 package roadhog360.hogutils.api.hogtags.helpers;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectAVLTreeMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectRBTreeMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.NonNull;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.ApiStatus;
 import roadhog360.hogutils.api.blocksanditems.item.container.ItemMetaPair;
-import roadhog360.hogutils.api.hogtags.interfaces.ITaggable;
-import roadhog360.hogutils.api.hogtags.interfaces.ITaggableBlockItem;
+import roadhog360.hogutils.api.hogtags.containers.InheritorContainer;
+import roadhog360.hogutils.api.hogtags.containers.TagContainerMeta;
+import roadhog360.hogutils.api.hogtags.interfaces.ITaggableMeta;
 import roadhog360.hogutils.api.utils.SetPair;
 
+import java.util.Map;
 import java.util.Set;
 
-@SuppressWarnings({"unchecked", "unused"})
-public final class ItemTags {
+@SuppressWarnings({"unused"})
+public final class ItemTags extends TagContainerMeta<Item, ItemMetaPair> {
     public static final String CONTAINER_ID = "minecraft:items";
 
-    /// Adds the following tags to the specified item.
-    public static void addTags(Item item, int meta, String... tags) {
-        ((ITaggableBlockItem<ItemMetaPair>) item).addTags(tags);
+    public ItemTags(Item item) {
+        super(REVERSE_LOOKUP_TABLE, INHERITOR_CONTAINER, item);
     }
 
-    public static void addTags(Item item, String... tags) {
+    /// Adds the following tags to the specified item.
+    public static void addTags(@NonNull Item item, int meta, @NonNull String... tags) {
+        ((ITaggableMeta) item).addTags(tags);
+    }
+
+    public static void addTags(@NonNull Item item, @NonNull String... tags) {
         addTags(item, OreDictionary.WILDCARD_VALUE, tags);
+    }
+
+    public static void addTags(@NonNull ItemStack stack, @NonNull String... tags) {
+        addTags(stack.getItem(), stack.getItemDamage(), tags);
     }
 
     /// Removes the following tags from the specified item.
@@ -34,18 +42,22 @@ public final class ItemTags {
     /// It may also be present in multiple lists in the inheritance tree.
     ///
     /// You can always use `/tags dump` to get a full dump of any tags registry, this one's id is `minecraft:items`.
-    public static void removeTags(Item item, int meta, String... tags) {
-        ((ITaggableBlockItem<ItemMetaPair>) item).removeTags(tags);
+    public static void removeTags(@NonNull Item item, int meta, @NonNull String... tags) {
+        ((ITaggableMeta) item).removeTags(tags);
     }
 
-    public static void removeTags(Item item, String... tags) {
+    public static void removeTags(@NonNull Item item, @NonNull String... tags) {
         removeTags(item, OreDictionary.WILDCARD_VALUE, tags);
+    }
+
+    public static void removeTags(@NonNull ItemStack stack, @NonNull String... tags) {
+        removeTags(stack.getItem(), stack.getItemDamage(), tags);
     }
 
     /// Get the tags for the passed in item. You can pass in a Block's ItemBlock, too.
     /// (Typically obtained through {@link Item#getItemFromBlock(Block)})
-    public static Set<String> getTags(Item item, int meta) {
-        return ((ITaggableBlockItem<ItemMetaPair>) item).getTags(meta);
+    public static Set<String> getTags(@NonNull Item item, int meta) {
+        return ((ITaggableMeta) item).getTags(meta);
     }
 
     public static boolean hasTag(@NonNull Item item, @NonNull String tag) {
@@ -57,10 +69,13 @@ public final class ItemTags {
         return getTags(item, meta).contains(tag);
     }
 
-    @ApiStatus.Internal
-    public static final Object2ObjectRBTreeMap<String, SetPair<String>> INHERITOR_TABLE = new Object2ObjectRBTreeMap<>();
-    @ApiStatus.Internal
-    public static final Object2ObjectAVLTreeMap<String, SetPair<ItemMetaPair>> REVERSE_LOOKUP_TABLE = new Object2ObjectAVLTreeMap<>();
+    public static boolean hasTag(@NonNull ItemStack stack, @NonNull String tag) {
+        return hasTag(stack.getItem(), stack.getItemDamage(), tag);
+    }
+
+    private static final Map<String, SetPair<ItemMetaPair>> REVERSE_LOOKUP_TABLE = new Object2ObjectOpenHashMap<>();
+    private static final InheritorContainer<ItemMetaPair> INHERITOR_CONTAINER =
+        new InheritorContainer<>(REVERSE_LOOKUP_TABLE, key -> getInTag((String) key));
 
     /// Get the items for the passed in tag via {@link ItemMetaPair} objects.
     ///
@@ -72,26 +87,14 @@ public final class ItemTags {
     }
 
     public static void addInheritors(String inheritor, String... toInherit) {
-        InheritorHelper.addInheritors(REVERSE_LOOKUP_TABLE, INHERITOR_TABLE, inheritor, toInherit);
-
-        for(String tag : ArrayUtils.add(toInherit, inheritor)) {
-            for (ItemMetaPair pair : getInTag(tag)) {
-                ((ITaggable<Item>) pair.get()).clearCaches();
-            }
-        }
+        INHERITOR_CONTAINER.addInheritors(inheritor, toInherit);
     }
 
     public static void removeInheritors(String inheritor, String... toRemove) {
-        for(String tag : ArrayUtils.add(toRemove, inheritor)) {
-            for (ItemMetaPair pair : getInTag(tag)) {
-                ((ITaggable<Item>) pair.get()).clearCaches();
-            }
-        }
-
-        InheritorHelper.removeInheritors(REVERSE_LOOKUP_TABLE, INHERITOR_TABLE, inheritor, toRemove);
+        INHERITOR_CONTAINER.removeInheritors(inheritor, toRemove);
     }
 
     public static Set<String> getInheritors(String tag) {
-        return INHERITOR_TABLE.get(tag).getLocked();
+        return INHERITOR_CONTAINER.getInherited(tag);
     }
 }

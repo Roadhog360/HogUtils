@@ -1,27 +1,31 @@
 package roadhog360.hogutils.api.hogtags.helpers;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectAVLTreeMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectRBTreeMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.NonNull;
 import net.minecraft.block.Block;
 import net.minecraftforge.oredict.OreDictionary;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.ApiStatus;
 import roadhog360.hogutils.api.blocksanditems.block.container.BlockMetaPair;
-import roadhog360.hogutils.api.hogtags.interfaces.ITaggable;
-import roadhog360.hogutils.api.hogtags.interfaces.ITaggableBlockItem;
+import roadhog360.hogutils.api.hogtags.containers.InheritorContainer;
+import roadhog360.hogutils.api.hogtags.containers.TagContainerMeta;
+import roadhog360.hogutils.api.hogtags.interfaces.ITaggableMeta;
 import roadhog360.hogutils.api.utils.SetPair;
 
+import java.util.Map;
 import java.util.Set;
 
 @SuppressWarnings({"unchecked", "unused"})
-public final class BlockTags {
+public final class BlockTags extends TagContainerMeta<Block, BlockMetaPair> {
+
     public static final String CONTAINER_ID = "minecraft:blocks";
+
+    public BlockTags(Block block) {
+        super(REVERSE_LOOKUP_TABLE, INHERITOR_CONTAINER, block);
+    }
 
     /// Adds the following tags to the specified block.
     public static void addTags(Block block, int meta, String... tags) {
-        ((ITaggableBlockItem<BlockMetaPair>) block).addTags(meta, tags);
+        ((ITaggableMeta) block).addTags(meta, tags);
     }
 
     public static void addTags(Block block, String... tags) {
@@ -34,7 +38,7 @@ public final class BlockTags {
     ///
     /// You can always use `/tags dump` to get a full dump of any tags registry, this one's id is `minecraft:blocks`.
     public static void removeTags(Block block, int meta, String... tags) {
-        ((ITaggableBlockItem<BlockMetaPair>) block).removeTags(meta, tags);
+        ((ITaggableMeta) block).removeTags(meta, tags);
     }
 
     public static void removeTags(Block block, String... tags) {
@@ -43,7 +47,11 @@ public final class BlockTags {
 
     /// Get the tags for the passed in block.
     public static Set<String> getTags(Block block, int meta) {
-        return ((ITaggableBlockItem<BlockMetaPair>) block).getTags(meta);
+        return ((ITaggableMeta) block).getTags(meta);
+    }
+
+    public static Set<String> getTags(Block block) {
+        return getTags(block, OreDictionary.WILDCARD_VALUE);
     }
 
     public static boolean hasTag(@NonNull Block item, @NonNull String tag) {
@@ -55,41 +63,31 @@ public final class BlockTags {
         return getTags(block, meta).contains(tag);
     }
 
-    @ApiStatus.Internal
-    public static final Object2ObjectRBTreeMap<String, SetPair<String>> INHERITOR_TABLE = new Object2ObjectRBTreeMap<>();
-    @ApiStatus.Internal
-    public static final Object2ObjectAVLTreeMap<String, SetPair<BlockMetaPair>> REVERSE_LOOKUP_TABLE = new Object2ObjectAVLTreeMap<>();
+    private static final Map<String, SetPair<BlockMetaPair>> REVERSE_LOOKUP_TABLE = new Object2ObjectOpenHashMap<>();
+    private static final InheritorContainer<BlockMetaPair> INHERITOR_CONTAINER =
+        new InheritorContainer<>(REVERSE_LOOKUP_TABLE, key -> getInTag((String) key));
 
     /// Get the blocks for the passed in tag via {@link BlockMetaPair} objects.
     ///
     /// {@link BlockMetaPair#get()} gets the {@link Block} object, whilst {@link BlockMetaPair#getMeta()} retrieves its metadata.
     /// This metadata can be {@link OreDictionary#WILDCARD_VALUE}, which means the tag is added to every metadata list of that item.
     /// The underlying object is a {@link Pair}, so {@link Pair#getLeft()} and {@link Pair#getRight()} respectively may also be used.
+    ///
+    /// If accessing the library via reflection and not via a compile dependency,
+    /// a downcast with ({@link Set}<{@link Pair}<{@link Block}, {@link Integer}>) can safely be used.
     public static Set<BlockMetaPair> getInTag(String tag) {
         return REVERSE_LOOKUP_TABLE.getOrDefault(tag, SetPair.getEmpty()).getLocked();
     }
 
     public static void addInheritors(String inheritor, String... toInherit) {
-        InheritorHelper.addInheritors(REVERSE_LOOKUP_TABLE, INHERITOR_TABLE, inheritor, toInherit);
-
-        for(String tag : ArrayUtils.add(toInherit, inheritor)) {
-            for (BlockMetaPair pair : getInTag(tag)) {
-                ((ITaggable<Block>) pair.get()).clearCaches();
-            }
-        }
+        INHERITOR_CONTAINER.addInheritors(inheritor, toInherit);
     }
 
     public static void removeInheritors(String inheritor, String... toRemove) {
-        for(String tag : ArrayUtils.add(toRemove, inheritor)) {
-            for (BlockMetaPair pair : getInTag(tag)) {
-                ((ITaggable<Block>) pair.get()).clearCaches();
-            }
-        }
-
-        InheritorHelper.removeInheritors(REVERSE_LOOKUP_TABLE, INHERITOR_TABLE, inheritor, toRemove);
+        INHERITOR_CONTAINER.removeInheritors(inheritor, toRemove);
     }
 
     public static Set<String> getInheritors(String tag) {
-        return INHERITOR_TABLE.get(tag).getLocked();
+        return INHERITOR_CONTAINER.getInherited(tag);
     }
 }

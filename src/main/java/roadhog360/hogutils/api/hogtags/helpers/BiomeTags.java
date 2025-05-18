@@ -1,11 +1,10 @@
 package roadhog360.hogutils.api.hogtags.helpers;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectAVLTreeMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectRBTreeMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.NonNull;
 import net.minecraft.world.biome.BiomeGenBase;
-import org.apache.commons.lang3.ArrayUtils;
-import org.jetbrains.annotations.ApiStatus;
+import roadhog360.hogutils.api.hogtags.containers.InheritorContainer;
+import roadhog360.hogutils.api.hogtags.containers.TagContainerBasic;
 import roadhog360.hogutils.api.hogtags.interfaces.ITaggable;
 import roadhog360.hogutils.api.utils.GenericUtils;
 import roadhog360.hogutils.api.utils.SetPair;
@@ -14,13 +13,17 @@ import java.util.Map;
 import java.util.Set;
 
 @SuppressWarnings({"unchecked", "unused"})
-public final class BiomeTags {
+public final class BiomeTags extends TagContainerBasic<BiomeGenBase> {
 
     public static final String CONTAINER_ID = "minecraft:worldgen/biome";
 
+    public BiomeTags(@NonNull BiomeGenBase containerObject) {
+        super(REVERSE_LOOKUP_TABLE, INHERITOR_CONTAINER, containerObject);
+    }
+
     /// Adds the following tags to the specified biome.
     public static void addTags(BiomeGenBase biome, String... tags) {
-        ((ITaggable<BiomeGenBase>) biome).addTags(tags);
+        ((ITaggable) biome).addTags(tags);
     }
 
     /// Adds the following tags to the specified biome via its ID.
@@ -34,7 +37,7 @@ public final class BiomeTags {
     ///
     /// You can always use `/tags dump` to get a full dump of any tags registry, this one's id is `minecraft:worldgen/biome`.
     public static void removeTags(BiomeGenBase biome, String... tags) {
-        ((ITaggable<BiomeGenBase>) biome).removeTags(tags);
+        ((ITaggable) biome).removeTags(tags);
     }
 
     /// Removes the following tags from the specified biome via its ID
@@ -48,7 +51,7 @@ public final class BiomeTags {
 
     /// Get the tags for the passed in biome.
     public static Set<String> getTags(BiomeGenBase biome) {
-        return ((ITaggable<BiomeGenBase>) biome).getTags();
+        return ((ITaggable) biome).getTags();
     }
 
     /// Get the tags for the passed in biome via its ID.
@@ -61,10 +64,9 @@ public final class BiomeTags {
         return getTags(biome).contains(tag);
     }
 
-    @ApiStatus.Internal
-    public static final Map<String, SetPair<String>> INHERITOR_TABLE = new Object2ObjectRBTreeMap<>();
-    @ApiStatus.Internal
-    public static final Map<String, SetPair<BiomeGenBase>> REVERSE_LOOKUP_TABLE = new Object2ObjectAVLTreeMap<>();
+    private static final Map<String, SetPair<BiomeGenBase>> REVERSE_LOOKUP_TABLE = new Object2ObjectOpenHashMap<>();
+    private static final InheritorContainer<BiomeGenBase> INHERITOR_CONTAINER =
+        new InheritorContainer<>(REVERSE_LOOKUP_TABLE, key -> getInTag((String) key));
 
     /// Get the {@link BiomeGenBase}s in this tag.
     public static Set<BiomeGenBase> getInTag(String tag) {
@@ -72,26 +74,14 @@ public final class BiomeTags {
     }
 
     public static void addInheritors(String inheritor, String... toInherit) {
-        InheritorHelper.addInheritors(REVERSE_LOOKUP_TABLE, INHERITOR_TABLE, inheritor, toInherit);
-
-        for(String tag : ArrayUtils.add(toInherit, inheritor)) {
-            for (BiomeGenBase biome : getInTag(tag)) {
-                ((ITaggable<BiomeGenBase>) biome).clearCaches();
-            }
-        }
+        INHERITOR_CONTAINER.addInheritors(inheritor, toInherit);
     }
 
     public static void removeInheritors(String inheritor, String... toRemove) {
-        for(String tag : ArrayUtils.add(toRemove, inheritor)) {
-            for (BiomeGenBase biome : getInTag(tag)) {
-                ((ITaggable<BiomeGenBase>) biome).clearCaches();
-            }
-        }
-
-        InheritorHelper.removeInheritors(REVERSE_LOOKUP_TABLE, INHERITOR_TABLE, inheritor, toRemove);
+        INHERITOR_CONTAINER.removeInheritors(inheritor, toRemove);
     }
 
     public static Set<String> getInheritors(String tag) {
-        return INHERITOR_TABLE.get(tag).getLocked();
+        return INHERITOR_CONTAINER.getInherited(tag);
     }
 }

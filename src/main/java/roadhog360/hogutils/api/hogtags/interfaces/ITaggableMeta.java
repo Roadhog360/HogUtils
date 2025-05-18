@@ -6,7 +6,7 @@ import net.minecraftforge.oredict.OreDictionary;
 
 import java.util.Set;
 
-public interface ITaggableBlockItem<ReturnType> extends ITaggable<ReturnType> {
+public interface ITaggableMeta extends ITaggable {
     /// Adds tags to the specified {@link Block} or {@link Item} this interface is implemented to.
     /// Assumes that {@link OreDictionary#WILDCARD_VALUE} should be the metadata passed in.
     default void addTags(String... tags) {

@@ -8,20 +8,24 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.ApiStatus;
 import roadhog360.hogutils.api.blocksanditems.block.container.BlockMetaPair;
 import roadhog360.hogutils.api.blocksanditems.item.container.ItemMetaPair;
+import roadhog360.hogutils.api.hogtags.interfaces.ITaggable;
+import roadhog360.hogutils.api.hogtags.interfaces.ITaggableMeta;
+
+import java.util.Set;
 
 /// Used as an easy way to make a container object for comparing block/item and meta instances.
 @ApiStatus.NonExtendable
-public class ObjMetaPair<T> extends Pair<T, Integer> implements IReferenceBase<T> {
-    private final T object;
+public class ObjMetaPair<BlockOrItem> extends Pair<BlockOrItem, Integer> implements IReferenceBase<BlockOrItem>, ITaggable {
+    private final BlockOrItem object;
     private final transient int meta;
 
-    public ObjMetaPair(T obj, int meta) {
+    public ObjMetaPair(BlockOrItem obj, int meta) {
         this.object = obj;
         this.meta = meta;
     }
 
     @Override
-    public T get() {
+    public BlockOrItem get() {
         return object;
     }
 
@@ -58,7 +62,7 @@ public class ObjMetaPair<T> extends Pair<T, Integer> implements IReferenceBase<T
     /// Should only be used when being fetched from a mod via reflection that doesn't have access to this class or its children.
     @Override
     @Deprecated
-    public T getLeft() {
+    public BlockOrItem getLeft() {
         return get();
     }
 
@@ -96,6 +100,7 @@ public class ObjMetaPair<T> extends Pair<T, Integer> implements IReferenceBase<T
     }
 
     /// Use {@link #newItemStack(int)} or {@link #newItemStack()} for ObjMetaPair.
+    /// Will ignore passed in meta as this pair already provides it.
     @Override
     @Deprecated
     public ItemStack newItemStack(int count, @Deprecated int meta) {
@@ -103,11 +108,31 @@ public class ObjMetaPair<T> extends Pair<T, Integer> implements IReferenceBase<T
     }
 
     @Override
-    public int compareTo(Pair<T, Integer> compare) {
+    public int compareTo(Pair<BlockOrItem, Integer> compare) {
         int result = Integer.compare(compare.getLeft().hashCode(), get().hashCode());
         if(result == 0) {
             return Integer.compare(compare.getRight(), getMeta());
         }
         return result;
+    }
+
+    @Override
+    public void addTags(String... tags) {
+        ((ITaggableMeta)object).addTags(meta, tags);
+    }
+
+    @Override
+    public void removeTags(String... tags) {
+        ((ITaggableMeta)object).removeTags(meta, tags);
+    }
+
+    @Override
+    public Set<String> getTags() {
+        return ((ITaggableMeta)object).getTags(meta);
+    }
+
+    @Override
+    public void clearCaches() {
+        ((ITaggableMeta)object).clearCaches();
     }
 }
