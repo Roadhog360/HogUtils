@@ -28,7 +28,32 @@ public abstract class TagContainerMeta<InputType, ReturnType extends ObjMetaPair
     protected final InputType taggable;
 
     protected final Int2ObjectOpenHashMap<Set<String>> tagTable = new Int2ObjectOpenHashMap<>();
-    protected final Int2ObjectOpenHashMap<Set<String>> lookupCache = new Int2ObjectOpenHashMap<>();
+    protected final Int2ObjectFunction<Set<String>> lookupContainer = new Int2ObjectFunction<>() {
+        private final Int2ObjectOpenHashMap<Set<String>> lookups = new Int2ObjectOpenHashMap<>();
+        private int lastAccessedMeta = Integer.MAX_VALUE;
+        private Set<String> lastAccessedList;
+        @Override
+        public Set<String> get(int key) {
+            if(key != lastAccessedMeta) {
+                lastAccessedMeta = key;
+                lastAccessedList = lookups.get(key);
+            }
+            return lastAccessedList;
+        }
+
+        @Override
+        public Set<String> put(int key, Set<String> value) {
+            return lookups.put(key, value);
+        }
+
+        @Override
+        public void clear() {
+            lastAccessedMeta = Integer.MAX_VALUE;
+            lastAccessedList = null;
+            lookups.clear();
+        }
+    };
+
     protected final Int2ObjectFunction<ReturnType> internFunction;
 
     @SuppressWarnings("unchecked")
@@ -41,7 +66,7 @@ public abstract class TagContainerMeta<InputType, ReturnType extends ObjMetaPair
         internFunction = blockOrItem instanceof Item item ? meta -> (ReturnType) ItemMetaPair.intern(item, meta)
             : blockOrItem instanceof Block block ? meta -> (ReturnType) BlockMetaPair.intern(block, meta) : null;
         if(internFunction == null) {
-            throw new RuntimeException();
+            throw new RuntimeException("internFunction was null!");
         }
     }
 
@@ -77,7 +102,7 @@ public abstract class TagContainerMeta<InputType, ReturnType extends ObjMetaPair
     }
 
     public synchronized Set<String> getTags(int meta) {
-        Set<String> lookupResult = lookupCache.get(meta);
+        Set<String> lookupResult = lookupContainer.get(meta);
         if(lookupResult != null) {
             return lookupResult;
         }
@@ -94,7 +119,7 @@ public abstract class TagContainerMeta<InputType, ReturnType extends ObjMetaPair
                     inheritorContainer.addInheritedRecursive(tag, finalTags);
                 }
 
-                lookupCache.put(meta, Collections.unmodifiableSet(finalTags));
+                lookupContainer.put(meta, Collections.unmodifiableSet(finalTags));
                 return finalTags;
             }
         }
@@ -111,6 +136,6 @@ public abstract class TagContainerMeta<InputType, ReturnType extends ObjMetaPair
     }
 
     public synchronized void clearCaches() {
-        lookupCache.clear();
+        lookupContainer.clear();
     }
 }
