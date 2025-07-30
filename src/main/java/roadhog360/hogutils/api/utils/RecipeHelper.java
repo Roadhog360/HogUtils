@@ -165,7 +165,7 @@ public final class RecipeHelper {
             if (object instanceof String) continue;
 
             if (object instanceof ItemStack stack) {
-                if (stack.getItem() != null || stack.getItem().delegate.name() != null) {
+                if (stack.getItem() != null && stack.getItem().delegate.name() != null) {
                     ISubtypesBase base = null;
                     if(stack.getItem() instanceof ISubtypesBase item) {
                         base = item;
