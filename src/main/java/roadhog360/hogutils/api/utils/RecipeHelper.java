@@ -161,28 +161,31 @@ public final class RecipeHelper {
     /// This is because we can't expect items and blocks to be finished rendering before that.
     public static boolean validateItems(Object... objects) {
         for (Object object : objects) {
-            if (object == null || object == Blocks.air) return false;
-            if (object instanceof String) continue;
+            if (object == null || object == Blocks.air) return false; //Object is null or air, assuming it is invalid, invalidate this recipe
+            if (object instanceof String) continue; //Object is string, ignore this and go to the next contents
 
-            if (object instanceof ItemStack stack) {
-                if (stack.getItem() != null && stack.getItem().delegate.name() != null) {
-                    ISubtypesBase base = null;
-                    if(stack.getItem() instanceof ISubtypesBase item) {
+            if (object instanceof ItemStack stack) { //Object is ItemStack, let's unpack the ItemStack to figure out what to do next
+                if (stack.getItem() != null && stack.getItem().delegate.name() != null) { //Check if the item inside is not null, then checks if it is registered (delegate name is not null)
+                    ISubtypesBase base;
+                    if(stack.getItem() instanceof ISubtypesBase item) { //Check for subtype item
                         base = item;
-                    } else if (Block.getBlockFromItem(stack.getItem()) instanceof ISubtypesBase block) {
+                    } else if (Block.getBlockFromItem(stack.getItem()) instanceof ISubtypesBase block) { //Check for subtype block
                         base = block;
+                    } else { //Does not use the subtypes system, but passed other checks. We're good.
+                        return true;
                     }
-                    return base != null && base.isMetadataEnabled(stack.getItemDamage());
+                    //It uses the subtypes system, the variant there will tell us if it should be enabled. If not, invalidate the recipe.
+                    return base.isMetadataEnabled(stack.getItemDamage());
                 }
             }
             if (object instanceof Item item) {
-                if (item.delegate.name() == null) {
-                    return false;
+                if (item.delegate.name() == null) { //Checks if it is registered (delegate name is not null)
+                    return false; //Not registered, so this recipe is not valid even though the item is not null.
                 }
             }
             if (object instanceof Block block) {
-                if (block.delegate.name() == null) {
-                    return false;
+                if (block.delegate.name() == null) { //Checks if it is registered (delegate name is not null)
+                    return false; //Not registered, so this recipe is not valid even though the block is not null.
                 }
             }
         }
