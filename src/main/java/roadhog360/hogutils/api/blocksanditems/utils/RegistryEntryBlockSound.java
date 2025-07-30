@@ -1,4 +1,4 @@
-package roadhog360.hogutils.api.blocksanditems.block.sound;
+package roadhog360.hogutils.api.blocksanditems.utils;
 
 import net.minecraft.block.Block;
 

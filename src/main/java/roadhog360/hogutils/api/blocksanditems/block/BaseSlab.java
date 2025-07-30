@@ -14,8 +14,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 import org.apache.commons.lang3.ArrayUtils;
-import roadhog360.hogutils.api.blocksanditems.BaseHelper;
-import roadhog360.hogutils.api.blocksanditems.block.registry.RegistryEntryBlockSlab;
+import roadhog360.hogutils.api.blocksanditems.utils.BaseHelper;
+import roadhog360.hogutils.api.blocksanditems.utils.RegistryEntryBlockSlab;
 import roadhog360.hogutils.api.utils.GenericUtils;
 
 import java.util.List;

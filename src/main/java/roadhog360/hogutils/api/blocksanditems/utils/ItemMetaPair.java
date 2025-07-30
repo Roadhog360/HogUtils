@@ -1,10 +1,10 @@
-package roadhog360.hogutils.api.blocksanditems.item.container;
+package roadhog360.hogutils.api.blocksanditems.utils;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.item.Item;
 import net.minecraftforge.oredict.OreDictionary;
-import roadhog360.hogutils.api.blocksanditems.ObjMetaPair;
+import roadhog360.hogutils.api.blocksanditems.utils.base.ObjMetaPair;
 
 import java.util.Map;
 

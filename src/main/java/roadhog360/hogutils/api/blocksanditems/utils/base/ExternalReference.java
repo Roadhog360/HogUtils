@@ -1,6 +1,7 @@
-package roadhog360.hogutils.api.blocksanditems;
+package roadhog360.hogutils.api.blocksanditems.utils.base;
 
 import cpw.mods.fml.common.registry.GameRegistry;
+import roadhog360.hogutils.api.blocksanditems.IReferenceBase;
 import roadhog360.hogutils.api.utils.RecipeHelper;
 
 import java.util.function.Supplier;

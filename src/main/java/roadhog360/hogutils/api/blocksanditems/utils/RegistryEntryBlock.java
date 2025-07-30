@@ -1,4 +1,4 @@
-package roadhog360.hogutils.api.blocksanditems.block.registry;
+package roadhog360.hogutils.api.blocksanditems.utils;
 
 import cpw.mods.fml.common.registry.GameRegistry;
 import lombok.NonNull;
@@ -6,9 +6,9 @@ import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import org.jetbrains.annotations.Nullable;
-import roadhog360.hogutils.api.blocksanditems.RegistryEntry;
 import roadhog360.hogutils.api.blocksanditems.block.*;
 import roadhog360.hogutils.api.blocksanditems.block.itemblock.*;
+import roadhog360.hogutils.api.blocksanditems.utils.base.RegistryEntry;
 
 public class RegistryEntryBlock extends RegistryEntry<Block> {
     /**

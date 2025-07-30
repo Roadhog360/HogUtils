@@ -1,8 +1,8 @@
-package roadhog360.hogutils.api.blocksanditems.item.registry;
+package roadhog360.hogutils.api.blocksanditems.utils;
 
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.item.Item;
-import roadhog360.hogutils.api.blocksanditems.RegistryEntry;
+import roadhog360.hogutils.api.blocksanditems.utils.base.RegistryEntry;
 
 public class RegistryEntryItem extends RegistryEntry<Item> {
     protected RegistryEntryItem(String name, boolean isEnabled, Item object) {

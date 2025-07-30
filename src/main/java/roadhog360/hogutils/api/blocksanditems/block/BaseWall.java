@@ -13,7 +13,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
-import roadhog360.hogutils.api.blocksanditems.BaseHelper;
+import roadhog360.hogutils.api.blocksanditems.utils.BaseHelper;
 import roadhog360.hogutils.api.utils.GenericUtils;
 
 import java.util.List;

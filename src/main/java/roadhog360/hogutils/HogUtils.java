@@ -5,10 +5,14 @@ import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.*;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraftforge.common.BiomeDictionary;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import roadhog360.hogutils.api.hogtags.helpers.BiomeTags;
 import roadhog360.hogutils.proxy.CommonProxy;
 
 import java.util.Map;
@@ -30,13 +34,9 @@ public class HogUtils {
 
     @Mod.EventHandler
     public void onConstructing(FMLConstructionEvent event) {
+        System.out.println(Blocks.stained_glass.delegate.name());
         proxy.onConstructing(event);
-        // Set up registry replacement detection to transfer the tags to the replacement biome
-//        for(BiomeGenBase biome : BiomeGenBase.getBiomeGenArray()) {
-//            if(biome.getClass().getName().startsWith("net.minecraft.world.Biome")) {
-//                vanillaBiomes.put(biome, biome.biomeID);
-//            }
-//        }
+        listenForRegistryReplacement();
     }
 
     @Mod.EventHandler
@@ -50,7 +50,7 @@ public class HogUtils {
     // load "Do your mod setup. Build whatever data structures you care about. Register recipes." (Remove if not needed)
     public void init(FMLInitializationEvent event) {
         proxy.init(event);
-        registerTags();
+        registerBiomeTags();
     }
 
     @Mod.EventHandler
@@ -77,32 +77,45 @@ public class HogUtils {
 
     //TODO: Register more tags via these functions
 
-    public void registerTags() {
-//        HogTags.BiomeTags.addInheritors("c:is_dry", "c:is_dry/nether", "c:is_dry/end", "c:is_dry/overworld");
-//        TODO: The above is now backwards; when uncommented it needs to be flipped
-//
-//        for(BiomeGenBase biome : BiomeGenBase.getBiomeGenArray()) {
-//            BiomeDictionary.Type[] types = BiomeDictionary.getTypesForBiome(biome);
-//            if(ArrayUtils.contains(types, NETHER)) {
-//                HogTags.BiomeTags.addTags(biome, "c:is_nether");
-//                continue;
-//            }
-//            if(ArrayUtils.contains(types, END)) {
-//                HogTags.BiomeTags.addTags(biome, "c:is_end");
-//                continue;
-//            }
-//        }
+    public void registerBiomeTags() {
+        BiomeTags.addInheritors("c:is_dry/end", "c:is_dry");
+        BiomeTags.addInheritors("c:is_dry/nether", "c:is_dry");
+        BiomeTags.addInheritors("c:is_dry/overworld", "c:is_dry");
+
+        for(BiomeGenBase biome : BiomeGenBase.getBiomeGenArray()) {
+            if(biome != null) {
+                BiomeDictionary.Type[] types = BiomeDictionary.getTypesForBiome(biome);
+                if (ArrayUtils.contains(types, BiomeDictionary.Type.NETHER)) {
+                    BiomeTags.addTags(biome, "c:is_nether");
+                    continue;
+                }
+                if (ArrayUtils.contains(types, BiomeDictionary.Type.END)) {
+                    BiomeTags.addTags(biome, "c:is_end");
+                    continue;
+                }
+            }
+        }
+    }
+
+    private void listenForRegistryReplacement() {
+//         Set up registry replacement detection to transfer the tags to the replacement biome
+        for(BiomeGenBase biome : BiomeGenBase.getBiomeGenArray()) {
+            if(biome != null && biome.getClass().getName().startsWith("net.minecraft.world.Biome")) {
+                vanillaBiomes.put(biome, biome.biomeID);
+            }
+        }
     }
 
     /// Finds biomes that have been registry replaced by a mod and transfer all the tags to the new one
     private void detectBiomeRegistryReplacement() {
-//        for(Map.Entry<BiomeGenBase, Integer> biome : vanillaBiomes.entrySet()) {
-//            if(BiomeGenBase.getBiomeGenArray()[biome.getValue()] != biome.getKey()) {
-//                LOG.info("A mod has registry replaced the biome " + biome.getKey().biomeName + ", transferring tags over...");
-//                String[] tags = HogTags.BiomeTags.getTags(biome.getKey()).toArray(new String[]{});
-//                HogTags.BiomeTags.addTags(BiomeGenBase.getBiomeGenArray()[biome.getValue()], tags);
-//            }
-//        }
+        for(Map.Entry<BiomeGenBase, Integer> biome : vanillaBiomes.entrySet()) {
+            if(BiomeGenBase.getBiomeGenArray()[biome.getValue()] != biome.getKey()) {
+                LOG.info("A mod has registry replaced the biome " + biome.getKey().biomeName + ", transferring tags over to "
+                    + BiomeGenBase.getBiomeGenArray()[biome.getValue()].getClass() + " from " + biome.getKey().getClass() + "...");
+                String[] tags = BiomeTags.getTags(biome.getKey()).toArray(new String[]{});
+                BiomeTags.addTags(BiomeGenBase.getBiomeGenArray()[biome.getValue()], tags);
+            }
+        }
     }
 
     public static void registerTagDynamicBlock(Block block) {

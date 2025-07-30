@@ -9,9 +9,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.common.util.ForgeDirection;
 import org.jetbrains.annotations.Nullable;
-import roadhog360.hogutils.api.blocksanditems.BaseHelper;
 import roadhog360.hogutils.api.blocksanditems.IItemAndBlockBase;
-import roadhog360.hogutils.api.blocksanditems.block.sound.IMultiBlockSound;
+import roadhog360.hogutils.api.blocksanditems.utils.BaseHelper;
 import roadhog360.hogutils.api.world.DummyWorld;
 
 public class BaseStairsCopy extends BlockStairs implements IItemAndBlockBase {

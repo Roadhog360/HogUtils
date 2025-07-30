@@ -1,4 +1,4 @@
-package roadhog360.hogutils.api.blocksanditems;
+package roadhog360.hogutils.api.blocksanditems.utils.base;
 
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
@@ -6,8 +6,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.ApiStatus;
-import roadhog360.hogutils.api.blocksanditems.block.container.BlockMetaPair;
-import roadhog360.hogutils.api.blocksanditems.item.container.ItemMetaPair;
+import roadhog360.hogutils.api.blocksanditems.IReferenceBase;
+import roadhog360.hogutils.api.blocksanditems.utils.BlockMetaPair;
+import roadhog360.hogutils.api.blocksanditems.utils.ItemMetaPair;
 import roadhog360.hogutils.api.hogtags.interfaces.ITaggable;
 import roadhog360.hogutils.api.hogtags.interfaces.ITaggableMeta;
 

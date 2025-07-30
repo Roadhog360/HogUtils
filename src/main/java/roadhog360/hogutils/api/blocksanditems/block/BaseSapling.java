@@ -14,7 +14,7 @@ import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.feature.WorldGenerator;
 import net.minecraftforge.event.terraingen.TerrainGen;
-import roadhog360.hogutils.api.blocksanditems.BaseHelper;
+import roadhog360.hogutils.api.blocksanditems.utils.BaseHelper;
 import roadhog360.hogutils.api.utils.WeighedRandomList;
 
 import java.util.List;

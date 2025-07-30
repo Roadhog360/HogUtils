@@ -15,7 +15,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.client.event.sound.PlaySoundEvent17;
 import net.minecraftforge.event.entity.PlaySoundAtEntityEvent;
 import roadhog360.hogutils.api.blocksanditems.block.ICustomActivateSound;
-import roadhog360.hogutils.api.blocksanditems.block.sound.IMultiBlockSound;
+import roadhog360.hogutils.api.blocksanditems.block.IMultiBlockSound;
 import roadhog360.hogutils.api.event.IUnfinalizedSoundEvent;
 
 public final class MultiBlockSoundEventHandler {

@@ -12,7 +12,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.common.util.ForgeDirection;
-import roadhog360.hogutils.api.blocksanditems.BaseHelper;
+import roadhog360.hogutils.api.blocksanditems.utils.BaseHelper;
 
 import java.util.List;
 import java.util.Map;

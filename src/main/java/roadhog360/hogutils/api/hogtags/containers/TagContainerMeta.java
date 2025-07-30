@@ -9,9 +9,9 @@ import net.minecraft.item.Item;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.ApiStatus;
-import roadhog360.hogutils.api.blocksanditems.ObjMetaPair;
-import roadhog360.hogutils.api.blocksanditems.block.container.BlockMetaPair;
-import roadhog360.hogutils.api.blocksanditems.item.container.ItemMetaPair;
+import roadhog360.hogutils.api.blocksanditems.utils.BlockMetaPair;
+import roadhog360.hogutils.api.blocksanditems.utils.ItemMetaPair;
+import roadhog360.hogutils.api.blocksanditems.utils.base.ObjMetaPair;
 import roadhog360.hogutils.api.hogtags.helpers.MiscHelpers;
 import roadhog360.hogutils.api.utils.SetPair;
 

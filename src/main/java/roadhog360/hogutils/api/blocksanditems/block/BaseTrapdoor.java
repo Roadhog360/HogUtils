@@ -3,8 +3,8 @@ package roadhog360.hogutils.api.blocksanditems.block;
 import net.minecraft.block.BlockTrapDoor;
 import net.minecraft.block.material.Material;
 import net.minecraft.world.IBlockAccess;
-import roadhog360.hogutils.api.blocksanditems.BaseHelper;
 import roadhog360.hogutils.api.blocksanditems.IItemAndBlockBase;
+import roadhog360.hogutils.api.blocksanditems.utils.BaseHelper;
 import roadhog360.hogutils.api.client.renderer.block.BlockRenderers;
 
 public abstract class BaseTrapdoor extends BlockTrapDoor implements IItemAndBlockBase {

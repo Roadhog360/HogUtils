@@ -10,8 +10,8 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
-import roadhog360.hogutils.api.blocksanditems.BaseHelper;
 import roadhog360.hogutils.api.blocksanditems.IItemAndBlockBase;
+import roadhog360.hogutils.api.blocksanditems.utils.BaseHelper;
 import roadhog360.hogutils.api.client.renderer.block.BlockRenderers;
 
 import java.util.Random;

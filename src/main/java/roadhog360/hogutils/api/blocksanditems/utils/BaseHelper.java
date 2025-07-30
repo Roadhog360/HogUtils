@@ -1,4 +1,4 @@
-package roadhog360.hogutils.api.blocksanditems;
+package roadhog360.hogutils.api.blocksanditems.utils;
 
 import lombok.NonNull;
 import net.minecraft.block.Block;

@@ -3,7 +3,7 @@ package roadhog360.hogutils.api.hogtags;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.item.ItemStack;
 import roadhog360.hogutils.api.blocksanditems.IReferenceBase;
-import roadhog360.hogutils.api.blocksanditems.item.container.ItemMetaPair;
+import roadhog360.hogutils.api.blocksanditems.utils.ItemMetaPair;
 import roadhog360.hogutils.api.hogtags.helpers.ItemTags;
 
 import java.util.List;

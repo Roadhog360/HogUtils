@@ -165,7 +165,7 @@ public final class RecipeHelper {
             if (object instanceof String) continue;
 
             if (object instanceof ItemStack stack) {
-                if (stack.getItem() == null || Item.itemRegistry.getNameForObject(stack.getItem()) == null) {
+                if (stack.getItem() != null || stack.getItem().delegate.name() != null) {
                     ISubtypesBase base = null;
                     if(stack.getItem() instanceof ISubtypesBase item) {
                         base = item;
@@ -175,13 +175,13 @@ public final class RecipeHelper {
                     return base != null && base.isMetadataEnabled(stack.getItemDamage());
                 }
             }
-            if (object instanceof Item) {
-                if (Item.itemRegistry.getNameForObject(object) == null) {
+            if (object instanceof Item item) {
+                if (item.delegate.name() == null) {
                     return false;
                 }
             }
-            if (object instanceof Block) {
-                if (Block.blockRegistry.getNameForObject(object) == null) {
+            if (object instanceof Block block) {
+                if (block.delegate.name() == null) {
                     return false;
                 }
             }

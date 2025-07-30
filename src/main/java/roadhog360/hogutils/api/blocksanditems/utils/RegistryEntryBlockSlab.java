@@ -1,4 +1,4 @@
-package roadhog360.hogutils.api.blocksanditems.block.registry;
+package roadhog360.hogutils.api.blocksanditems.utils;
 
 import cpw.mods.fml.common.registry.GameRegistry;
 import lombok.SneakyThrows;

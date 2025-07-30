@@ -7,13 +7,14 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.tuple.Pair;
-import roadhog360.hogutils.api.blocksanditems.item.container.ItemMetaPair;
+import roadhog360.hogutils.api.blocksanditems.utils.ItemMetaPair;
 import roadhog360.hogutils.api.hogtags.containers.InheritorContainer;
 import roadhog360.hogutils.api.hogtags.containers.TagContainerMeta;
 import roadhog360.hogutils.api.hogtags.interfaces.ITaggableMeta;
 import roadhog360.hogutils.api.utils.SetPair;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 @SuppressWarnings({"unused"})
@@ -26,6 +27,9 @@ public final class ItemTags extends TagContainerMeta<Item, ItemMetaPair> {
 
     /// Adds the following tags to the specified item.
     public static void addTags(@NonNull Item item, int meta, @NonNull String... tags) {
+        if(tags.length == 0) {
+            throw new IllegalArgumentException("Cannot add 0 tags to an item. Varargs brain fart? Tried to add 0 tags to " + item);
+        }
         ((ITaggableMeta) item).addTags(tags);
     }
 
@@ -43,6 +47,9 @@ public final class ItemTags extends TagContainerMeta<Item, ItemMetaPair> {
     ///
     /// You can always use `/tags dump` to get a full dump of any tags registry, this one's id is `minecraft:items`.
     public static void removeTags(@NonNull Item item, int meta, @NonNull String... tags) {
+        if(tags.length == 0) {
+            throw new IllegalArgumentException("Cannot remove 0 tags from an item. Varargs brain fart? Tried to remove 0 tags from " + item);
+        }
         ((ITaggableMeta) item).removeTags(tags);
     }
 
@@ -51,7 +58,7 @@ public final class ItemTags extends TagContainerMeta<Item, ItemMetaPair> {
     }
 
     public static void removeTags(@NonNull ItemStack stack, @NonNull String... tags) {
-        removeTags(stack.getItem(), stack.getItemDamage(), tags);
+        removeTags(Objects.requireNonNull(stack.getItem()), stack.getItemDamage(), tags);
     }
 
     /// Get the tags for the passed in item. You can pass in a Block's ItemBlock, too.
@@ -70,7 +77,7 @@ public final class ItemTags extends TagContainerMeta<Item, ItemMetaPair> {
     }
 
     public static boolean hasTag(@NonNull ItemStack stack, @NonNull String tag) {
-        return hasTag(stack.getItem(), stack.getItemDamage(), tag);
+        return hasTag(Objects.requireNonNull(stack.getItem()), stack.getItemDamage(), tag);
     }
 
     private static final Map<String, SetPair<ItemMetaPair>> REVERSE_LOOKUP_TABLE = new Object2ObjectOpenHashMap<>();
@@ -86,15 +93,15 @@ public final class ItemTags extends TagContainerMeta<Item, ItemMetaPair> {
         return REVERSE_LOOKUP_TABLE.getOrDefault(tag, SetPair.getEmpty()).getLocked();
     }
 
-    public static void addInheritors(String inheritor, String... toInherit) {
+    public static void addInheritors(@NonNull String inheritor, @NonNull String... toInherit) {
         INHERITOR_CONTAINER.addInheritors(inheritor, toInherit);
     }
 
-    public static void removeInheritors(String inheritor, String... toRemove) {
+    public static void removeInheritors(String inheritor, @NonNull String... toRemove) {
         INHERITOR_CONTAINER.removeInheritors(inheritor, toRemove);
     }
 
-    public static Set<String> getInheritors(String tag) {
+    public static Set<String> getInheritors(@NonNull String tag) {
         return INHERITOR_CONTAINER.getInherited(tag);
     }
 }

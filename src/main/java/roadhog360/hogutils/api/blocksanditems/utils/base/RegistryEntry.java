@@ -1,4 +1,6 @@
-package roadhog360.hogutils.api.blocksanditems;
+package roadhog360.hogutils.api.blocksanditems.utils.base;
+
+import roadhog360.hogutils.api.blocksanditems.IReferenceBase;
 
 import java.util.Collection;
 

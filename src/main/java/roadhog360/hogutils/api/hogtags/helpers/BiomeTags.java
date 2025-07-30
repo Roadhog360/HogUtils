@@ -22,12 +22,15 @@ public final class BiomeTags extends TagContainerBasic<BiomeGenBase> {
     }
 
     /// Adds the following tags to the specified biome.
-    public static void addTags(BiomeGenBase biome, String... tags) {
+    public static void addTags(@NonNull BiomeGenBase biome, @NonNull String... tags) {
+        if(tags.length == 0) {
+            throw new IllegalArgumentException("Cannot add 0 tags to a biome. Varargs brain fart? Tried to add 0 tags to " + biome);
+        }
         ((ITaggable) biome).addTags(tags);
     }
 
     /// Adds the following tags to the specified biome via its ID.
-    public static void addTags(int id, String... tags) {
+    public static void addTags(int id, @NonNull String... tags) {
         addTags(GenericUtils.getBiomeFromID(id));
     }
 
@@ -36,7 +39,10 @@ public final class BiomeTags extends TagContainerBasic<BiomeGenBase> {
     /// It may also be present in multiple lists in the inheritance tree.
     ///
     /// You can always use `/tags dump` to get a full dump of any tags registry, this one's id is `minecraft:worldgen/biome`.
-    public static void removeTags(BiomeGenBase biome, String... tags) {
+    public static void removeTags(@NonNull BiomeGenBase biome, @NonNull String... tags) {
+        if(tags.length == 0) {
+            throw new IllegalArgumentException("Cannot remove 0 tags from a biome. Varargs brain fart? Tried to remove 0 tags from " + biome);
+        }
         ((ITaggable) biome).removeTags(tags);
     }
 
@@ -45,12 +51,12 @@ public final class BiomeTags extends TagContainerBasic<BiomeGenBase> {
     /// It may also be present in multiple lists in the inheritance tree.
     ///
     /// You can always use `/tags dump` to get a full dump of any tags registry, this one's id is `minecraft:worldgen/biome`.
-    public static void removeTags(int id, String... tags) {
+    public static void removeTags(int id, @NonNull String... tags) {
         removeTags(GenericUtils.getBiomeFromID(id), tags);
     }
 
     /// Get the tags for the passed in biome.
-    public static Set<String> getTags(BiomeGenBase biome) {
+    public static Set<String> getTags(@NonNull BiomeGenBase biome) {
         return ((ITaggable) biome).getTags();
     }
 
@@ -69,19 +75,19 @@ public final class BiomeTags extends TagContainerBasic<BiomeGenBase> {
         new InheritorContainer<>(REVERSE_LOOKUP_TABLE, key -> getInTag((String) key));
 
     /// Get the {@link BiomeGenBase}s in this tag.
-    public static Set<BiomeGenBase> getInTag(String tag) {
+    public static Set<BiomeGenBase> getInTag(@NonNull String tag) {
         return REVERSE_LOOKUP_TABLE.getOrDefault(tag, SetPair.getEmpty()).getLocked();
     }
 
-    public static void addInheritors(String inheritor, String... toInherit) {
+    public static void addInheritors(@NonNull String inheritor, @NonNull String... toInherit) {
         INHERITOR_CONTAINER.addInheritors(inheritor, toInherit);
     }
 
-    public static void removeInheritors(String inheritor, String... toRemove) {
+    public static void removeInheritors(@NonNull String inheritor, @NonNull String... toRemove) {
         INHERITOR_CONTAINER.removeInheritors(inheritor, toRemove);
     }
 
-    public static Set<String> getInheritors(String tag) {
+    public static Set<String> getInheritors(@NonNull String tag) {
         return INHERITOR_CONTAINER.getInherited(tag);
     }
 }

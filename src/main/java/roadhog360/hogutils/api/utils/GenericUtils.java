@@ -21,7 +21,7 @@ import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
-import roadhog360.hogutils.api.blocksanditems.block.container.BlockMetaPair;
+import roadhog360.hogutils.api.blocksanditems.utils.BlockMetaPair;
 import roadhog360.hogutils.api.world.DummyWorld;
 import roadhog360.hogutils.core.ModsList;
 

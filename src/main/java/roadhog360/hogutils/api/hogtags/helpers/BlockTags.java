@@ -5,7 +5,7 @@ import lombok.NonNull;
 import net.minecraft.block.Block;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.tuple.Pair;
-import roadhog360.hogutils.api.blocksanditems.block.container.BlockMetaPair;
+import roadhog360.hogutils.api.blocksanditems.utils.BlockMetaPair;
 import roadhog360.hogutils.api.hogtags.containers.InheritorContainer;
 import roadhog360.hogutils.api.hogtags.containers.TagContainerMeta;
 import roadhog360.hogutils.api.hogtags.interfaces.ITaggableMeta;
@@ -19,16 +19,19 @@ public final class BlockTags extends TagContainerMeta<Block, BlockMetaPair> {
 
     public static final String CONTAINER_ID = "minecraft:blocks";
 
-    public BlockTags(Block block) {
+    public BlockTags(@NonNull Block block) {
         super(REVERSE_LOOKUP_TABLE, INHERITOR_CONTAINER, block);
     }
 
     /// Adds the following tags to the specified block.
-    public static void addTags(Block block, int meta, String... tags) {
+    public static void addTags(@NonNull Block block, int meta, @NonNull String... tags) {
+        if(tags.length == 0) {
+            throw new IllegalArgumentException("Cannot add 0 tags to a block. Varargs brain fart? Tried to add 0 tags to " + block);
+        }
         ((ITaggableMeta) block).addTags(meta, tags);
     }
 
-    public static void addTags(Block block, String... tags) {
+    public static void addTags(@NonNull Block block, @NonNull String... tags) {
         addTags(block, OreDictionary.WILDCARD_VALUE, tags);
     }
 
@@ -37,20 +40,23 @@ public final class BlockTags extends TagContainerMeta<Block, BlockMetaPair> {
     /// It may also be present in multiple lists in the inheritance tree.
     ///
     /// You can always use `/tags dump` to get a full dump of any tags registry, this one's id is `minecraft:blocks`.
-    public static void removeTags(Block block, int meta, String... tags) {
+    public static void removeTags(@NonNull Block block, int meta, @NonNull String... tags) {
         ((ITaggableMeta) block).removeTags(meta, tags);
     }
 
-    public static void removeTags(Block block, String... tags) {
+    public static void removeTags(@NonNull Block block, @NonNull String... tags) {
+        if(tags.length == 0) {
+            throw new IllegalArgumentException("Cannot remove 0 tags from a block. Varargs brain fart? Tried to remove 0 tags from " + block);
+        }
         removeTags(block, OreDictionary.WILDCARD_VALUE, tags);
     }
 
     /// Get the tags for the passed in block.
-    public static Set<String> getTags(Block block, int meta) {
+    public static Set<String> getTags(@NonNull Block block, int meta) {
         return ((ITaggableMeta) block).getTags(meta);
     }
 
-    public static Set<String> getTags(Block block) {
+    public static Set<String> getTags(@NonNull Block block) {
         return getTags(block, OreDictionary.WILDCARD_VALUE);
     }
 
@@ -75,19 +81,19 @@ public final class BlockTags extends TagContainerMeta<Block, BlockMetaPair> {
     ///
     /// If accessing the library via reflection and not via a compile dependency,
     /// a downcast with ({@link Set}<{@link Pair}<{@link Block}, {@link Integer}>) can safely be used.
-    public static Set<BlockMetaPair> getInTag(String tag) {
+    public static Set<BlockMetaPair> getInTag(@NonNull String tag) {
         return REVERSE_LOOKUP_TABLE.getOrDefault(tag, SetPair.getEmpty()).getLocked();
     }
 
-    public static void addInheritors(String inheritor, String... toInherit) {
+    public static void addInheritors(@NonNull String inheritor, @NonNull String... toInherit) {
         INHERITOR_CONTAINER.addInheritors(inheritor, toInherit);
     }
 
-    public static void removeInheritors(String inheritor, String... toRemove) {
+    public static void removeInheritors(@NonNull String inheritor, @NonNull String... toRemove) {
         INHERITOR_CONTAINER.removeInheritors(inheritor, toRemove);
     }
 
-    public static Set<String> getInheritors(String tag) {
+    public static Set<String> getInheritors(@NonNull String tag) {
         return INHERITOR_CONTAINER.getInherited(tag);
     }
 }

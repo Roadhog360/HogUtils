@@ -16,8 +16,8 @@ import net.minecraft.world.storage.IPlayerFileData;
 import net.minecraft.world.storage.ISaveHandler;
 import net.minecraft.world.storage.WorldInfo;
 import roadhog360.hogutils.api.BlockPos;
-import roadhog360.hogutils.api.blocksanditems.ObjMetaPair;
-import roadhog360.hogutils.api.blocksanditems.block.container.BlockMetaPair;
+import roadhog360.hogutils.api.blocksanditems.utils.BlockMetaPair;
+import roadhog360.hogutils.api.blocksanditems.utils.base.ObjMetaPair;
 import roadhog360.hogutils.api.utils.FastRandom;
 
 import java.io.File;
