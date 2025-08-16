@@ -31,9 +31,6 @@ public class HogUtilsEarlyMixins implements IFMLLoadingPlugin, IEarlyMixinLoader
         mixins.add("hogtags.MixinItem");
         mixins.add("hogtags.MixinBiomeGenBase");
 
-        // SetBlockSniper
-        mixins.add("setblocksniper.MixinChunk");
-
         // Custom events
         mixins.add("event.MixinWorld");
         mixins.add("event.MixinPlaySoundAtEntityEvent");
