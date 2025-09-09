@@ -1,5 +1,6 @@
 package roadhog360.hogutils.api.hogtags.helpers;
 
+import cpw.mods.fml.common.registry.GameRegistry;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import lombok.NonNull;
 import net.minecraft.block.Block;
@@ -9,6 +10,7 @@ import roadhog360.hogutils.api.blocksanditems.utils.BlockMetaPair;
 import roadhog360.hogutils.api.hogtags.containers.InheritorContainer;
 import roadhog360.hogutils.api.hogtags.containers.TagContainerMeta;
 import roadhog360.hogutils.api.hogtags.interfaces.ITaggableMeta;
+import roadhog360.hogutils.api.utils.RecipeHelper;
 import roadhog360.hogutils.api.utils.SetPair;
 
 import java.util.Map;
@@ -28,11 +30,24 @@ public final class BlockTags extends TagContainerMeta<Block, BlockMetaPair> {
         if(tags.length == 0) {
             throw new IllegalArgumentException("Cannot add 0 tags to a block. Varargs brain fart? Tried to add 0 tags to " + block);
         }
-        ((ITaggableMeta) block).addTags(meta, tags);
+        if(RecipeHelper.validateItems(block)) {
+            ((ITaggableMeta) block).addTags(meta, tags);
+        }
     }
 
     public static void addTags(@NonNull Block block, @NonNull String... tags) {
         addTags(block, OreDictionary.WILDCARD_VALUE, tags);
+    }
+
+    public static void addTagsByID(@NonNull String modid, @NonNull String name, int meta, @NonNull String... tags) {
+        Block block = GameRegistry.findBlock(modid, name);
+        if(block != null) {
+            addTags(block, meta, tags);
+        }
+    }
+
+    public static void addTagsByID(@NonNull String modid, @NonNull String name, @NonNull String... tags) {
+        addTagsByID(modid, name, OreDictionary.WILDCARD_VALUE, tags);
     }
 
     /// Removes the following tags from the specified block.
