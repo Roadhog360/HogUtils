@@ -158,7 +158,7 @@ public final class RecipeHelper {
 
     /// Checks if the objects actually exist in the item/block registry, returns false if any of them are not registered.
     /// Useful for registering recipes and stuff, but will only really work after preInit.
-    /// This is because we can't expect items and blocks to be finished rendering before that.
+    /// This is because we can't expect items and blocks to be finished registering before that.
     public static boolean validateItems(Object... objects) {
         for (Object object : objects) {
             if (object == null || object == Blocks.air) return false; //Object is null or air, assuming it is invalid, invalidate this recipe
@@ -176,6 +176,8 @@ public final class RecipeHelper {
                     }
                     //It uses the subtypes system, the variant there will tell us if it should be enabled. If not, invalidate the recipe.
                     return base.isMetadataEnabled(stack.getItemDamage());
+                } else {
+                    return false; // The containing item was null, or it was not registered.
                 }
             }
             if (object instanceof Item item) {
