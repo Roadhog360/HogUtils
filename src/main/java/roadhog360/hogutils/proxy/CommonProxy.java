@@ -1,7 +1,6 @@
 package roadhog360.hogutils.proxy;
 
 import cpw.mods.fml.common.event.*;
-import me.mrnavastar.r.R;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraftforge.common.MinecraftForge;
@@ -14,9 +13,9 @@ import java.util.Map;
 public class CommonProxy {
 
     @SuppressWarnings("unchecked")
-    Map<String, Block> mapBlocks = (Map<String, Block>) R.of(Block.blockRegistry).get("registryObjects", Map.class);
+    Map<String, Block> mapBlocks = Block.blockRegistry.registryObjects;
     @SuppressWarnings("unchecked")
-    Map<String, Item> mapItems = (Map<String, Item>) R.of(Item.itemRegistry).get("registryObjects", Map.class);
+    Map<String, Item> mapItems = Item.itemRegistry.registryObjects;
 
     public void onConstructing(FMLConstructionEvent event) {
         MinecraftForge.EVENT_BUS.register(RegistryIterateEventHandler.INSTANCE);
