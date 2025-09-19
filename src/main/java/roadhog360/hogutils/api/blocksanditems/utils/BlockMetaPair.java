@@ -1,6 +1,6 @@
 package roadhog360.hogutils.api.blocksanditems.utils;
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectArrayMap;
 import net.minecraft.block.Block;
 import net.minecraftforge.oredict.OreDictionary;
@@ -13,7 +13,7 @@ public class BlockMetaPair extends ObjMetaPair<Block> {
         super(obj, meta);
     }
 
-    private static final Map<Block, Int2ObjectArrayMap<BlockMetaPair>> INTERNER = new Reference2ObjectArrayMap<>();
+    private static final Map<Block, Int2ObjectOpenHashMap<BlockMetaPair>> INTERNER = new Reference2ObjectArrayMap<>();
     private static BlockMetaPair LAST_INTERNED;
 
     @SuppressWarnings("unchecked")
@@ -22,7 +22,7 @@ public class BlockMetaPair extends ObjMetaPair<Block> {
             return LAST_INTERNED;
         }
 
-        return LAST_INTERNED = INTERNER.computeIfAbsent(block, o -> new Int2ObjectArrayMap<>())
+        return LAST_INTERNED = INTERNER.computeIfAbsent(block, o -> new Int2ObjectOpenHashMap<>())
             .computeIfAbsent(meta, o -> new BlockMetaPair(block, meta));
     }
 
