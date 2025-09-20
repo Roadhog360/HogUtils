@@ -15,15 +15,10 @@ public class ItemMetaPair extends ObjMetaPair<Item> {
 
 
     private static final Map<Item, Int2ObjectOpenHashMap<ItemMetaPair>> INTERNER = new Reference2ObjectOpenHashMap<>();
-    private static ItemMetaPair LAST_INTERNED;
 
     @SuppressWarnings("unchecked")
     private synchronized static ItemMetaPair getOrCreateMapping(Item item, int meta) {
-        if(LAST_INTERNED != null && item == LAST_INTERNED.get() && meta == LAST_INTERNED.getMeta()) {
-            return LAST_INTERNED;
-        }
-
-        return LAST_INTERNED = INTERNER.computeIfAbsent(item, o -> new Int2ObjectOpenHashMap<>())
+        return INTERNER.computeIfAbsent(item, o -> new Int2ObjectOpenHashMap<>())
             .computeIfAbsent(meta, o -> new ItemMetaPair(item, meta));
     }
 
