@@ -27,7 +27,7 @@ public class ObjMeta2ObjectOpenHashMap<K, V> implements Map<ObjMetaPair<K>, V> {
 
     /// @param wildcardFallback
     /// If searching for a metadata value that's not found, should we return the entry at {@link OreDictionary#WILDCARD_VALUE} if there is one?
-    ObjMeta2ObjectOpenHashMap(boolean wildcardFallback) {
+    protected ObjMeta2ObjectOpenHashMap(boolean wildcardFallback) {
         this.wildcardFallback = wildcardFallback;
     }
 
