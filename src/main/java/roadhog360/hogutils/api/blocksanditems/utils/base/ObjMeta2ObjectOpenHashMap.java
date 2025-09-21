@@ -23,20 +23,16 @@ public class ObjMeta2ObjectOpenHashMap<K, V> implements Map<ObjMetaPair<K>, V> {
     /// The primary map backing this {@link Map} implementation, used to store and retrieve entries at a high speed.
     private final Map<K, Int2ObjectOpenHashMap<V>> backingMap = new Reference2ObjectOpenHashMap<>();
     private final boolean wildcardFallback;
-    private int size = -1;
+    private int size = 0;
 
     /// @param wildcardFallback
     /// If searching for a metadata value that's not found, should we return the entry at {@link OreDictionary#WILDCARD_VALUE} if there is one?
-    protected ObjMeta2ObjectOpenHashMap(boolean wildcardFallback) {
+    ObjMeta2ObjectOpenHashMap(boolean wildcardFallback) {
         this.wildcardFallback = wildcardFallback;
     }
 
     @Override
     public int size() {
-        if(size == -1) {
-            size = 0;
-            backingMap.values().forEach(o -> size += o.size());
-        }
         return size;
     }
 
@@ -130,7 +126,7 @@ public class ObjMeta2ObjectOpenHashMap<K, V> implements Map<ObjMetaPair<K>, V> {
 
     @Override
     public void clear() {
-        size = -1;
+        size = 0;
         backingMap.clear();
     }
 
@@ -180,7 +176,11 @@ public class ObjMeta2ObjectOpenHashMap<K, V> implements Map<ObjMetaPair<K>, V> {
     }
 
     public V put(K key, int meta, V val) {
-        return backingMap.computeIfAbsent(key, o -> new Int2ObjectOpenHashMap<>()).put(meta, val);
+        V ret = backingMap.computeIfAbsent(key, o -> new Int2ObjectOpenHashMap<>()).put(meta, val);
+        if(ret == null) {
+            size++;
+        }
+        return ret;
     }
 
     @Override
@@ -205,6 +205,9 @@ public class ObjMeta2ObjectOpenHashMap<K, V> implements Map<ObjMetaPair<K>, V> {
         V val = map.remove(meta);
         if(map.isEmpty()) {
             backingMap.remove(key, map);
+        }
+        if(val != null) {
+            size--;
         }
         return val;
     }
