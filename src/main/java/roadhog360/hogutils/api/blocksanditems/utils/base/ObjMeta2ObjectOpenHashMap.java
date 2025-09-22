@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
+import lombok.NonNull;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraftforge.oredict.OreDictionary;
@@ -57,6 +58,7 @@ public class ObjMeta2ObjectOpenHashMap<K, V> implements Map<ObjMetaPair<K>, V> {
 
     @Override
     public boolean containsValue(Object value) {
+        // TODO replace this with logic that doesn't need a values call
         return values().contains(value);
     }
 
@@ -83,6 +85,19 @@ public class ObjMeta2ObjectOpenHashMap<K, V> implements Map<ObjMetaPair<K>, V> {
         return (((v = get(key, meta)) != null) || containsKey(key))
             ? v
             : defaultValue;
+    }
+
+    public V computeIfAbsent(K key, int meta, @NonNull ObjMetaFunction<K, V> mappingFunction) {
+        V v;
+        if ((v = get(key, meta)) == null) {
+            V newValue;
+            if ((newValue = mappingFunction.apply(key, meta)) != null) {
+                put(key, meta, newValue);
+                return newValue;
+            }
+        }
+
+        return v;
     }
 
     @Override
@@ -183,11 +198,6 @@ public class ObjMeta2ObjectOpenHashMap<K, V> implements Map<ObjMetaPair<K>, V> {
         return ret;
     }
 
-    @Override
-    public V putIfAbsent(ObjMetaPair<K> key, V value) {
-        return putIfAbsent(key.get(), key.getMeta(), value);
-    }
-
     public V putIfAbsent(K key, int meta, V value) {
         V v = get(key, meta);
         if (v == null) {
@@ -218,9 +228,10 @@ public class ObjMeta2ObjectOpenHashMap<K, V> implements Map<ObjMetaPair<K>, V> {
             return null;
         }
         V get = map.get(meta);
-        return get == null && wildcardFallback ? get(key, OreDictionary.WILDCARD_VALUE) : get;
+        return get == null && wildcardFallback && meta != OreDictionary.WILDCARD_VALUE ? get(key, OreDictionary.WILDCARD_VALUE) : get;
     }
 
+    // TODO: Maybe make this abstract and have both maps extend
     protected ObjMetaPair<K> internPair(K obj, int meta) {
         if(obj instanceof Block block) {
             return (ObjMetaPair<K>) BlockMetaPair.intern(block, meta);
@@ -231,8 +242,19 @@ public class ObjMeta2ObjectOpenHashMap<K, V> implements Map<ObjMetaPair<K>, V> {
         throw new IllegalArgumentException("Parameter passed in was not a block or item!");
     }
 
+    /// A function for this map specifically, that was created to avoid using {@link Integer} as a type and instead takes a primitive int as an input.
+    /// At the moment, it does not have a `compose` or `andThen` equivalent, that can be added later if it is deemed necessary.
+    public interface ObjMetaFunction<K, V> {
+        /// Applies this function to the given arguments.
+        ///
+        /// @param t the first function argument
+        /// @param u the second function argument
+        /// @return the function result
+        V apply(K t, int u);
+    }
+
     // A custom iterator class for the entry set
-    private class ObjMetaEntryIterator implements Iterator<Map.Entry<ObjMetaPair<K>, V>> {
+    protected class ObjMetaEntryIterator implements Iterator<Map.Entry<ObjMetaPair<K>, V>> {
         private final Iterator<Map.Entry<K, Int2ObjectOpenHashMap<V>>> outerIterator = backingMap.entrySet().iterator();
         private Map.Entry<K, Int2ObjectOpenHashMap<V>> currentOuterEntry;
         private ObjectIterator<Int2ObjectMap.Entry<V>> innerIterator;
@@ -267,7 +289,7 @@ public class ObjMeta2ObjectOpenHashMap<K, V> implements Map<ObjMetaPair<K>, V> {
         }
     }
 
-    private abstract class ObjMetaIteratorWrapper<T> implements Iterator<T> {
+    protected abstract class ObjMetaIteratorWrapper<T> implements Iterator<T> {
         protected final Iterator<Map.Entry<ObjMetaPair<K>, V>> iter;
         ObjMetaIteratorWrapper(Iterator<Map.Entry<ObjMetaPair<K>, V>> iter) {
             this.iter = iter;
@@ -282,7 +304,7 @@ public class ObjMeta2ObjectOpenHashMap<K, V> implements Map<ObjMetaPair<K>, V> {
     /**
      * An iterator that lazily returns the keys from the nested map.
      */
-    private class ObjMetaKeyIterator extends ObjMetaIteratorWrapper<ObjMetaPair<K>> {
+    protected class ObjMetaKeyIterator extends ObjMetaIteratorWrapper<ObjMetaPair<K>> {
         ObjMetaKeyIterator(Iterator<Map.Entry<ObjMetaPair<K>, V>> iter) {
             super(iter);
         }
@@ -296,7 +318,7 @@ public class ObjMeta2ObjectOpenHashMap<K, V> implements Map<ObjMetaPair<K>, V> {
     /**
      * An iterator that lazily returns the values from the nested map.
      */
-    private class ObjMetaValueIterator extends ObjMetaIteratorWrapper<V> {
+    protected class ObjMetaValueIterator extends ObjMetaIteratorWrapper<V> {
         ObjMetaValueIterator(Iterator<Map.Entry<ObjMetaPair<K>, V>> iter) {
             super(iter);
         }

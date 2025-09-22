@@ -5,7 +5,6 @@ import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.*;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.block.Block;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.common.BiomeDictionary;
@@ -34,7 +33,6 @@ public class HogUtils {
 
     @Mod.EventHandler
     public void onConstructing(FMLConstructionEvent event) {
-        System.out.println(Blocks.stained_glass.delegate.name());
         proxy.onConstructing(event);
         listenForRegistryReplacement();
     }

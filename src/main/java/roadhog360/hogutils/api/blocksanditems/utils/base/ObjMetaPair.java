@@ -19,10 +19,20 @@ import java.util.Set;
 public class ObjMetaPair<BlockOrItem> extends Pair<BlockOrItem, Integer> implements IReferenceBase<BlockOrItem>, ITaggable {
     private final BlockOrItem object;
     private final transient int meta;
+    protected final boolean interned;
 
-    public ObjMetaPair(BlockOrItem obj, int meta) {
+    protected ObjMetaPair(BlockOrItem obj, int meta, boolean isInterned) {
         this.object = obj;
         this.meta = meta;
+        this.interned = isInterned;
+    }
+
+    protected ObjMetaPair(BlockOrItem obj, int meta) {
+        this(obj, meta, true);
+    }
+
+    public boolean isInterned() {
+        return interned;
     }
 
     @Override
