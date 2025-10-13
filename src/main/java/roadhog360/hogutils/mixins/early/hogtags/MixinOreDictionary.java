@@ -29,7 +29,7 @@ public class MixinOreDictionary {
         }
 
         String[] tags = HogTagsOreDictionaryHelper.convertOreDictToTags(name, ore, false).toArray(new String[]{});
-        if(tags.length > 0) {
+        if(tags.length > 0 && ore.getItem() != null) {
             ItemTags.addTags(ore.getItem(), ore.getItemDamage(), tags);
             Block block = Block.getBlockFromItem(ore.getItem());
             if (block != null) {

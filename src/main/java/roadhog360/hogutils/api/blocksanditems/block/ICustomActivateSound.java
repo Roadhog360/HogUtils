@@ -25,7 +25,8 @@ public interface ICustomActivateSound {
     /// @param z
     /// @param prevSound The previous sound that you are overriding
     /// @return The suffix to add to {@link ICustomActivateSound#getSound(World, int, int, int, String)}.
-    /// Don't forget to add the dot at the start! (This is mandatory in case you have a setup where you don't want the dot for some reason)
+    /// Don't forget to add the dot at the start!
+    /// Adding the dot yourself is mandatory in case you have a setup where you don't want the dot for some reason.
     @NonNull
     default String getSuffix(World world, int x, int y, int z, String prevSound) {
         if (prevSound.contains("random.door") || prevSound.contains("random.chest")) {

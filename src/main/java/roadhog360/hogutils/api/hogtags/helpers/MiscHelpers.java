@@ -80,15 +80,13 @@ public final class MiscHelpers {
 
     /// Ensures the spec of tags is enforced, and checks the passed in tags for compliance.
     /// If the following spec is not met, the game will throw an {@link IllegalArgumentException}.
-    /// - Must have a properly namespaced ID. For example, `examplemod:example` is correct, but `examplemod` isn't.
+    /// - Must have a properly namespaced ID. For example, `examplemod:example` is correct, but `example` isn't.
     /// - `#` is purely for display purposes and tags in the registry do not have it.
+    /// - Must not contain any characters disallowed by the Windows filesystem. (except for `:`, and `/`)
     /// If these conditions are not met, the game will throw an {@link IllegalArgumentException}.
     public static void enforceTagSpec(String tag) {
-        if (tag == null || tag.isEmpty() || tag.equals("#") || tag.equals(":") || tag.equals("#:")) {
-            throw new IllegalArgumentException("Cannot pass in empty tag (or just \"#\") to the tags registry!");
-        }
-        if (!GenericUtils.verifyFilenameIntegrity(tag, ALLOWED_CHARS)) {
-            throw new IllegalArgumentException("Cannot instantiate tag with disallowed characters from Windows filesystem! Received [" + tag + "]");
+        if (tag == null || tag.isEmpty()) {
+            throw new IllegalArgumentException("Cannot pass in empty tag to the tags registry!");
         }
         if (tag.startsWith("#")) {
             throw new IllegalArgumentException("Tag should not start with #; the # is for display purposes only and doesn't \"exist\". Received [" + tag + "]");

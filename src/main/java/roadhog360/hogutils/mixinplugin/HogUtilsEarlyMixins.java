@@ -37,6 +37,7 @@ public class HogUtilsEarlyMixins implements IFMLLoadingPlugin, IEarlyMixinLoader
 
         // Base block fixes/tools
         mixins.add("baseblock.MixinBlockLeaves");
+        mixins.add("baseblock.MixinBlockFlowerPot");
         if (SIDE == MixinEnvironment.Side.CLIENT) {
             mixins.add("baseblock.MixinRenderBlocks");
         }

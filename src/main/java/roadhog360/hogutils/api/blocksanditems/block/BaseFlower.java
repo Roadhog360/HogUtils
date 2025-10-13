@@ -16,7 +16,7 @@ import roadhog360.hogutils.api.utils.GenericUtils;
 import java.util.List;
 import java.util.Map;
 
-public abstract class BaseFlower extends BlockFlower implements ISubtypesBlock {
+public abstract class BaseFlower extends BlockFlower implements ISubtypesBlock, IPotableData {
 
     /// This CANNOT be an array, NotEnoughIDs has NEGATIVE metas, so we need this instead.
     private final Map<Integer, IIcon> icons = new Int2ObjectArrayMap<>();
@@ -117,5 +117,10 @@ public abstract class BaseFlower extends BlockFlower implements ISubtypesBlock {
                 list.add(new ItemStack(itemIn, 1, entry.getKey()));
             }
         }
+    }
+
+    @Override
+    public boolean isPotable(int meta) {
+        return isMetadataEnabled(meta);
     }
 }

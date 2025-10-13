@@ -44,6 +44,10 @@ public final class ModReference {
         return getModContainer().getName();
     }
 
+    public String getColorlessModName() {
+        return getModName().replace("§.", "");
+    }
+
     public String getVersion() {
         if (version == null) {
             version = getModContainer().getProcessedVersion().getVersionString().replaceAll("§.", "");/*Remove color code values*/

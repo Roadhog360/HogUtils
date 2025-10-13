@@ -57,6 +57,6 @@ dependencies {
     compileOnly('curse.maven:hardcore-ender-expansion-228015:2316923')
 
     compileOnly('org.jetbrains:annotations:24.0.1')
-    compileOnly("org.projectlombok:lombok:1.18.36") { transitive = false }
-    annotationProcessor("org.projectlombok:lombok:1.18.36")
+    compileOnly("org.projectlombok:lombok:1.18.42") { transitive = false }
+    annotationProcessor("org.projectlombok:lombok:1.18.42")
 }

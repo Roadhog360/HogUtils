@@ -220,6 +220,10 @@ public final class GenericUtils {
         return true;
     }
 
+    public static boolean isLowerAlphaNumeric(String name) {
+        return name.matches("^[a-z0-9_/]*$");
+    }
+
     public static class Constants {
         public static final float[][] COLORS_RGB = EntitySheep.fleeceColorTable;
 

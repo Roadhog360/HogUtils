@@ -1,6 +1,7 @@
 package roadhog360.hogutils.api.blocksanditems.utils.base;
 
 import roadhog360.hogutils.api.blocksanditems.IReferenceBase;
+import roadhog360.hogutils.api.utils.GenericUtils;
 
 import java.util.Collection;
 
@@ -35,13 +36,13 @@ public abstract class RegistryEntry<T> implements IReferenceBase<T> {
     protected abstract void doRegistration();
 
     /// Enforce lower alphanumeric with underscores and slashes
-    /// I do the lowercasing automatically but I check anyways in case this function is called from a custom class
+    /// I do the lowercasing automatically, but I check anyway in case this function is called from a custom class
     protected void checkName(String name) {
-        if (!name.matches("^[a-z0-9_/]*$")) {
+        if (!GenericUtils.isLowerAlphaNumeric(name)) {
             throw new IllegalArgumentException(
                 "Don't register a non-alphanumeric name! Just because you can doesn't mean you should!" +
                     "Forge should prevent this, so I'm doing their work for them..." +
-                    "If you want to use my helper tools, alphanumeric ONLY with underscores (_) and forward slashes! (/)"
+                    "If you want to use my helper tools, names that alphanumeric ONLY with underscores (_) and forward slashes (/) are allowed!"
             );
         }
     }
