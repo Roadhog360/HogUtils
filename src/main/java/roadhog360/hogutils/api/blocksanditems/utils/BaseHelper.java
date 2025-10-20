@@ -1,10 +1,13 @@
 package roadhog360.hogutils.api.blocksanditems.utils;
 
 import lombok.NonNull;
+import lombok.SneakyThrows;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import org.jetbrains.annotations.Nullable;
+import roadhog360.hogutils.api.blocksanditems.utils.base.RegistryEntry;
 
+import java.lang.reflect.Field;
 
 public final class BaseHelper {
     private BaseHelper() {}
@@ -49,6 +52,7 @@ public final class BaseHelper {
         return name;
     }
 
+    /// Used to guess what sound a block should get. Most of my blocks will use this by default.
     public static void setupStepSound(Block block) {
         Material material = block.getMaterial();
         if (material == Material.wood || material == Material.gourd) {
@@ -68,5 +72,17 @@ public final class BaseHelper {
         }
     }
 
-    //TODO: Auto harvest levels?
+    @SneakyThrows
+    /// Call this while passing in the class where your {@link RegistryEntry} fields are stored, to auto-register them all.
+    /// They must not be private or protected.
+    public static void registerAll(Class<?> registryClass) {
+        Field[] declaredFields = registryClass.getDeclaredFields();
+        for (Field field : declaredFields) {
+            if (field.isAccessible()) { //Private/protected fields are skipped
+                if (field.get(null) instanceof RegistryEntry<?> entry) {
+                    entry.register();
+                }
+            }
+        }
+    }
 }

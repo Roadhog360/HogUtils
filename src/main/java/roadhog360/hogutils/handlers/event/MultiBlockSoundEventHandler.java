@@ -70,18 +70,19 @@ public final class MultiBlockSoundEventHandler {
                 }
 
                 Block.SoundType newSound = mbs.getSoundType(world, x, y, z, type);
-                if (newSound != null) { // Sound is null, meaning we don't want to override anything
+                float volume = newSound.getVolume();
+                float pitch = newSound.getPitch();
 
-                    float volume = newSound.getVolume();
-                    float pitch = newSound.getPitch();
+                float volumeVariation = block.stepSound.getVolume() - sound.getVolume();
+                float pitchVariation = block.stepSound.getPitch() - sound.getPitch();
 
-                    float volumeVariation = block.stepSound.getVolume() - sound.getVolume();
-                    float pitchVariation = block.stepSound.getPitch() - sound.getPitch();
-
-                    sound.field_147664_a = new ResourceLocation(newSound.soundName);
-                    sound.volume = volume + volumeVariation;
-                    sound.field_147663_c = pitch + pitchVariation;
-                }
+                sound.field_147664_a = new ResourceLocation(switch (type) {
+                    case BREAK -> newSound.getBreakSound();
+                    case PLACE -> newSound.func_150496_b();
+                    default -> newSound.getStepResourcePath();
+                });
+                sound.volume = volume + volumeVariation;
+                sound.field_147663_c = pitch + pitchVariation;
             } else if (block instanceof ICustomActivateSound cas) {
                 if (event.name.contains("random.chest") || event.name.contains("random.door") ||
                     ((block instanceof BlockButton || block instanceof BlockBasePressurePlate || block instanceof BlockDispenser)
@@ -123,7 +124,6 @@ public final class MultiBlockSoundEventHandler {
 
         if (block instanceof IMultiBlockSound mbs && block.stepSound.getStepResourcePath().equals(event.name)) {
             Block.SoundType newSound = mbs.getSoundType(world, x, y, z, IMultiBlockSound.SoundMode.WALK);
-            if (newSound == null) return; // Sound is null, meaning we don't want to override anything
 
             float volume = newSound.getVolume();
             float pitch = newSound.getPitch();
@@ -131,9 +131,8 @@ public final class MultiBlockSoundEventHandler {
             float volumeVariation = block.stepSound.getVolume() - event.volume;
             float pitchVariation = block.stepSound.getPitch() - event.pitch;
 
-            String newSoundName = newSound.getStepResourcePath();
-            event.name = newSoundName;
-            if(event instanceof IUnfinalizedSoundEvent unfinalized) { // Might make this a toggleable API in the future
+            event.name = newSound.getStepResourcePath();
+            if(event instanceof IUnfinalizedSoundEvent unfinalized) {
                 unfinalized.setPitch(volume + volumeVariation);
                 unfinalized.setVolume(pitch + pitchVariation);
             }
