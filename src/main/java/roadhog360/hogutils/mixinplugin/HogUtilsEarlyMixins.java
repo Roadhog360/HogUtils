@@ -35,6 +35,9 @@ public class HogUtilsEarlyMixins implements IFMLLoadingPlugin, IEarlyMixinLoader
         mixins.add("event.MixinWorld");
         mixins.add("event.MixinPlaySoundAtEntityEvent");
 
+        // Check if a populator is currently running
+        mixins.add("geninfo.MixinChunkProviderServer");
+
         // Base block fixes/tools
         mixins.add("baseblock.MixinBlockLeaves");
         mixins.add("baseblock.MixinBlockFlowerPot");

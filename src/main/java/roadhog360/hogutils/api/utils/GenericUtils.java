@@ -192,11 +192,24 @@ public final class GenericUtils {
     public static boolean isEndermanCarryingFixInstalled() {
         // Test if a fix for enderman carrying is installed
         if(ENDERMAN_CARRYING_FIX == null) {
-            EntityEnderman testEnderman = new EntityEnderman(DummyWorld.getGlobalInstance());
-            testEnderman.setCarryingData(4096);
-            ENDERMAN_CARRYING_FIX = testEnderman.getCarryingData() == 4096;
+            try {
+                EntityEnderman testEnderman = new EntityEnderman(DummyWorld.getGlobalInstance());
+                testEnderman.getDataWatcher().updateObject(16, 4096);
+                ENDERMAN_CARRYING_FIX = testEnderman.getDataWatcher().getWatchableObjectInt(16) == 4096;
+            } catch (Exception e) {
+                ENDERMAN_CARRYING_FIX = false;
+            }
         }
         return ENDERMAN_CARRYING_FIX;
+    }
+
+    /// Sets if an enderman can carry this block, after this block passes a few sanity checks.
+    /// First we check if the block is actually registered, then if it is, if it's a modded block we make sure a carrying fix is installed.
+    public static void setEndermanCarryable(Block block) {
+        int id = Block.getIdFromBlock(block);
+        if(RecipeHelper.validateItems(block) && (id <= 255 || isEndermanCarryingFixInstalled())) {
+            EntityEnderman.setCarriable(block, true);
+        }
     }
 
     private static final Set<Character> INVALID_FILENAME_CHARS = CharSets.unmodifiable(new CharOpenHashSet(new char[]{'<', '>', ':', '"', '/', '\\', '|', '?', '*'}));
@@ -220,7 +233,8 @@ public final class GenericUtils {
         return true;
     }
 
-    public static boolean isLowerAlphaNumeric(String name) {
+    /// Checks if a string is lower alphanumeric, with exceptions for `/` and `_`.
+    public static boolean isLowerAlphanumeric(String name) {
         return name.matches("^[a-z0-9_/]*$");
     }
 
