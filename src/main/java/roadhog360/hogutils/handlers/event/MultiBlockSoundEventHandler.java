@@ -3,7 +3,6 @@ package roadhog360.hogutils.handlers.event;
 import cpw.mods.fml.client.FMLClientHandler;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockBasePressurePlate;
 import net.minecraft.block.BlockButton;
@@ -17,30 +16,35 @@ import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.sound.PlaySoundEvent17;
 import net.minecraftforge.event.entity.PlaySoundAtEntityEvent;
 import net.minecraftforge.event.world.BlockEvent;
-import roadhog360.hogutils.api.Vec3i;
+import roadhog360.hogutils.api.BlockPos;
 import roadhog360.hogutils.api.blocksanditems.block.ICustomActivateSound;
 import roadhog360.hogutils.api.blocksanditems.block.IMultiBlockSound;
 import roadhog360.hogutils.api.event.IUnfinalizedSoundEvent;
 
-import java.util.Set;
-
 public final class MultiBlockSoundEventHandler {
 
     public static final MultiBlockSoundEventHandler INSTANCE = new MultiBlockSoundEventHandler();
-    private final Set<Vec3i> PLACED_BLOCKS = new ObjectOpenHashSet<>();
+    private final ThreadLocal<BlockPos.MutableBlockPos> LAST_PLACED = ThreadLocal.withInitial(() -> new BlockPos.MutableBlockPos(Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE));
 
     private MultiBlockSoundEventHandler() {}
 
     @SubscribeEvent
     public void onOpenMenu(GuiOpenEvent event) {
-        PLACED_BLOCKS.clear();
+        LAST_PLACED.remove();
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onPlaceBlock(BlockEvent.PlaceEvent event) {
         if(!event.isCanceled() && event.block instanceof IMultiBlockSound) {
-            PLACED_BLOCKS.add(new Vec3i(event.x, event.y, event.z));
+            LAST_PLACED.get().setPos(event.x, event.y, event.z);
         }
+    }
+
+    private boolean checkPlacedAndReset(int x, int y, int z) {
+        BlockPos.MutableBlockPos pos = LAST_PLACED.get();
+        boolean isPlaceSound = pos.getX() == x && pos.getY() == y && pos.getZ() == z;
+        pos.setPos(Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
+        return isPlaceSound;
     }
 
     @SubscribeEvent
@@ -53,19 +57,20 @@ public final class MultiBlockSoundEventHandler {
             final Block block = world.getBlock(x, y, z);
 
             if (block instanceof IMultiBlockSound mbs) {
-                boolean isPlaceSound = PLACED_BLOCKS.remove(new Vec3i(x, y, z));
+                boolean isPlaceSound = checkPlacedAndReset(x, y, z);
                 IMultiBlockSound.SoundMode type;
-                if (block.stepSound.getStepResourcePath().endsWith(event.name) && !isPlaceSound) {
+                if (block.stepSound.getStepResourcePath().equals(event.name)) {
                     type = IMultiBlockSound.SoundMode.HIT;
-                } else if (block.stepSound.func_150496_b/*getPlaceSound*/().endsWith(event.name) || isPlaceSound) {
+                } else if (block.stepSound.func_150496_b/*getPlaceSound*/().equals(event.name) && isPlaceSound) {
                     type = IMultiBlockSound.SoundMode.PLACE;
-                } else {
+                } else if (block.stepSound.getBreakSound().equals(event.name)) {
                     type = IMultiBlockSound.SoundMode.BREAK;
+                } else {
+                    return;
                 }
 
                 Block.SoundType newSound = mbs.getSoundType(world, x, y, z, type);
                 if(newSound != block.stepSound) {
-
                     sound.field_147664_a = new ResourceLocation(switch (type) {
                         case BREAK -> newSound.getBreakSound();
                         case PLACE -> newSound.func_150496_b();
