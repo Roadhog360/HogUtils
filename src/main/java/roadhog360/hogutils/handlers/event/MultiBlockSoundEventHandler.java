@@ -3,6 +3,7 @@ package roadhog360.hogutils.handlers.event;
 import cpw.mods.fml.client.FMLClientHandler;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockBasePressurePlate;
 import net.minecraft.block.BlockButton;
@@ -12,77 +13,73 @@ import net.minecraft.entity.Entity;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
+import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.sound.PlaySoundEvent17;
 import net.minecraftforge.event.entity.PlaySoundAtEntityEvent;
+import net.minecraftforge.event.world.BlockEvent;
+import roadhog360.hogutils.api.Vec3i;
 import roadhog360.hogutils.api.blocksanditems.block.ICustomActivateSound;
 import roadhog360.hogutils.api.blocksanditems.block.IMultiBlockSound;
 import roadhog360.hogutils.api.event.IUnfinalizedSoundEvent;
 
+import java.util.Set;
+
 public final class MultiBlockSoundEventHandler {
 
     public static final MultiBlockSoundEventHandler INSTANCE = new MultiBlockSoundEventHandler();
-//    private final Set<Vec3i> PLACED_BLOCKS = new ObjectArraySet<>();
+    private final Set<Vec3i> PLACED_BLOCKS = new ObjectOpenHashSet<>();
 
     private MultiBlockSoundEventHandler() {}
 
-//    @SubscribeEvent
-//    public void onOpenMenu(GuiOpenEvent event) {
-//        if(FMLClientHandler.instance().getWorldClient() == null) {
-//            PLACED_BLOCKS.clear();
-//            SKIP_PROCESSING.clear();
-//        }
-//    }
+    @SubscribeEvent
+    public void onOpenMenu(GuiOpenEvent event) {
+        PLACED_BLOCKS.clear();
+    }
 
-//    @SubscribeEvent(priority = EventPriority.LOWEST)
-//    public void onPlaceBlock(BlockEvent.PlaceEvent event) {
-//        if(!event.isCanceled()) {
-//            PLACED_BLOCKS.add(new Vec3i(event.x, event.y, event.z));
-//        }
-//    }
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void onPlaceBlock(BlockEvent.PlaceEvent event) {
+        if(!event.isCanceled() && event.block instanceof IMultiBlockSound) {
+            PLACED_BLOCKS.add(new Vec3i(event.x, event.y, event.z));
+        }
+    }
 
     @SubscribeEvent
     public void onPlaySoundEvent(PlaySoundEvent17 event) {
         if (event.sound instanceof PositionedSound sound && FMLClientHandler.instance().getWorldClient() != null) {
             final World world = FMLClientHandler.instance().getWorldClient();
-            final float soundX = sound.getXPosF();
-            final float soundY = sound.getYPosF();
-            final float soundZ = sound.getZPosF();
-            final int x = MathHelper.floor_float(soundX);
-            final int y = MathHelper.floor_float(soundY);
-            final int z = MathHelper.floor_float(soundZ);
+            final int x = MathHelper.floor_float(sound.getXPosF());
+            final int y = MathHelper.floor_float(sound.getYPosF());
+            final int z = MathHelper.floor_float(sound.getZPosF());
             final Block block = world.getBlock(x, y, z);
 
-            final boolean checkHitSound = block.stepSound.getStepResourcePath().endsWith(event.name);
-            final boolean checkBreakSound = block.stepSound.getBreakSound().endsWith(event.name);
-            final boolean checkPlaceSound = block.stepSound.func_150496_b/*getPlaceSound*/().endsWith(event.name);
-
-            final boolean matches = checkHitSound || checkBreakSound || checkPlaceSound;
-//            final boolean isPlaceSound = PLACED_BLOCKS.remove(new Vec3i(x, y, z));
-
-            if (block instanceof IMultiBlockSound mbs && matches) {
+            if (block instanceof IMultiBlockSound mbs) {
+                boolean isPlaceSound = PLACED_BLOCKS.remove(new Vec3i(x, y, z));
                 IMultiBlockSound.SoundMode type;
-                if (checkHitSound) {
+                if (block.stepSound.getStepResourcePath().endsWith(event.name) && !isPlaceSound) {
                     type = IMultiBlockSound.SoundMode.HIT;
-                } else if (checkPlaceSound /*|| isPlaceSound*/) {
+                } else if (block.stepSound.func_150496_b/*getPlaceSound*/().endsWith(event.name) || isPlaceSound) {
                     type = IMultiBlockSound.SoundMode.PLACE;
                 } else {
                     type = IMultiBlockSound.SoundMode.BREAK;
                 }
 
                 Block.SoundType newSound = mbs.getSoundType(world, x, y, z, type);
-                float volume = newSound.getVolume();
-                float pitch = newSound.getPitch();
+                if(newSound != block.stepSound) {
 
-                float volumeVariation = block.stepSound.getVolume() - sound.getVolume();
-                float pitchVariation = block.stepSound.getPitch() - sound.getPitch();
+                    sound.field_147664_a = new ResourceLocation(switch (type) {
+                        case BREAK -> newSound.getBreakSound();
+                        case PLACE -> newSound.func_150496_b();
+                        default -> newSound.getStepResourcePath();
+                    });
+                    float volume = newSound.getVolume();
+                    float pitch = newSound.getPitch();
 
-                sound.field_147664_a = new ResourceLocation(switch (type) {
-                    case BREAK -> newSound.getBreakSound();
-                    case PLACE -> newSound.func_150496_b();
-                    default -> newSound.getStepResourcePath();
-                });
-                sound.volume = volume + volumeVariation;
-                sound.field_147663_c = pitch + pitchVariation;
+                    float volumeVariation = sound.getVolume() - block.stepSound.getVolume();
+                    float pitchVariation = sound.getPitch() - block.stepSound.getPitch();
+
+                    sound.volume = volume + volumeVariation;
+                    sound.field_147663_c = pitch + pitchVariation;
+                }
             } else if (block instanceof ICustomActivateSound cas) {
                 if (event.name.contains("random.chest") || event.name.contains("random.door") ||
                     ((block instanceof BlockButton || block instanceof BlockBasePressurePlate || block instanceof BlockDispenser)
@@ -124,17 +121,18 @@ public final class MultiBlockSoundEventHandler {
 
         if (block instanceof IMultiBlockSound mbs && block.stepSound.getStepResourcePath().equals(event.name)) {
             Block.SoundType newSound = mbs.getSoundType(world, x, y, z, IMultiBlockSound.SoundMode.WALK);
+            if(newSound != block.stepSound) {
+                float volume = newSound.getVolume();
+                float pitch = newSound.getPitch();
 
-            float volume = newSound.getVolume();
-            float pitch = newSound.getPitch();
+                float volumeVariation = event.volume - block.stepSound.getVolume();
+                float pitchVariation = event.pitch - block.stepSound.getPitch();
 
-            float volumeVariation = block.stepSound.getVolume() - event.volume;
-            float pitchVariation = block.stepSound.getPitch() - event.pitch;
-
-            event.name = newSound.getStepResourcePath();
-            if(event instanceof IUnfinalizedSoundEvent unfinalized) {
-                unfinalized.setPitch(volume + volumeVariation);
-                unfinalized.setVolume(pitch + pitchVariation);
+                event.name = newSound.getStepResourcePath();
+                if (event instanceof IUnfinalizedSoundEvent unfinalized) {
+                    unfinalized.setVolume(volume + volumeVariation);
+                    unfinalized.setPitch(pitch + pitchVariation);
+                }
             }
         }
     }
