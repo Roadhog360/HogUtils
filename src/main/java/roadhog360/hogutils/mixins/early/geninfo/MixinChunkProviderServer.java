@@ -15,12 +15,12 @@ public class MixinChunkProviderServer implements IGeneratingCheck {
     final ThreadLocal<AtomicInteger> chunksGenerating = ThreadLocal.withInitial(() -> new AtomicInteger(0));
 
     @Inject(method = "populate", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/chunk/Chunk;func_150809_p()V"))
-    private void incrementCount(IChunkProvider p_73153_1_, int p_73153_2_, int p_73153_3_, CallbackInfo ci) {
+    private void pushGeneratingCheck(IChunkProvider p_73153_1_, int p_73153_2_, int p_73153_3_, CallbackInfo ci) {
         chunksGenerating.get().incrementAndGet();
     }
 
     @Inject(method = "populate", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/chunk/Chunk;setChunkModified()V", shift = At.Shift.AFTER))
-    private void decrementCount(IChunkProvider p_73153_1_, int p_73153_2_, int p_73153_3_, CallbackInfo ci) {
+    private void popGeneratingCheck(IChunkProvider p_73153_1_, int p_73153_2_, int p_73153_3_, CallbackInfo ci) {
         chunksGenerating.get().decrementAndGet();
     }
 

@@ -16,7 +16,6 @@ public final class SetPair<E> {
         this.locked = Collections.unmodifiableSet(unlocked);
     }
 
-    /// TODO: I need to find a way to make this not public
     public Set<E> getUnlocked() {
         return unlocked;
     }
