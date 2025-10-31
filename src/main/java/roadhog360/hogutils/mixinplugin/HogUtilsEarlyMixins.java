@@ -32,8 +32,12 @@ public class HogUtilsEarlyMixins implements IFMLLoadingPlugin, IEarlyMixinLoader
         mixins.add("hogtags.MixinBiomeGenBase");
 
         // Custom events
+        // IUnfinalizedSoundEventHandler
         mixins.add("event.MixinWorld");
         mixins.add("event.MixinPlaySoundAtEntityEvent");
+        if (SIDE == MixinEnvironment.Side.CLIENT) {
+            mixins.add("event.MixinEntityPlayerSP");
+        }
 
         // Check if a populator is currently running
         mixins.add("geninfo.MixinChunkProviderServer");

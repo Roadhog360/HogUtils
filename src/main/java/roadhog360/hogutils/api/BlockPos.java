@@ -193,9 +193,9 @@ public class BlockPos extends Vec3i {
     public static Iterable<BlockPos> iterate(final int startX, final int startY, final int startZ, final int endX,
                                              final int endY, final int endZ) {
 
-        return new Iterable<BlockPos>() {
+        return new Iterable<>() {
             public Iterator<BlockPos> iterator() {
-                return new AbstractIterator<BlockPos>() {
+                return new AbstractIterator<>() {
                     private boolean first = true;
                     private int lastPosX;
                     private int lastPosY;
@@ -238,6 +238,10 @@ public class BlockPos extends Vec3i {
 
     public Vec3 newVec3() {
         return Vec3.createVectorHelper(getX(), getY(), getZ());
+    }
+
+    public boolean isAt(int x, int y, int z) {
+        return getX() == x && getY() == y && getZ() == z;
     }
 
     public static class MutableBlockPos extends BlockPos {

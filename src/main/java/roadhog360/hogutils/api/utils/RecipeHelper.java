@@ -67,32 +67,47 @@ public final class RecipeHelper {
             GameRegistry.addSmelting(input, output, exp);
         }
     }
-    /// These get registered BEFORE other shaped recipes in vanilla and most mods, taking priority over them if they overlap.
-    public static void addHighPriorityShapedRecipe(ItemStack output, Object... objects) {
-        if (validateItems(output) && validateItems(objects)) {
-            GameRegistry.addRecipe(new HighPriorityShapedRecipe(output, objects));
-        }
+
+    /// Registers recipes with the specified priority, check the enum comments for more information.
+    /// This function checks the recipe against {@link RecipeHelper#validateItems(Object...)} to ensure everything inside it exists.
+    /// This also means your recipe must be registered AFTER pre-init, where all blocks would be registered by then.
+    public static void addShapelessRecipe(Priority priority, Item output, Object... objects) {
+        addShapelessRecipe(priority, new ItemStack(output), objects);
     }
 
-    /// These get registered BEFORE other shapeless recipes in vanilla and most mods, taking priority over them if they overlap.
-    public static void addHighPriorityShapelessRecipe(ItemStack output, Object... objects) {
-        if (validateItems(output) && validateItems(objects)) {
-            GameRegistry.addRecipe(new HighPriorityShapelessRecipe(output, objects));
-        }
+    /// Registers recipes with the specified priority, check the enum comments for more information.
+    /// This function checks the recipe against {@link RecipeHelper#validateItems(Object...)} to ensure everything inside it exists.
+    /// This also means your recipe must be registered AFTER pre-init, where all blocks would be registered by then.
+    public static void addShapelessRecipe(Priority priority, Block output, Object... objects) {
+        addShapelessRecipe(priority, new ItemStack(output), objects);
     }
 
-    /// These get registered AFTER other shaped recipes in vanilla and most mods, allowing those recipes to take priority if they overlap.
-    public static void addLowPriorityShapedRecipe(ItemStack output, Object... objects) {
-        if (validateItems(output) && validateItems(objects)) {
-            GameRegistry.addRecipe(new LowPriorityShapedRecipe(output, objects));
-        }
+    /// Registers recipes with the specified priority, check the enum comments for more information.
+    /// This function checks the recipe against {@link RecipeHelper#validateItems(Object...)} to ensure everything inside it exists.
+    /// This also means your recipe must be registered AFTER pre-init, where all blocks would be registered by then.
+    public static void addShapelessRecipe(Priority priority, ItemStack output, Object... objects) {
+        priority.addShapelessRecipe(output, objects);
     }
 
-    /// These get registered AFTER other shapeless recipes in vanilla and most mods, allowing those recipes to take priority if they overlap.
-    public static void addLowPriorityShapelessRecipe(ItemStack output, Object... objects) {
-        if (validateItems(output) && validateItems(objects)) {
-            GameRegistry.addRecipe(new LowPriorityShapelessRecipe(output, objects));
-        }
+    /// Registers recipes with the specified priority, check the enum comments for more information.
+    /// This function checks the recipe against {@link RecipeHelper#validateItems(Object...)} to ensure everything inside it exists.
+    /// This also means your recipe must be registered AFTER pre-init, where all blocks would be registered by then.
+    public static void addShapedRecipe(Priority priority, Item output, Object... objects) {
+        addShapedRecipe(priority, new ItemStack(output), objects);
+    }
+
+    /// Registers recipes with the specified priority, check the enum comments for more information.
+    /// This function checks the recipe against {@link RecipeHelper#validateItems(Object...)} to ensure everything inside it exists.
+    /// This also means your recipe must be registered AFTER pre-init, where all blocks would be registered by then.
+    public static void addShapedRecipe(Priority priority, Block output, Object... objects) {
+        addShapedRecipe(priority, new ItemStack(output), objects);
+    }
+
+    /// Registers recipes with the specified priority, check the enum comments for more information.
+    /// This function checks the recipe against {@link RecipeHelper#validateItems(Object...)} to ensure everything inside it exists.
+    /// This also means your recipe must be registered AFTER pre-init, where all blocks would be registered by then.
+    public static void addShapedRecipe(Priority priority, ItemStack output, Object... objects) {
+        priority.addShapedRecipe(output, objects);
     }
 
     /// Does not evaluate NBT of passed in stacks
@@ -194,18 +209,44 @@ public final class RecipeHelper {
         return true;
     }
 
+    public static class Templates {
+        /// Registers a recipe to compress an ore block to compress to 9 (or 4), then back to 9 (or 4)
+        /// @param small If the block is "small" (compresses to/from 4)
+        public void addOreBlockRecipe(Priority priority, Block oreBlock, int oreBlockMeta, Item material, int materialMeta, boolean small) {
+            if(small) {
+                add2by2Recipe(priority, new ItemStack(oreBlock, 1, oreBlockMeta), new ItemStack(material, 1, materialMeta));
+            } else {
+                add3by3Recipe(priority, new ItemStack(oreBlock, 1, oreBlockMeta), new ItemStack(material, 1, materialMeta));
+            }
+            addShapedRecipe(priority, new ItemStack(material, small ? 4 : 9, materialMeta),
+                "x", 'x', new ItemStack(oreBlock, 1, oreBlockMeta));
+        }
+
+        /// Registers a shaped recipe, that returns the input item in a 2x2 shape, to the output stack.
+        public void add2by2Recipe(Priority priority, ItemStack output, Object input) {
+            addShapedRecipe(priority, output, "xx", "xx", 'x', input);
+        }
+
+        /// Registers a shaped recipe, that returns the input item in a 3x3 shape, to the output stack.
+        public void add3by3Recipe(Priority priority, ItemStack output, Object input) {
+            addShapedRecipe(priority, output, "xxx", "xxx", "xxx", 'x', input);
+        }
+
+        /// Registers a recipe that takes 3 of the input object across the bottom of a 3x3 crafting grid, and outputs 6 of the output block
+        public void addSlabRecipe(Priority priority, Block output, int outputMeta, Object input) {
+            addShapedRecipe(priority, new ItemStack(output, 6, outputMeta), "xxx", 'x', input);
+        }
+
+        /// Registers a recipe that takes 6 of the input object, in a staircase shape on a 3x3 crafting grid, and outputs 4 of the output block.
+        public void addStairRecipe(Priority priority, Block output, int outputMeta, Object input) {
+            addShapedRecipe(priority, new ItemStack(output, 4, outputMeta), "x  ", "xx ", "xxx", 'x', input);
+        }
+    }
+
     // Recipes need a different class to be sorted differently in the recipe sorter
 
     /// These get registered AFTER other shaped recipes in vanilla and most mods, allowing those recipes to take priority if they overlap.
     public static class LowPriorityShapedRecipe extends ShapedOreRecipe {
-        public LowPriorityShapedRecipe(Block result, Object... recipe) {
-            super(result, recipe);
-        }
-
-        public LowPriorityShapedRecipe(Item result, Object... recipe) {
-            super(result, recipe);
-        }
-
         public LowPriorityShapedRecipe(ItemStack result, Object... recipe) {
             super(result, recipe);
         }
@@ -213,14 +254,6 @@ public final class RecipeHelper {
 
     /// These get registered BEFORE other shaped recipes in vanilla and most mods, taking priority over them if they overlap.
     public static class HighPriorityShapedRecipe extends ShapedOreRecipe {
-        public HighPriorityShapedRecipe(Block result, Object... recipe) {
-            super(result, recipe);
-        }
-
-        public HighPriorityShapedRecipe(Item result, Object... recipe) {
-            super(result, recipe);
-        }
-
         public HighPriorityShapedRecipe(ItemStack result, Object... recipe) {
             super(result, recipe);
         }
@@ -228,14 +261,6 @@ public final class RecipeHelper {
 
     /// These get registered AFTER other shapeless recipes in vanilla and most mods, allowing those recipes to take priority if they overlap.
     public static class LowPriorityShapelessRecipe extends ShapelessOreRecipe {
-        public LowPriorityShapelessRecipe(Block result, Object... recipe) {
-            super(result, recipe);
-        }
-
-        public LowPriorityShapelessRecipe(Item result, Object... recipe) {
-            super(result, recipe);
-        }
-
         public LowPriorityShapelessRecipe(ItemStack result, Object... recipe) {
             super(result, recipe);
         }
@@ -243,20 +268,38 @@ public final class RecipeHelper {
 
     /// These get registered BEFORE other shapeless recipes in vanilla and most mods, taking priority over them if they overlap.
     public static class HighPriorityShapelessRecipe extends ShapelessOreRecipe {
-        public HighPriorityShapelessRecipe(Block result, Object... recipe) {
-            super(result, recipe);
-        }
-        public HighPriorityShapelessRecipe(Item result, Object... recipe) {
-            super(result, recipe);
-        }
         public HighPriorityShapelessRecipe(ItemStack result, Object... recipe) {
             super(result, recipe);
         }
     }
 
-    public static enum RecipePriority {
+    public enum Priority {
+        /// Registers recipes BEFORE other shaped recipes in vanilla and most mods, taking priority over them if they overlap.
         HIGH,
+        /// Registers recipes without a priority, being thrown with other recipes in no particular order.
+        /// Mods that ask to have high or lower priority will be placed below and above this recipe, respectively.
         NORMAL,
-        LOW
+        /// These get registered AFTER other shaped recipes in vanilla and most mods, allowing those recipes to take priority if they overlap.
+        LOW;
+
+        private void addShapelessRecipe(ItemStack output, Object... objects) {
+            if (validateItems(output) && validateItems(objects)) {
+                switch (this) {
+                    case LOW -> GameRegistry.addRecipe(new LowPriorityShapelessRecipe(output, objects));
+                    case NORMAL -> GameRegistry.addShapelessRecipe(output, objects);
+                    case HIGH -> GameRegistry.addRecipe(new HighPriorityShapelessRecipe(output, objects));
+                }
+            }
+        }
+
+        private void addShapedRecipe(ItemStack output, Object... objects) {
+            if (validateItems(output) && validateItems(objects)) {
+                switch (this) {
+                    case LOW -> GameRegistry.addRecipe(new LowPriorityShapedRecipe(output, objects));
+                    case NORMAL -> GameRegistry.addShapedRecipe(output, objects);
+                    case HIGH -> GameRegistry.addRecipe(new HighPriorityShapedRecipe(output, objects));
+                }
+            }
+        }
     }
 }
