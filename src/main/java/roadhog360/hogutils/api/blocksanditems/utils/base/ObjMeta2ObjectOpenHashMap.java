@@ -20,7 +20,7 @@ import java.util.*;
 /// While other map types can be used, this one is optimized for performance with item/block pairs.
 /// It also has more clearly defined behavior for if we should fall back to looking for
 /// {@link OreDictionary#WILDCARD_VALUE} if we can't find the metadata that was passed in.
-public class ObjMeta2ObjectOpenHashMap<K, V> implements Map<ObjMetaPair<K>, V> {
+public class ObjMeta2ObjectOpenHashMap<Pair, K, V> implements Map<Pair, V> {
     /// The primary map backing this {@link Map} implementation, used to store and retrieve entries at a high speed.
     private final Map<K, Int2ObjectOpenHashMap<V>> backingMap = new Reference2ObjectOpenHashMap<>();
     private final boolean wildcardFallback;
@@ -82,9 +82,7 @@ public class ObjMeta2ObjectOpenHashMap<K, V> implements Map<ObjMetaPair<K>, V> {
 
     public V getOrDefault(K key, int meta, V defaultValue) {
         V v;
-        return (((v = get(key, meta)) != null) || containsKey(key))
-            ? v
-            : defaultValue;
+        return (((v = get(key, meta)) != null) || containsKey(key, meta)) ? v : defaultValue;
     }
 
     public V computeIfAbsent(K key, int meta, @NonNull ObjMetaFunction<K, V> mappingFunction) {
@@ -102,8 +100,11 @@ public class ObjMeta2ObjectOpenHashMap<K, V> implements Map<ObjMetaPair<K>, V> {
 
     @Override
     /// Only accepts {@link ObjMetaPair} instances. They do not have to be interned.
-    public @Nullable V put(ObjMetaPair<K> key, V value) {
-        return put(key.get(), key.getMeta(), value);
+    public @Nullable V put(Pair key, V value) {
+        if(key instanceof ObjMetaPair<?> pair){
+            return put((K) pair.get(), pair.getMeta(), value);
+        }
+        return null;
     }
 
     @Override
@@ -135,8 +136,8 @@ public class ObjMeta2ObjectOpenHashMap<K, V> implements Map<ObjMetaPair<K>, V> {
     }
 
     @Override
-    public void putAll(@NotNull Map<? extends ObjMetaPair<K>, ? extends V> m) {
-        m.forEach((k, v) -> put(k.get(), k.getMeta(), v));
+    public void putAll(@NotNull Map<? extends Pair, ? extends V> m) {
+        m.forEach(this::put);
     }
 
     @Override
@@ -146,10 +147,10 @@ public class ObjMeta2ObjectOpenHashMap<K, V> implements Map<ObjMetaPair<K>, V> {
     }
 
     @Override
-    public @NotNull Set<ObjMetaPair<K>> keySet() {
+    public @NotNull Set<Pair> keySet() {
         return new AbstractSet<>() {
             @Override
-            public Iterator<ObjMetaPair<K>> iterator() {
+            public Iterator<Pair> iterator() {
                 return new ObjMetaKeyIterator(entrySet().iterator());
             }
 
@@ -176,10 +177,10 @@ public class ObjMeta2ObjectOpenHashMap<K, V> implements Map<ObjMetaPair<K>, V> {
     }
 
     @Override
-    public @NotNull Set<Entry<ObjMetaPair<K>, V>> entrySet() {
+    public @NotNull Set<Entry<Pair, V>> entrySet() {
         return new AbstractSet<>() {
             @Override
-            public @NotNull Iterator<Map.Entry<ObjMetaPair<K>, V>> iterator() {
+            public @NotNull Iterator<Map.Entry<Pair, V>> iterator() {
                 return new ObjMetaEntryIterator();
             }
 
@@ -231,13 +232,13 @@ public class ObjMeta2ObjectOpenHashMap<K, V> implements Map<ObjMetaPair<K>, V> {
         return get == null && wildcardFallback && meta != OreDictionary.WILDCARD_VALUE ? get(key, OreDictionary.WILDCARD_VALUE) : get;
     }
 
-    // TODO: Maybe make this abstract and have both maps extend
-    protected ObjMetaPair<K> internPair(K obj, int meta) {
+    // TODO: Maybe make this abstract and have both maps extend, and I want to make interning or using new instances a ctor arg
+    protected Pair internPair(K obj, int meta) {
         if(obj instanceof Block block) {
-            return (ObjMetaPair<K>) BlockMetaPair.intern(block, meta);
+            return (Pair) BlockMetaPair.intern(block, meta);
         }
         if(obj instanceof Item item) {
-            return (ObjMetaPair<K>) ItemMetaPair.intern(item, meta);
+            return (Pair) ItemMetaPair.intern(item, meta);
         }
         throw new IllegalArgumentException("Parameter passed in was not a block or item!");
     }
@@ -254,12 +255,12 @@ public class ObjMeta2ObjectOpenHashMap<K, V> implements Map<ObjMetaPair<K>, V> {
     }
 
     // A custom iterator class for the entry set
-    protected class ObjMetaEntryIterator implements Iterator<Map.Entry<ObjMetaPair<K>, V>> {
+    protected class ObjMetaEntryIterator implements Iterator<Map.Entry<Pair, V>> {
         private final Iterator<Map.Entry<K, Int2ObjectOpenHashMap<V>>> outerIterator = backingMap.entrySet().iterator();
         private Map.Entry<K, Int2ObjectOpenHashMap<V>> currentOuterEntry;
         private ObjectIterator<Int2ObjectMap.Entry<V>> innerIterator;
         private Map.Entry<Integer, V> currentInnerEntry;
-        private Map.Entry<ObjMetaPair<K>, V> nextEntry;
+        private Map.Entry<Pair, V> nextEntry;
 
         @Override
         public boolean hasNext() {
@@ -279,19 +280,19 @@ public class ObjMeta2ObjectOpenHashMap<K, V> implements Map<ObjMetaPair<K>, V> {
         }
 
         @Override
-        public Map.Entry<ObjMetaPair<K>, V> next() {
+        public Map.Entry<Pair, V> next() {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
-            Map.Entry<ObjMetaPair<K>, V> entry = nextEntry;
+            Map.Entry<Pair, V> entry = nextEntry;
             nextEntry = null;
             return entry;
         }
     }
 
     protected abstract class ObjMetaIteratorWrapper<T> implements Iterator<T> {
-        protected final Iterator<Map.Entry<ObjMetaPair<K>, V>> iter;
-        ObjMetaIteratorWrapper(Iterator<Map.Entry<ObjMetaPair<K>, V>> iter) {
+        protected final Iterator<Map.Entry<Pair, V>> iter;
+        ObjMetaIteratorWrapper(Iterator<Map.Entry<Pair, V>> iter) {
             this.iter = iter;
         }
 
@@ -304,13 +305,13 @@ public class ObjMeta2ObjectOpenHashMap<K, V> implements Map<ObjMetaPair<K>, V> {
     /**
      * An iterator that lazily returns the keys from the nested map.
      */
-    protected class ObjMetaKeyIterator extends ObjMetaIteratorWrapper<ObjMetaPair<K>> {
-        ObjMetaKeyIterator(Iterator<Map.Entry<ObjMetaPair<K>, V>> iter) {
+    protected class ObjMetaKeyIterator extends ObjMetaIteratorWrapper<Pair> {
+        ObjMetaKeyIterator(Iterator<Map.Entry<Pair, V>> iter) {
             super(iter);
         }
 
         @Override
-        public ObjMetaPair<K> next() {
+        public Pair next() {
             return iter.next().getKey();
         }
     }
@@ -319,7 +320,7 @@ public class ObjMeta2ObjectOpenHashMap<K, V> implements Map<ObjMetaPair<K>, V> {
      * An iterator that lazily returns the values from the nested map.
      */
     protected class ObjMetaValueIterator extends ObjMetaIteratorWrapper<V> {
-        ObjMetaValueIterator(Iterator<Map.Entry<ObjMetaPair<K>, V>> iter) {
+        ObjMetaValueIterator(Iterator<Map.Entry<Pair, V>> iter) {
             super(iter);
         }
 

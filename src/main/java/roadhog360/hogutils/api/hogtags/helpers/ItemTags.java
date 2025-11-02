@@ -103,7 +103,7 @@ public final class ItemTags extends TagContainerMeta<Item, ItemMetaPair> {
     /// Get the items for the passed in tag via {@link ItemMetaPair} objects.
     ///
     /// {@link ItemMetaPair#get()} gets the {@link Item} object, whilst {@link ItemMetaPair#getMeta()} retrieves its metadata.
-    /// This metadata can be {@link OreDictionary#WILDCARD_VALUE}, which means the tag is added to every metadata list of that item.
+    /// This metadata can be {@link OreDictionary#WILDCARD_VALUE}, which means the tag is added to every metadata of that item.
     /// The underlying object is a {@link Pair}, so {@link Pair#getLeft()} and {@link Pair#getRight()} respectively may also be used.
     public static Set<ItemMetaPair> getInTag(String tag) {
         return REVERSE_LOOKUP_TABLE.getOrDefault(tag, SetPair.getEmpty()).getLocked();

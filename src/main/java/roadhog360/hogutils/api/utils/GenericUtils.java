@@ -74,15 +74,16 @@ public final class GenericUtils {
         return -1;
     }
 
-    /// If {@link World} is null, uses the client world. This will crash on a server, obviously, so be careful doing that.
-    public static Pair<Block, Integer> getBlockAndMetaFromMOP(@NonNull World world, MovingObjectPosition mop) {
-        return BlockMetaPair.intern(world.getBlock(mop.blockX, mop.blockY, mop.blockZ), world.getBlockMetadata(mop.blockX, mop.blockY, mop.blockZ));
-    }
-
     /// Returns the capital letter closest to the beginning of the string.
     /// Returns -1 if none exist.
     public static int indexOfLastCapitalLetter(String str) {
-        return str.length() - 1 - indexOfFirstCapitalLetter(new StringBuilder(str).reverse().toString());
+        int index = indexOfFirstCapitalLetter(new StringBuilder(str).reverse().toString());
+        return index != -1 ? str.length() - 1 - index : -1;
+    }
+
+    /// If {@link World} is null, uses the client world. This will crash on a server, obviously, so be careful doing that.
+    public static Pair<Block, Integer> getBlockAndMetaFromMOP(@NonNull World world, MovingObjectPosition mop) {
+        return BlockMetaPair.intern(world.getBlock(mop.blockX, mop.blockY, mop.blockZ), world.getBlockMetadata(mop.blockX, mop.blockY, mop.blockZ));
     }
 
     public static boolean anyStartsWith(String match, Collection<String> collection) {

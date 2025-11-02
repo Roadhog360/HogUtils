@@ -6,7 +6,7 @@ import net.minecraftforge.oredict.OreDictionary;
 import org.jetbrains.annotations.Nullable;
 import roadhog360.hogutils.api.blocksanditems.utils.base.ObjMeta2ObjectOpenHashMap;
 
-public final class ItemMeta2ObjectOpenHashMap<V> extends ObjMeta2ObjectOpenHashMap<Item, V> {
+public final class ItemMeta2ObjectOpenHashMap<V> extends ObjMeta2ObjectOpenHashMap<ItemMetaPair, Item, V> {
     /// @param wildcardFallback
     /// If searching for a metadata value that's not found, should we return the entry at {@link OreDictionary#WILDCARD_VALUE} if there is one?
     public ItemMeta2ObjectOpenHashMap(boolean wildcardFallback) {

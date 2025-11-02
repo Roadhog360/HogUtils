@@ -75,8 +75,8 @@ public final class BlockTags extends TagContainerMeta<Block, BlockMetaPair> {
         return getTags(block, OreDictionary.WILDCARD_VALUE);
     }
 
-    public static boolean hasTag(@NonNull Block item, @NonNull String tag) {
-        return hasTag(item, OreDictionary.WILDCARD_VALUE, tag);
+    public static boolean hasTag(@NonNull Block block, @NonNull String tag) {
+        return hasTag(block, OreDictionary.WILDCARD_VALUE, tag);
     }
 
     /// Returns true if the passed in block has any of the listed tags.
@@ -91,7 +91,7 @@ public final class BlockTags extends TagContainerMeta<Block, BlockMetaPair> {
     /// Get the blocks for the passed in tag via {@link BlockMetaPair} objects.
     ///
     /// {@link BlockMetaPair#get()} gets the {@link Block} object, whilst {@link BlockMetaPair#getMeta()} retrieves its metadata.
-    /// This metadata can be {@link OreDictionary#WILDCARD_VALUE}, which means the tag is added to every metadata list of that item.
+    /// This metadata can be {@link OreDictionary#WILDCARD_VALUE}, which means the tag is added to every metadata of that block.
     /// The underlying object is a {@link Pair}, so {@link Pair#getLeft()} and {@link Pair#getRight()} respectively may also be used.
     ///
     /// If accessing the library via reflection and not via a compile dependency,
