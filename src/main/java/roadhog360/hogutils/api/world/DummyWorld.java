@@ -1,6 +1,6 @@
 package roadhog360.hogutils.api.world;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
@@ -17,36 +17,20 @@ import net.minecraft.world.storage.ISaveHandler;
 import net.minecraft.world.storage.WorldInfo;
 import roadhog360.hogutils.api.BlockPos;
 import roadhog360.hogutils.api.blocksanditems.utils.BlockMetaPair;
-import roadhog360.hogutils.api.blocksanditems.utils.base.ObjMetaPair;
 import roadhog360.hogutils.api.utils.FastRandom;
 
 import java.io.File;
 import java.util.Map;
 
+/// Used for fake worlds where setblock/getblock is needed
+/// Tile entity data and entities are not supported
 public class DummyWorld extends World {
-    public static class GT_IteratorRandom extends FastRandom {
-        public int mIterationStep = Integer.MAX_VALUE;
-
-        @Override
-        public int nextInt(int aParameter) {
-            if (mIterationStep == 0 || mIterationStep > aParameter) {
-                mIterationStep = aParameter;
-            }
-            return --mIterationStep;
-        }
-    }
-
-    private static final ThreadLocal<DummyWorld> GLOBAL_DUMMY_WORLD = ThreadLocal.withInitial(DummyWorld::new);
-    public static DummyWorld getGlobalInstance() {
-        return GLOBAL_DUMMY_WORLD.get();
-    }
-    public GT_IteratorRandom mRandom = new GT_IteratorRandom();
-    private final Map<BlockPos, BlockMetaPair> FAKE_WORLD_DATA = new Object2ObjectOpenHashMap<>(); //Stores setblock data for getblock
+    private final Map<BlockPos, BlockMetaPair> FAKE_WORLD_DATA = new Object2ReferenceOpenHashMap<>(); //Stores setblock data for getblock
     private static final BlockMetaPair AIR = BlockMetaPair.intern(Blocks.air, 0);
 
     DummyWorld(ISaveHandler par1iSaveHandler, String par2Str, WorldProvider par3WorldProvider, WorldSettings par4WorldSettings, Profiler par5Profiler) {
         super(par1iSaveHandler, par2Str, par4WorldSettings, par3WorldProvider, par5Profiler);
-        rand = mRandom;
+        rand = new FastRandom();
     }
 
     public DummyWorld() {
@@ -86,7 +70,7 @@ public class DummyWorld extends World {
 
                 @Override
                 public String getWorldDirectoryName() {
-                    return null;
+                    return "jss2a98aj";
                 }
 
                 @Override
@@ -118,9 +102,8 @@ public class DummyWorld extends World {
 
     @Override
     public boolean setBlockMetadataWithNotify(int aX, int aY, int aZ, int aMeta, int flags) {
-        BlockPos pos = new BlockPos(aX, aY, aZ);
-        if (FAKE_WORLD_DATA.containsKey(pos)) {
-            ObjMetaPair<Block> block = FAKE_WORLD_DATA.get(pos);
+        BlockMetaPair block = FAKE_WORLD_DATA.get(new BlockPos(aX, aY, aZ));
+        if (block != null && block.getMeta() != aMeta) {
             setBlock(aX, aY, aZ, block.get(), aMeta, 0);
             return true;
         }
@@ -129,8 +112,7 @@ public class DummyWorld extends World {
 
     @Override
     public boolean setBlockToAir(int aX, int aY, int aZ) {
-        FAKE_WORLD_DATA.remove(new BlockPos(aX, aY, aZ));
-        return true;
+        return FAKE_WORLD_DATA.remove(new BlockPos(aX, aY, aZ)) != null;
     }
 
     @Override
@@ -142,11 +124,11 @@ public class DummyWorld extends World {
     public boolean setBlock(int aX, int aY, int aZ, Block aBlock, int aMeta, int aFlags) {
         BlockPos pos = new BlockPos(aX, aY, aZ);
         if (aBlock == Blocks.air) {
-            FAKE_WORLD_DATA.remove(pos);
+            return setBlockToAir(aX, aY, aZ);
         } else {
-            FAKE_WORLD_DATA.put(pos, BlockMetaPair.intern(aBlock, aMeta));
+            BlockMetaPair result = FAKE_WORLD_DATA.put(pos, BlockMetaPair.intern(aBlock, aMeta));
+            return result == null || result.matches(aBlock, aMeta);
         }
-        return true;
     }
 
     @Override

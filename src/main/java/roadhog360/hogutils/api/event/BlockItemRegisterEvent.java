@@ -13,32 +13,32 @@ import net.minecraft.item.Item;
 /// Be sure to register this in your {@link FMLConstructionEvent} or you may miss the OnRegister event.
 ///
 /// This event is NOT {@link Cancelable}
-public class BlockItemIterateEvent<T> extends Event {
+public class BlockItemRegisterEvent<T> extends Event {
     public final T objToRegister;
     public final String namespaceID;
 
-    private BlockItemIterateEvent(T obj, String name) {
+    private BlockItemRegisterEvent(T obj, String name) {
         this.objToRegister = obj;
         this.namespaceID = name;
     }
 
     public static class BlockRegister {
         /// Called from an iterator in HogUtils sometime during {@link FMLInitializationEvent}
-        public static class Init extends BlockItemIterateEvent<Block> {
+        public static class Init extends BlockItemRegisterEvent<Block> {
             public Init(Block obj, String name) {
                 super(obj, name);
             }
         }
 
         /// Called from an iterator in HogUtils sometime during {@link FMLPostInitializationEvent}
-        public static class PostInit extends BlockItemIterateEvent<Block> {
+        public static class PostInit extends BlockItemRegisterEvent<Block> {
             public PostInit(Block obj, String name) {
                 super(obj, name);
             }
         }
 
         /// Called from an iterator in HogUtils sometime during {@link FMLLoadCompleteEvent}
-        public static class LoadComplete extends BlockItemIterateEvent<Block> {
+        public static class LoadComplete extends BlockItemRegisterEvent<Block> {
             public LoadComplete(Block obj, String name) {
                 super(obj, name);
             }
@@ -47,21 +47,21 @@ public class BlockItemIterateEvent<T> extends Event {
 
     public static class ItemRegister {
         /// Called from an iterator in HogUtils sometime during {@link FMLInitializationEvent}
-        public static class Init extends BlockItemIterateEvent<Item> {
+        public static class Init extends BlockItemRegisterEvent<Item> {
             public Init(Item obj, String name) {
                 super(obj, name);
             }
         }
 
         /// Called from an iterator in HogUtils sometime during {@link FMLPostInitializationEvent}
-        public static class PostInit extends BlockItemIterateEvent<Item> {
+        public static class PostInit extends BlockItemRegisterEvent<Item> {
             public PostInit(Item obj, String name) {
                 super(obj, name);
             }
         }
 
         /// Called from an iterator in HogUtils sometime during {@link FMLLoadCompleteEvent}
-        public static class LoadComplete extends BlockItemIterateEvent<Item> {
+        public static class LoadComplete extends BlockItemRegisterEvent<Item> {
             public LoadComplete(Item obj, String name) {
                 super(obj, name);
             }

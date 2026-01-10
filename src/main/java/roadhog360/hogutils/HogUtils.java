@@ -17,7 +17,7 @@ import roadhog360.hogutils.proxy.CommonProxy;
 import java.util.Map;
 
 @Mod(modid = Tags.MOD_ID, version = Tags.VERSION, name = Tags.MOD_NAME, acceptedMinecraftVersions = "[1.7.10]",
-    dependencies = "required-after:gtnhlib") //TODO: Put version here when model system is in a release
+    dependencies = "required-after:gtnhlib@[0.9.0,);")
 public class HogUtils {
 
     public static final Logger LOG = LogManager.getLogger(Tags.MOD_ID);

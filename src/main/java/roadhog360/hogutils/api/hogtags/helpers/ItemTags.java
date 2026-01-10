@@ -33,7 +33,7 @@ public final class ItemTags extends TagContainerMeta<Item, ItemMetaPair> {
             throw new IllegalArgumentException("Cannot add 0 tags to an item. Varargs brain fart? Tried to add 0 tags to " + item);
         }
         if(RecipeHelper.validateItems(item)) {
-            ((ITaggableMeta) item).addTags(tags);
+            ((ITaggableMeta) item).addTags(meta, tags);
         }
     }
 

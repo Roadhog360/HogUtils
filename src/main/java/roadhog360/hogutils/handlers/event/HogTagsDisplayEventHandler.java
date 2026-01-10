@@ -1,8 +1,10 @@
 package roadhog360.hogutils.handlers.event;
 
+import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
 import cpw.mods.fml.client.FMLClientHandler;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.relauncher.Side;
 import net.minecraft.block.Block;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.EntityPlayer;
@@ -21,14 +23,13 @@ import roadhog360.hogutils.config.HogUtilsConfigs;
 
 import java.util.Set;
 
+@EventBusSubscriber(side = Side.CLIENT)
 public class HogTagsDisplayEventHandler {
-
-    private HogTagsDisplayEventHandler() {}
 
     public static final HogTagsDisplayEventHandler INSTANCE = new HogTagsDisplayEventHandler();
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void injectHogTagsDisplay(RenderGameOverlayEvent.Text event) {
+    public static void injectHogTagsDisplay(RenderGameOverlayEvent.Text event) {
         if (FMLClientHandler.instance().getClient().gameSettings.showDebugInfo) {
             if(HogUtilsConfigs.Utils.F3AndTooltips.hogTagsInF3) {
                 World world = FMLClientHandler.instance().getWorldClient();
@@ -58,7 +59,7 @@ public class HogTagsDisplayEventHandler {
 
                     if (!tags.isEmpty()) {
                         event.right.add(null);
-                        event.right.add("HogTags for " + Block.blockRegistry.getNameForObject(lookingBlock) + ":" + lookingMeta);
+                        event.right.add("HogTags for: " + Block.blockRegistry.getNameForObject(lookingBlock) + ", meta: " + lookingMeta);
                         event.right.add("(" + BlockTags.CONTAINER_ID + " tag pool)");
                         for (String tag : tags) {
                             event.right.add("#" + tag);
@@ -70,7 +71,7 @@ public class HogTagsDisplayEventHandler {
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
-    public void injectHogTagsTooltip(ItemTooltipEvent event) {
+    public static void injectHogTagsTooltip(ItemTooltipEvent event) {
         if (event.showAdvancedItemTooltips && HogUtilsConfigs.Utils.F3AndTooltips.hogTagsInItemTooltip
             && event.itemStack != null && event.itemStack.getItem() != null) {
             Set<String> tags = ItemTags.getTags(event.itemStack.getItem(), event.itemStack.getItemDamage());
@@ -85,5 +86,9 @@ public class HogTagsDisplayEventHandler {
                 }
             }
         }
+    }
+
+    public static boolean condition() {
+        return HogUtilsConfigs.Utils.F3AndTooltips.hogTagsInF3 || HogUtilsConfigs.Utils.F3AndTooltips.hogTagsInItemTooltip;
     }
 }

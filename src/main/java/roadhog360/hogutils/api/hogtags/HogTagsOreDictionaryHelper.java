@@ -1,6 +1,7 @@
 package roadhog360.hogutils.api.hogtags;
 
 import com.google.common.base.CaseFormat;
+import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
@@ -9,7 +10,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import roadhog360.hogutils.api.event.OreDictionaryAutoTagEvent;
+import roadhog360.hogutils.api.event.OreDictionaryToHogTagsEvent;
 import roadhog360.hogutils.api.utils.GenericUtils;
 
 import java.util.Collections;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@EventBusSubscriber
 public class HogTagsOreDictionaryHelper {
 
     /// Map for prefix-based {@link OreDictionary} registration. Example: oreIron becomes `c:ores/iron`
@@ -71,7 +73,7 @@ public class HogTagsOreDictionaryHelper {
         }
     }
 
-    /// Converts an OreDictionary string to the [Fabric common tag standard](https://fabricmc.net/wiki/community:common_tags). Examples:
+    /// Converts an OreDictionary entry to the [Fabric common tag standard](https://fabricmc.net/wiki/community:common_tags). Examples:
     /// `oreIron` converts to `c:ores/iron`, `ingotCopper` becomes `c:ingots/copper`
     /// Sometimes something may return MULTIPLE tags, hence the list, like `paneGlassPurple` will return a list containing both `c:purple_glass_panes` AND `c:dyed/purple`
     /// Pass in the last boolean as `TRUE` if you want it to return a generic tag in place, for example `someRandomTag` would become `ore_dictionary:some_random_tag` instead of returning an empty list.
@@ -110,12 +112,14 @@ public class HogTagsOreDictionaryHelper {
             }
         }
 
-        List<String> eventTags = new ObjectArrayList<>();
-        MinecraftForge.EVENT_BUS.post(new OreDictionaryAutoTagEvent(oreDict, stack, tags, eventTags));
-        tags.addAll(eventTags);
-
-        if(returnsGenericTag && !tags.isEmpty()) {
-            tags.add("ore_dictionary:" + CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, oreDict));
+        if(!tags.isEmpty()) {
+            if(!MinecraftForge.EVENT_BUS.post(new OreDictionaryToHogTagsEvent(oreDict, stack, tags))) {
+                if (returnsGenericTag) {
+                    tags.add("ore_dictionary:" + CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, oreDict));
+                }
+            } else {
+                tags.clear();
+            }
         }
 
         return tags;

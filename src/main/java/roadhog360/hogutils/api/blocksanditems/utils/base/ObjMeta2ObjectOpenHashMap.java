@@ -26,8 +26,7 @@ public class ObjMeta2ObjectOpenHashMap<Pair, K, V> implements Map<Pair, V> {
     private final boolean wildcardFallback;
     private int size = 0;
 
-    /// @param wildcardFallback
-    /// If searching for a metadata value that's not found, should we return the entry at {@link OreDictionary#WILDCARD_VALUE} if there is one?
+    /// @param wildcardFallback If searching for a metadata value that's not found, should we return the entry at {@link OreDictionary#WILDCARD_VALUE} if there is one?
     protected ObjMeta2ObjectOpenHashMap(boolean wildcardFallback) {
         this.wildcardFallback = wildcardFallback;
     }

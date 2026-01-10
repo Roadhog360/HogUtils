@@ -125,12 +125,14 @@ public final class RecipeHelper {
     }
 
     public static void removeAllRecipesWithOutput(Item item, int meta, boolean matchWildcards) {
-        removeAllMatchingRecipes(iRecipe -> {
-            ItemStack stack = iRecipe.getRecipeOutput();
-            return stack != null
-                && stack.getItem() == item
-                && ((matchWildcards && stack.getItemDamage() == OreDictionary.WILDCARD_VALUE) || meta == stack.getItemDamage());
-        });
+        if(item != null) {
+            removeAllMatchingRecipes(iRecipe -> {
+                ItemStack stack = iRecipe.getRecipeOutput();
+                return stack != null
+                    && stack.getItem() == item
+                    && ((matchWildcards && stack.getItemDamage() == OreDictionary.WILDCARD_VALUE) || meta == stack.getItemDamage());
+            });
+        }
     }
 
     /// Removes any recipe that tests true for the specific predicate.
@@ -153,12 +155,14 @@ public final class RecipeHelper {
     }
 
     public static void removeFirstRecipeWithOutput(Item item, int meta, boolean matchWildcards) {
-        removeFirstMatchingRecipe(iRecipe -> {
-            ItemStack stack = iRecipe.getRecipeOutput();
-            return stack != null
-                && stack.getItem() == item
-                && ((matchWildcards && stack.getItemDamage() == OreDictionary.WILDCARD_VALUE) || meta == stack.getItemDamage());
-        });
+        if(item != null) {
+            removeFirstMatchingRecipe(iRecipe -> {
+                ItemStack stack = iRecipe.getRecipeOutput();
+                return stack != null
+                    && stack.getItem() == item
+                    && ((matchWildcards && stack.getItemDamage() == OreDictionary.WILDCARD_VALUE) || meta == stack.getItemDamage());
+            });
+        }
     }
 
     /// Removes any recipe that tests true for the specific predicate.

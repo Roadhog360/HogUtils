@@ -49,12 +49,16 @@ public class ObjMetaPair<BlockOrItem> extends Pair<BlockOrItem, Integer> impleme
 
     @Override
     public boolean equals(Object obj) {
-        return obj == this || obj instanceof ObjMetaPair<?> mapping && matches(mapping.get(), mapping.getMeta());
+        return obj == this || obj instanceof ObjMetaPair<?> mapping && matchesSoft(mapping.get(), mapping.getMeta());
     }
 
-    public boolean matches(Object compareObject, int compareMeta) {
+    public boolean matchesSoft(Object compareObject, int compareMeta) {
         return get() == compareObject && (getMeta() == compareMeta
             || (getMeta() == OreDictionary.WILDCARD_VALUE || compareMeta == OreDictionary.WILDCARD_VALUE));
+    }
+
+    public boolean matches(BlockOrItem compareObject, int compareMeta) {
+        return get() == compareObject && getMeta() == compareMeta;
     }
 
     @Override

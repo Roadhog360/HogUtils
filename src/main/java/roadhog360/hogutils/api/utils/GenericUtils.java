@@ -31,7 +31,6 @@ import java.util.Set;
 import java.util.TreeMap;
 
 public final class GenericUtils {
-
     private GenericUtils() {}
 
     public static MovingObjectPosition getMovingObjectPositionFromEntity(World worldIn, Entity entity, boolean useNonSelectable, boolean ignoreNonCollidable) {
@@ -179,7 +178,7 @@ public final class GenericUtils {
             if(number == 0) {
                 return "ZERO";
             }
-            int l =  map.floorKey(number);
+            int l = map.floorKey(number);
             if (number == l) {
                 return map.get(number);
             }
@@ -194,7 +193,7 @@ public final class GenericUtils {
         // Test if a fix for enderman carrying is installed
         if(ENDERMAN_CARRYING_FIX == null) {
             try {
-                EntityEnderman testEnderman = new EntityEnderman(DummyWorld.getGlobalInstance());
+                EntityEnderman testEnderman = new EntityEnderman(new DummyWorld());
                 testEnderman.getDataWatcher().updateObject(16, 4096);
                 ENDERMAN_CARRYING_FIX = testEnderman.getDataWatcher().getWatchableObjectInt(16) == 4096;
             } catch (Exception e) {

@@ -15,6 +15,8 @@ import roadhog360.hogutils.api.world.DummyWorld;
 
 public class BaseStairsCopy extends BlockStairs implements IItemAndBlockBase {
 
+    private final ThreadLocal<DummyWorld> dummyWorld = ThreadLocal.withInitial(DummyWorld::new);
+
 	public BaseStairsCopy(Block p_i45428_1_, int p_i45428_2_) {
         super(p_i45428_1_, p_i45428_2_);
         useNeighborBrightness = true;
@@ -37,7 +39,7 @@ public class BaseStairsCopy extends BlockStairs implements IItemAndBlockBase {
         }
         setCreativeTab(field_150149_b.displayOnCreativeTab);
         if(field_150149_b instanceof IMultiBlockSound mbs) {
-            DummyWorld world = DummyWorld.getGlobalInstance();
+            DummyWorld world = dummyWorld.get();
             world.setBlock(0, 0, 0, field_150149_b, field_150151_M, 3);
             setStepSound(mbs.getSoundType(world, 0, 0, 0, IMultiBlockSound.SoundMode.PLACE));
         } else {
@@ -87,21 +89,21 @@ public class BaseStairsCopy extends BlockStairs implements IItemAndBlockBase {
 
     @Override
     public int getFlammability(IBlockAccess w, int x, int y, int z, ForgeDirection face) {
-        DummyWorld world = DummyWorld.getGlobalInstance();
+        DummyWorld world = dummyWorld.get();
         world.setBlock(0, 0, 0, field_150149_b, field_150151_M, 0);
         return field_150149_b.getFlammability(world, 0, 0, 0, face);
     }
 
     @Override
     public int getFireSpreadSpeed(IBlockAccess w, int x, int y, int z, ForgeDirection face) {
-        DummyWorld world = DummyWorld.getGlobalInstance();
+        DummyWorld world = dummyWorld.get();
         world.setBlock(0, 0, 0, field_150149_b, field_150151_M, 0);
         return field_150149_b.getFireSpreadSpeed(world, 0, 0, 0, face);
     }
 
     @Override
     public boolean isFlammable(IBlockAccess w, int x, int y, int z, ForgeDirection face) {
-        DummyWorld world = DummyWorld.getGlobalInstance();
+        DummyWorld world = dummyWorld.get();
         world.setBlock(0, 0, 0, field_150149_b, field_150151_M, 0);
         return field_150149_b.isFlammable(world, 0, 0, 0, face);
     }

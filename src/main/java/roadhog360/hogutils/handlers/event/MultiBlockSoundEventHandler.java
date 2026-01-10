@@ -1,8 +1,10 @@
 package roadhog360.hogutils.handlers.event;
 
+import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
 import cpw.mods.fml.client.FMLClientHandler;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.relauncher.Side;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockBasePressurePlate;
 import net.minecraft.block.BlockButton;
@@ -18,12 +20,10 @@ import roadhog360.hogutils.api.blocksanditems.block.ICustomActivateSound;
 import roadhog360.hogutils.api.blocksanditems.block.IMultiBlockSound;
 import roadhog360.hogutils.api.event.IUnfinalizedSoundEvent;
 
+@EventBusSubscriber(side = Side.CLIENT)
 public final class MultiBlockSoundEventHandler {
 
-    public static final MultiBlockSoundEventHandler INSTANCE = new MultiBlockSoundEventHandler();
 //    private final ThreadLocal<BlockPos.MutableBlockPos> LAST_PLACED = ThreadLocal.withInitial(() -> new BlockPos.MutableBlockPos(0, 0, 0));
-
-    private MultiBlockSoundEventHandler() {}
 
 //    @SubscribeEvent
 //    public void onOpenMenu(GuiOpenEvent event) {
@@ -37,7 +37,7 @@ public final class MultiBlockSoundEventHandler {
 //        }
 //    }
 
-    private boolean checkPlacedAndReset(int x, int y, int z) {
+    private static boolean checkPlacedAndReset(int x, int y, int z) {
 //        BlockPos.MutableBlockPos pos = LAST_PLACED.get();
 //        boolean isPlaceSound = pos.isAt(x, y, z);
 //        pos.setPos(Integer.MIN_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE);
@@ -46,7 +46,7 @@ public final class MultiBlockSoundEventHandler {
     }
 
     @SubscribeEvent
-    public void onPlaySoundEvent(PlaySoundEvent17 event) {
+    public static void onPlaySoundEvent(PlaySoundEvent17 event) {
         if (event.sound instanceof PositionedSound sound && FMLClientHandler.instance().getWorldClient() != null) {
             final World world = FMLClientHandler.instance().getWorldClient();
             final int x = MathHelper.floor_float(sound.getXPosF());
@@ -103,7 +103,7 @@ public final class MultiBlockSoundEventHandler {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onPlaySoundAtEntityEvent(PlaySoundAtEntityEvent event) {
+    public static void onPlaySoundAtEntityEvent(PlaySoundAtEntityEvent event) {
         //Some mods fire null sounds, blech
         if (event.name == null || FMLClientHandler.instance().getWorldClient() == null) return;
 
