@@ -7,18 +7,18 @@ import net.minecraft.item.ItemStack;
 
 import java.util.List;
 
-/// Fired when the game is registering OreDictionary values, so other mods can detect what HogUtils has tagged an item with.
-/// If there's a custom OreDictionary tag you have a modern tag equivalent for you can hook into this event.
+/// Fired when HogUtils automatically applies HogTags to an item when it is registered through OreDictionary.
+/// The list is what HogTags will be added. It is immutable.
 /// This event is {@link Cancelable}.
 @Cancelable
 public class OreDictionaryToHogTagsEvent extends Event {
-    private final String oreDictTag;
-    private final ItemStack stack;
-    public final List<String> convertedTagsList;
+    public final String oreDictTag;
+    public final ItemStack stack;
+    public final List<String> autoHogTags;
 
     public OreDictionaryToHogTagsEvent(String oreDictTag, ItemStack stack, List<String> autoHogTags) {
         this.oreDictTag = oreDictTag;
         this.stack = stack;
-        this.convertedTagsList = ImmutableList.copyOf(autoHogTags);
+        this.autoHogTags = ImmutableList.copyOf(autoHogTags);
     }
 }
