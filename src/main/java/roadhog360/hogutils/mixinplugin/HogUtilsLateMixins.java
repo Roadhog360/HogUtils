@@ -23,7 +23,6 @@ public class HogUtilsLateMixins implements ILateMixinLoader {
     public List<String> getMixins(Set<String> loadedMods) {
         List<String> mixins = new ArrayList<>();
 //        mixins.add("sample1");
-        mixins.add("MixinRegistryEntrySanitization");
         if(loadedMods.contains("HardcoreEnderExpansion")) {
             mixins.add("MixinHEEDimensionOverride");
         }

@@ -41,6 +41,30 @@ public class HogUtils {
     // preInit "Run before anything else. Read your config, create blocks, items, etc., and register them with the
     // GameRegistry." (Remove if not needed)
     public void preInit(FMLPreInitializationEvent event) {
+        // Debug code to stress test tags with memory. So far this code shows very low memory impact.
+        // Accommodations to the test code will not be made for expanded IDs.
+        // It's very unlikely tags will become anywhere near this heavily used even in large packs.
+        // Even if a pack is large enough to go well beyond this test scope, it would be at the point where more RAM is expected anyway.
+//        for(int i = 0; i < 3000; i ++) {
+//            Block dummyBlock = new BaseBlock(Material.rock) {
+//                @Override
+//                public @Nullable String getTextureDomain(String textureName) {
+//                    return "";
+//                }
+//
+//                @Override
+//                public @Nullable String getNameDomain(String unlocalizedName) {
+//                    return "";
+//                }
+//            };
+//            GameRegistry.registerBlock(dummyBlock, "test"+i);
+//            int tags = 15;
+//            for(int j = 0; j <= tags; j++) {
+//                String tag = "minecraft:test_tag" + j;
+//                BlockTags.addTags(dummyBlock, tag);
+//                ItemTags.addTags(Item.getItemFromBlock(dummyBlock), tag);
+//            }
+//        }
         proxy.preInit(event);
     }
 

@@ -1,16 +1,16 @@
 package roadhog360.hogutils.api.hogtags;
 
 import com.google.common.base.CaseFormat;
+import com.google.common.collect.ImmutableList;
 import com.gtnewhorizon.gtnhlib.eventbus.EventBusSubscriber;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import net.minecraft.item.ItemStack;
-import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import roadhog360.hogutils.api.event.OreDictionaryToHogTagsEvent;
+import org.jetbrains.annotations.ApiStatus;
 import roadhog360.hogutils.api.utils.GenericUtils;
 
 import java.util.Collections;
@@ -18,7 +18,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/// Marked as experimental deliberately because this thing is a fucking mess.
+/// Will eventually be rewritten entirely. Seriously, what was I thinking?
+///
+/// I wanted to use a map since I had a lot of conditions I wanted to register tags based on, and doing so by hand would've been a chore.
+/// BUT... this just ISN'T IT. Some of the comments are also weirdly, or nonsensically worded.
 @EventBusSubscriber
+@ApiStatus.Experimental
 public class HogTagsOreDictionaryHelper {
 
     /// Map for prefix-based {@link OreDictionary} registration. Example: oreIron becomes `c:ores/iron`
@@ -73,15 +79,18 @@ public class HogTagsOreDictionaryHelper {
         }
     }
 
-    /// Converts an OreDictionary entry to the [Fabric common tag standard](https://fabricmc.net/wiki/community:common_tags). Examples:
-    /// `oreIron` converts to `c:ores/iron`, `ingotCopper` becomes `c:ingots/copper`
+    /// Converts an OreDictionary entry to the [Fabric common tag standard](https://fabricmc.net/wiki/community:common_tags).
+    /// Examples: `oreIron` converts to `c:ores/iron`, `ingotCopper` becomes `c:ingots/copper`
+    ///
     /// Sometimes something may return MULTIPLE tags, hence the list, like `paneGlassPurple` will return a list containing both `c:purple_glass_panes` AND `c:dyed/purple`
-    /// Pass in the last boolean as `TRUE` if you want it to return a generic tag in place, for example `someRandomTag` would become `ore_dictionary:some_random_tag` instead of returning an empty list.
-    /// If the boolean is `FALSE`, tags not eligible to convert will not be added to the list, meaning the list would become empty.
-    /// See the maps this uses for more info on how they're being used. Instead of using the event, you may also add your own dynamic filters to the static maps, if you wish.
-    public static List<String> convertOreDictToTags(String oreDict, ItemStack stack, boolean returnsGenericTag) {
+    ///
+    ///  Pass in the last boolean as `TRUE` if you want it to return a generic tag in place, for example `someRandomTag` would become `ore_dictionary:some_random_tag` instead of returning an empty list.
+    ///
+    ///  If the boolean is `FALSE`, tags not eligible to convert will not be added to the list, meaning the list would become empty.
+    ///
+    ///  See the maps this uses for more info on how they're being used. Instead of using the event, you may also add your own dynamic filters to the static maps, if you wish.
+    public static List<String> getHogTagsForOreDictionary(String oreDict, ItemStack stack, boolean returnsGenericTag) {
         List<String> tags = new ObjectArrayList<>();
-
 
         //The below implementations originally used the indexes of the first/last capital letters to determine where to truncate the string
         //The logic for this ended up being really messy so I sacrificed map lookup speed for cleaner code.
@@ -112,17 +121,10 @@ public class HogTagsOreDictionaryHelper {
             }
         }
 
-        if(!tags.isEmpty()) {
-            if(!MinecraftForge.EVENT_BUS.post(new OreDictionaryToHogTagsEvent(oreDict, stack, tags))) {
-                if (returnsGenericTag) {
-                    tags.add("ore_dictionary:" + CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, oreDict));
-                }
-            } else {
-                tags.clear();
-            }
+        if (returnsGenericTag) {
+            tags.add("ore_dictionary:" + CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, oreDict));
         }
-
-        return tags;
+        return ImmutableList.copyOf(tags);
     }
 
     private static void doPrefixingLogic(String oreDict, String prefix, List<String> tags) {

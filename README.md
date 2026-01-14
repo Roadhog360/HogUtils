@@ -1,7 +1,13 @@
 # HogUtils
 Shared library for Roadhog360's mods that is hopefully also useful to other people!
+Aims to provide powerful and useful utilities to developers, as well as players, hopefully making it useful even standalone.
 
-## DISCLAIMER
-This library is not finished. The API should not be considered stable and is subject to changes. While it's ready for standalone use or for use with Roadhog360's mods, its API is not ready for use by other mods at this time. Thus, the API could change at any moment and break your mod if you use the API. These versions will be marked as 0.x.x releases. When I consider the API ready for use, 1.x.x versions will start showing up and will be available on Modrinth.
+Features are added as I need/want them, but requests will still be listened to.
 
-For players: While documentation is incomplete and CraftTweaker support is not yet implemented, the mod is considered safe to install now. However it is good practice to keep backups of your world in case anything major has gone unnoticed.
+## UNDER CONSTRUCTION
+This library is not finished. The API is highly unstable and constantly changing as I figure out what I want to do, and how I want to do it. While this mod is probably stable enough to be installed into an instance, it's currently not recommended to do so beyond testing, because only experimental builds of Et Futurum Requiem require this, and the so-called "player utilities" I mention before are largely incomplete.
+
+If you plan to depend on HogUtils this early on, please keep this in mind.
+
+# NO ETA
+There is currently no ETA as to when this will be on a maven or when it will be finished. I have little time or energy to focus on Minecraft modding due to factors largely outside of my own control.

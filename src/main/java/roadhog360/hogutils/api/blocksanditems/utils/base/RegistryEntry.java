@@ -24,9 +24,14 @@ public abstract class RegistryEntry<T> implements IReferenceBase<T> {
         return isEnabled;
     }
 
-    /// Is wrapped with {@link GenericUtils#isLowerAlphanumeric(String)} at runtime to verify the name is an
-    /// alphanumeric lowercase name, only allowing dots (.) and forward slashes (/) besides that.
-    public void register() {
+    /// Preceded with {@link GenericUtils#isLowerAlphanumeric(String)} to verify the name is an
+    /// alphanumeric lowercase name, only allowing underscores (_) and forward slashes (/) besides that.
+    public final void register() {
+        if (!GenericUtils.isLowerAlphanumeric(name)) {
+            throw new IllegalArgumentException(
+                "Non alphanumeric name detected whilst attempting to register object " + get().getClass().getName()
+            );
+        }
         if (isEnabled()) {
             doRegistration();
         }
