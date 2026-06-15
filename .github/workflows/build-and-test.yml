@@ -9,8 +9,5 @@ on:
 
 jobs:
   build-and-test:
-    uses: Roadhog360/Hog-Actions-Workflows/.github/workflows/build-and-test.yml@master
+    uses: GTNewHorizons/GTNH-Actions-Workflows/.github/workflows/build-and-test.yml@master
     secrets: inherit
-    # with:
-    #   client-only: true
-    # Uncomment for client-only mods
