@@ -1,4 +1,3 @@
-
 name: Release tagged build
 
 on:
@@ -10,5 +9,5 @@ permissions:
 
 jobs:
   release-tags:
-    uses: Roadhog360/Hog-Actions-Workflows/.github/workflows/release-tags.yml@master
+    uses: GTNewHorizons/GTNH-Actions-Workflows/.github/workflows/release-tags.yml@master
     secrets: inherit
