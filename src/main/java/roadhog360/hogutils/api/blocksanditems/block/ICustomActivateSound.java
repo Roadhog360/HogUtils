@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 /// Currently supports doors, trapdoors, fence gates, buttons, pressure plates, dispensers/droppers, chests, and ender chests.
 /// When this interface is applied to your block, it will change the sound that is played when it is activated.
+/// You can use this on those types of blocks so you don't need to override the entire function that plays the sound or make your own sound event override.
 public interface ICustomActivateSound {
     /// @param world
     /// @param x

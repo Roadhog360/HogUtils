@@ -2,6 +2,7 @@ package roadhog360.hogutils.api.utils;
 
 import it.unimi.dsi.fastutil.chars.CharOpenHashSet;
 import it.unimi.dsi.fastutil.chars.CharSets;
+import it.unimi.dsi.fastutil.objects.ObjectIntPair;
 import lombok.NonNull;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
@@ -19,9 +20,7 @@ import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
-import roadhog360.hogutils.api.blocksanditems.utils.BlockMetaPair;
 import roadhog360.hogutils.api.world.DummyWorld;
 import roadhog360.hogutils.core.ModsList;
 
@@ -80,9 +79,8 @@ public final class GenericUtils {
         return index != -1 ? str.length() - 1 - index : -1;
     }
 
-    /// If {@link World} is null, uses the client world. This will crash on a server, obviously, so be careful doing that.
-    public static Pair<Block, Integer> getBlockAndMetaFromMOP(@NonNull World world, MovingObjectPosition mop) {
-        return BlockMetaPair.intern(world.getBlock(mop.blockX, mop.blockY, mop.blockZ), world.getBlockMetadata(mop.blockX, mop.blockY, mop.blockZ));
+    public static ObjectIntPair<Block> getBlockAndMetaFromMOP(@NonNull World world, MovingObjectPosition mop) {
+        return ObjectIntPair.of(world.getBlock(mop.blockX, mop.blockY, mop.blockZ), world.getBlockMetadata(mop.blockX, mop.blockY, mop.blockZ));
     }
 
     public static boolean anyStartsWith(String match, Collection<String> collection) {

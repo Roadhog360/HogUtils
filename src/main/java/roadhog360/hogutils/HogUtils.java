@@ -5,19 +5,21 @@ import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.*;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.common.BiomeDictionary;
+import net.minecraftforge.oredict.OreDictionary;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import roadhog360.hogutils.api.hogtags.helpers.BiomeTags;
+import roadhog360.hogutils.api.hogtags.HogTags;
 import roadhog360.hogutils.proxy.CommonProxy;
 
 import java.util.Map;
 
 @Mod(modid = Tags.MOD_ID, version = Tags.VERSION, name = Tags.MOD_NAME, acceptedMinecraftVersions = "[1.7.10]",
-    dependencies = "required-after:gtnhlib@[0.9.0,);")
+    dependencies = "required-after:gtnhlib@[0.11.3,);")
 public class HogUtils {
 
     public static final Logger LOG = LogManager.getLogger(Tags.MOD_ID);
@@ -34,7 +36,6 @@ public class HogUtils {
     @Mod.EventHandler
     public void onConstructing(FMLConstructionEvent event) {
         proxy.onConstructing(event);
-        listenForRegistryReplacement();
     }
 
     @Mod.EventHandler
@@ -94,25 +95,27 @@ public class HogUtils {
     // register server commands in this event handler (Remove if not needed)
     public void serverStarting(FMLServerStartingEvent event) {
         proxy.serverStarting(event);
-        detectBiomeRegistryReplacement();
     }
 
     //TODO: Register more tags via these functions
 
     public void registerBiomeTags() {
-        BiomeTags.addInheritors("c:is_dry/end", "c:is_dry");
-        BiomeTags.addInheritors("c:is_dry/nether", "c:is_dry");
-        BiomeTags.addInheritors("c:is_dry/overworld", "c:is_dry");
+        HogTags.BLOCKS.put(Blocks.iron_ore, OreDictionary.WILDCARD_VALUE, "minecraft:test1");
+        HogTags.BLOCKS.put(Blocks.netherrack, OreDictionary.WILDCARD_VALUE, "minecraft:test2");
+
+        HogTags.BIOMES.putInheritor("c:is_dry/end", "c:is_dry");
+        HogTags.BIOMES.putInheritor("c:is_dry/nether", "c:is_dry");
+        HogTags.BIOMES.putInheritor("c:is_dry/overworld", "c:is_dry");
 
         for(BiomeGenBase biome : BiomeGenBase.getBiomeGenArray()) {
             if(biome != null) {
                 BiomeDictionary.Type[] types = BiomeDictionary.getTypesForBiome(biome);
                 if (ArrayUtils.contains(types, BiomeDictionary.Type.NETHER)) {
-                    BiomeTags.addTags(biome, "c:is_nether");
+                    HogTags.BIOMES.put(biome, "c:is_nether");
                     continue;
                 }
                 if (ArrayUtils.contains(types, BiomeDictionary.Type.END)) {
-                    BiomeTags.addTags(biome, "c:is_end");
+                    HogTags.BIOMES.put(biome, "c:is_end");
                     continue;
                 }
             }
@@ -124,18 +127,6 @@ public class HogUtils {
         for(BiomeGenBase biome : BiomeGenBase.getBiomeGenArray()) {
             if(biome != null && biome.getClass().getName().startsWith("net.minecraft.world.Biome")) {
                 vanillaBiomes.put(biome, biome.biomeID);
-            }
-        }
-    }
-
-    /// Finds biomes that have been registry replaced by a mod and transfer all the tags to the new one
-    private void detectBiomeRegistryReplacement() {
-        for(Map.Entry<BiomeGenBase, Integer> biome : vanillaBiomes.entrySet()) {
-            if(BiomeGenBase.getBiomeGenArray()[biome.getValue()] != biome.getKey()) {
-                LOG.info("A mod has registry replaced the biome " + biome.getKey().biomeName + ", transferring tags over to "
-                    + BiomeGenBase.getBiomeGenArray()[biome.getValue()].getClass() + " from " + biome.getKey().getClass() + "...");
-                String[] tags = BiomeTags.getTags(biome.getKey()).toArray(new String[]{});
-                BiomeTags.addTags(BiomeGenBase.getBiomeGenArray()[biome.getValue()], tags);
             }
         }
     }

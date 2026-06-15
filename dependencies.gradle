@@ -44,11 +44,11 @@ tasks.named('shadowJar', com.github.jengelman.gradle.plugins.shadow.tasks.Shadow
 
 dependencies {
 //    runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.6.34-GTNH:dev")
-    implementation("com.github.GTNewHorizons:GTNHLib:0.9.0")
+    implementation("com.github.GTNewHorizons:GTNHLib:0.11.3")
 //    implementation("com.falsepattern:falsepatternlib-mc1.7.10:1.4.6:dev")
 
 
-    shadowImplementation('com.github.makamys:MCLib:0.3.7.7') {
+    shadowImplementation('com.github.makamys:MCLib:0.3.7.8') {
         exclude group: "codechicken"
     }
 

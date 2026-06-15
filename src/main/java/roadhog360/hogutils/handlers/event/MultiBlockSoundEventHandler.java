@@ -18,10 +18,10 @@ import net.minecraftforge.client.event.sound.PlaySoundEvent17;
 import net.minecraftforge.event.entity.PlaySoundAtEntityEvent;
 import roadhog360.hogutils.api.blocksanditems.block.ICustomActivateSound;
 import roadhog360.hogutils.api.blocksanditems.block.IMultiBlockSound;
-import roadhog360.hogutils.api.event.IUnfinalizedSoundEvent;
+import roadhog360.hogutils.api.event.interfaces.IUnfinalizedSoundEvent;
 
 @EventBusSubscriber(side = Side.CLIENT)
-public final class MultiBlockSoundEventHandler {
+public class MultiBlockSoundEventHandler {
 
 //    private final ThreadLocal<BlockPos.MutableBlockPos> LAST_PLACED = ThreadLocal.withInitial(() -> new BlockPos.MutableBlockPos(0, 0, 0));
 

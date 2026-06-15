@@ -5,7 +5,7 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Mutable;
 import org.spongepowered.asm.mixin.Shadow;
-import roadhog360.hogutils.api.event.IUnfinalizedSoundEvent;
+import roadhog360.hogutils.api.event.interfaces.IUnfinalizedSoundEvent;
 
 @Mixin(PlaySoundAtEntityEvent.class)
 public class MixinPlaySoundAtEntityEvent implements IUnfinalizedSoundEvent {

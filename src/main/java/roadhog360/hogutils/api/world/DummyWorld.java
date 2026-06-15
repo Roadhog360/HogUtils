@@ -1,6 +1,8 @@
 package roadhog360.hogutils.api.world;
 
 import it.unimi.dsi.fastutil.objects.Object2ReferenceOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ReferenceIntImmutablePair;
+import lombok.val;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.init.Blocks;
@@ -16,7 +18,6 @@ import net.minecraft.world.storage.IPlayerFileData;
 import net.minecraft.world.storage.ISaveHandler;
 import net.minecraft.world.storage.WorldInfo;
 import roadhog360.hogutils.api.BlockPos;
-import roadhog360.hogutils.api.blocksanditems.utils.BlockMetaPair;
 import roadhog360.hogutils.api.utils.FastRandom;
 
 import java.io.File;
@@ -25,8 +26,8 @@ import java.util.Map;
 /// Used for fake worlds where setblock/getblock is needed
 /// Tile entity data and entities are not supported
 public class DummyWorld extends World {
-    private final Map<BlockPos, BlockMetaPair> FAKE_WORLD_DATA = new Object2ReferenceOpenHashMap<>(); //Stores setblock data for getblock
-    private static final BlockMetaPair AIR = BlockMetaPair.intern(Blocks.air, 0);
+    private final Map<BlockPos, ReferenceIntImmutablePair<Block>> FAKE_WORLD_DATA = new Object2ReferenceOpenHashMap<>(); //Stores setblock data for getblock
+    private static final ReferenceIntImmutablePair<Block> AIR = ReferenceIntImmutablePair.of(Blocks.air, 0);
 
     DummyWorld(ISaveHandler par1iSaveHandler, String par2Str, WorldProvider par3WorldProvider, WorldSettings par4WorldSettings, Profiler par5Profiler) {
         super(par1iSaveHandler, par2Str, par4WorldSettings, par3WorldProvider, par5Profiler);
@@ -102,9 +103,9 @@ public class DummyWorld extends World {
 
     @Override
     public boolean setBlockMetadataWithNotify(int aX, int aY, int aZ, int aMeta, int flags) {
-        BlockMetaPair block = FAKE_WORLD_DATA.get(new BlockPos(aX, aY, aZ));
-        if (block != null && block.getMeta() != aMeta) {
-            setBlock(aX, aY, aZ, block.get(), aMeta, 0);
+        ReferenceIntImmutablePair<Block> block = FAKE_WORLD_DATA.get(new BlockPos(aX, aY, aZ));
+        if (block != null && block.rightInt() != aMeta) {
+            setBlock(aX, aY, aZ, block.left(), aMeta, 0);
             return true;
         }
         return false;
@@ -112,7 +113,8 @@ public class DummyWorld extends World {
 
     @Override
     public boolean setBlockToAir(int aX, int aY, int aZ) {
-        return FAKE_WORLD_DATA.remove(new BlockPos(aX, aY, aZ)) != null;
+        val block = FAKE_WORLD_DATA.remove(new BlockPos(aX, aY, aZ));
+        return block != null && block.left() == Blocks.air;
     }
 
     @Override
@@ -126,8 +128,8 @@ public class DummyWorld extends World {
         if (aBlock == Blocks.air) {
             return setBlockToAir(aX, aY, aZ);
         } else {
-            BlockMetaPair result = FAKE_WORLD_DATA.put(pos, BlockMetaPair.intern(aBlock, aMeta));
-            return result == null || result.matches(aBlock, aMeta);
+            ReferenceIntImmutablePair<Block> result = FAKE_WORLD_DATA.put(pos, ReferenceIntImmutablePair.of(aBlock, aMeta));
+            return result == null || result.left() != aBlock || result.rightInt() != aMeta;
         }
     }
 
@@ -148,12 +150,12 @@ public class DummyWorld extends World {
 
     @Override
     public Block getBlock(int aX, int aY, int aZ) {
-        return FAKE_WORLD_DATA.getOrDefault(new BlockPos(aX, aY, aZ), AIR).get();
+        return FAKE_WORLD_DATA.getOrDefault(new BlockPos(aX, aY, aZ), AIR).left();
     }
 
     @Override
     public int getBlockMetadata(int aX, int aY, int aZ) {
-        return FAKE_WORLD_DATA.getOrDefault(new BlockPos(aX, aY, aZ), AIR).getMeta();
+        return FAKE_WORLD_DATA.getOrDefault(new BlockPos(aX, aY, aZ), AIR).rightInt();
     }
 
     @Override

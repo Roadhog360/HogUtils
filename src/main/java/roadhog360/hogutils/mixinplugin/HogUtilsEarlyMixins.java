@@ -29,15 +29,16 @@ public class HogUtilsEarlyMixins implements IFMLLoadingPlugin, IEarlyMixinLoader
         mixins.add("hogtags.MixinOreDictionary");
         mixins.add("hogtags.MixinBlock");
         mixins.add("hogtags.MixinItem");
-        mixins.add("hogtags.MixinBiomeGenBase");
 
         // Custom events
-        // IUnfinalizedSoundEventHandler
+        // IUnfinalizedSoundEvent
         mixins.add("event.MixinWorld");
         mixins.add("event.MixinPlaySoundAtEntityEvent");
         if (SIDE == MixinEnvironment.Side.CLIENT) {
             mixins.add("event.MixinEntityPlayerSP");
         }
+        // RecipeRegisterEvent
+        mixins.add("event.MixinCraftingManager");
 
         // Check if a populator is currently running
         mixins.add("geninfo.MixinChunkProviderServer");

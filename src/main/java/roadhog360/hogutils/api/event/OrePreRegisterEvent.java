@@ -8,11 +8,11 @@ import net.minecraft.item.ItemStack;
 /// Will also cancel auto HogTag logic for this OreDictionary tag.
 /// Do not register new OreDictionary values here, you are very likely to trigger infinite recursion!
 @Cancelable
-public class OreRegisterEventPre extends Event {
+public class OrePreRegisterEvent extends Event {
     public final String name;
     public final ItemStack stack;
 
-    public OreRegisterEventPre(String name, ItemStack ore)
+    public OrePreRegisterEvent(String name, ItemStack ore)
     {
         this.name = name;
         this.stack = ore;

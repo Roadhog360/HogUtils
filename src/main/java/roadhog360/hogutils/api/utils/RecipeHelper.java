@@ -11,6 +11,7 @@ import net.minecraftforge.oredict.OreDictionary;
 import net.minecraftforge.oredict.RecipeSorter;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 import net.minecraftforge.oredict.ShapelessOreRecipe;
+import org.jetbrains.annotations.Nullable;
 import roadhog360.hogutils.Tags;
 import roadhog360.hogutils.api.blocksanditems.ISubtypesBase;
 
@@ -228,22 +229,88 @@ public final class RecipeHelper {
 
         /// Registers a shaped recipe, that returns the input item in a 2x2 shape, to the output stack.
         public void add2by2Recipe(Priority priority, ItemStack output, Object input) {
-            addShapedRecipe(priority, output, "xx", "xx", 'x', input);
+            addShapedRecipe(priority, output,
+                "xx",
+                "xx",
+                'x', input);
         }
 
         /// Registers a shaped recipe, that returns the input item in a 3x3 shape, to the output stack.
         public void add3by3Recipe(Priority priority, ItemStack output, Object input) {
-            addShapedRecipe(priority, output, "xxx", "xxx", "xxx", 'x', input);
+            addShapedRecipe(priority, output,
+                "xxx",
+                "xxx",
+                "xxx",
+                'x', input);
         }
 
         /// Registers a recipe that takes 3 of the input object across the bottom of a 3x3 crafting grid, and outputs 6 of the output block
         public void addSlabRecipe(Priority priority, Block output, int outputMeta, Object input) {
-            addShapedRecipe(priority, new ItemStack(output, 6, outputMeta), "xxx", 'x', input);
+            addShapedRecipe(priority, new ItemStack(output, 6, outputMeta),
+                "xxx",
+                'x', input);
         }
 
         /// Registers a recipe that takes 6 of the input object, in a staircase shape on a 3x3 crafting grid, and outputs 4 of the output block.
         public void addStairRecipe(Priority priority, Block output, int outputMeta, Object input) {
-            addShapedRecipe(priority, new ItemStack(output, 4, outputMeta), "x  ", "xx ", "xxx", 'x', input);
+            addShapedRecipe(priority, new ItemStack(output, 4, outputMeta),
+                "x  ",
+                "xx ",
+                "xxx",
+                'x', input);
+        }
+
+        public void addToolRecipes(Priority priority, @Nullable ItemStack pickaxe,
+                                   @Nullable ItemStack axe,
+                                   @Nullable ItemStack sword,
+                                   @Nullable ItemStack shovel,
+                                   @Nullable ItemStack hoe,
+                                   @Nullable Object material, @Nullable Object stick) {
+            addPickaxeRecipe(priority, pickaxe, material, stick);
+            addAxeRecipe(priority, axe, material, stick);
+            addSwordRecipe(priority, sword, material, stick);
+            addShovelRecipe(priority, shovel, material, stick);
+            addHoeRecipe(priority, hoe, material, stick);
+        }
+
+        public void addPickaxeRecipe(Priority priority, @Nullable ItemStack output, @Nullable Object material, @Nullable Object stick) {
+            addShapedRecipe(priority, output,
+                "MMM",
+                " S ",
+                " S ",
+                'M', material, 'S', stick);
+        }
+
+        public void addAxeRecipe(Priority priority, @Nullable ItemStack output, @Nullable Object material, @Nullable Object stick) {
+            addShapedRecipe(priority, output,
+                "MM",
+                "MS",
+                " S",
+                'M', material, 'S', stick);
+        }
+
+        public void addSwordRecipe(Priority priority, @Nullable ItemStack output, @Nullable Object material, @Nullable Object stick) {
+            addShapedRecipe(priority, output,
+                "M",
+                "M",
+                "S",
+                'M', material, 'S', stick);
+        }
+
+        public void addShovelRecipe(Priority priority, @Nullable ItemStack output, @Nullable Object material, @Nullable Object stick) {
+            addShapedRecipe(priority, output,
+                "M",
+                "S",
+                "S",
+                'M', material, 'S', stick);
+        }
+
+        public void addHoeRecipe(Priority priority, @Nullable ItemStack output, @Nullable Object material, @Nullable Object stick) {
+            addShapedRecipe(priority, output,
+                "MM",
+                " S",
+                " S",
+                'M', material, 'S', stick);
         }
     }
 
